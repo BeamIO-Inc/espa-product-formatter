@@ -67,6 +67,10 @@ Purpose: Calculates the satellite viewing and solar illumination zenith and
 Return: 
     Type = integer
     SUCCESS / ERROR
+
+Notes:
+    1. zenith values are from 0 to pi radians
+    2. azimuth values are from -pi to pi radians
  ******************************************************************************/
 int ias_angle_gen_calculate_angles_rpc
 (
@@ -169,7 +173,9 @@ int ias_angle_gen_calculate_angles_rpc
             data_ptr->z_terms.numerator, data_ptr->z_terms.denominator, 
             &vector.z);
 
-        /* Calculate zenith and azimuth angles */
+        /* Calculate zenith and azimuth angles
+           zenith values are from 0 to pi radians (returned from acos)
+           azimuth values are from -pi to pi radians (returned from atan2) */
         angle[IAS_ANGLE_GEN_ZENITH_INDEX] += acos(vector.z);
         angle[IAS_ANGLE_GEN_AZIMUTH_INDEX] += atan2(vector.x, vector.y);
     }
