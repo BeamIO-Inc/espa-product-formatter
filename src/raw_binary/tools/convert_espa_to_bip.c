@@ -1,8 +1,8 @@
 /*****************************************************************************
-FILE: convert_espa_to_hdf
+FILE: convert_espa_to_bip
   
 PURPOSE: Contains functions for converting the ESPA raw binary file format
-to HDF-EOS2 (HDF4).
+to raw binary band interleave by pixel (BIP).
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
@@ -12,9 +12,7 @@ LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 HISTORY:
 Date         Programmer       Reason
 ----------   --------------   -------------------------------------
-1/14/2014    Gail Schmidt     Original development
-4/2/2014     Gail Schmidt     Added a command-line flag to remove the source
-                              files if specified
+8/25/2015    Gail Schmidt     Original development
 
 NOTES:
   1. The XML metadata format parsed or written via this library follows the
@@ -23,7 +21,7 @@ NOTES:
      http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_0.xsd.
 *****************************************************************************/
 #include <getopt.h>
-#include "convert_espa_to_hdf.h"
+#include "convert_espa_to_raw_binary_bip.h"
 
 /******************************************************************************
 MODULE: usage
@@ -36,31 +34,36 @@ Type = None
 HISTORY:
 Date         Programmer       Reason
 ---------    ---------------  -------------------------------------
-1/14/2014    Gail Schmidt     Original Development
+8/25/2015    Gail Schmidt     Original Development
 
 NOTES:
 ******************************************************************************/
 void usage ()
 {
-    printf ("convert_espa_to_hdf converts the ESPA internal format (raw "
-            "binary and associated XML metadata file) to HDF-EOS2 (HDF4).  "
-            "Each band represented in the input XML file will be written to a "
-            "a single HDF file with each SDS being represented as an external "
-            "dataset.\n\n");
-    printf ("usage: convert_espa_to_hdf "
+    printf ("convert_espa_to_bip converts the ESPA internal format (raw "
+            "binary, one band per file, and associated XML metadata file) to "
+            "raw binary band interleave per pixel. Each band represented in "
+            "the input XML file will be written to a single raw binary file "
+            "with the all the bands for a single pixel being written, "
+            "followed by all the bands for the next pixel, etc. An associated "
+            "ENVI header file will be written for this raw binary file.\n\n");
+    printf ("usage: convert_espa_to_bip "
             "--xml=input_metadata_filename "
-            "--hdf=output_hdf_filename "
-            "[--del_src_files]\n");
+            "--bip=output_bip_filename "
+            "[--convert_qa] [--del_src_files]\n");
 
     printf ("\nwhere the following parameters are required:\n");
     printf ("    -xml: name of the input XML metadata file which follows "
             "the ESPA internal raw binary schema\n");
-    printf ("    -hdf: filename of the output HDF file\n");
+    printf ("    -bip: filename of the output raw binary BIP file\n");
+    printf ("    -convert_qa: should the QA bands (UINT8) be converted to the "
+            "native data type of the first band, if QA bands are actually of "
+            "a different data type from the other bands.\n");
     printf ("    -del_src_files: if specified the source image and header "
             "files will be removed\n");
-    printf ("\nExample: convert_espa_to_hdf "
+    printf ("\nExample: convert_espa_to_bip "
             "--xml=LE70230282011250EDC00.xml "
-            "--hdf=LE70230282011250EDC00.hdf\n");
+            "--bip=LE70230282011250EDC00.img\n");
 }
 
 
@@ -93,7 +96,10 @@ short get_args
     int argc,             /* I: number of cmd-line args */
     char *argv[],         /* I: string of cmd-line args */
     char **xml_infile,    /* O: address of input XML filename */
-    char **hdf_outfile,   /* O: address of output HDF filename */
+    char **bip_outfile,   /* O: address of output BIP filename */
+    bool *convert_qa,     /* O: should the QA bands (uint8) be converted to
+                                the data type of band 1 (if QA bands are of
+                                a different data type)? */
     bool *del_src         /* O: should source files be removed? */
 )
 {
@@ -102,11 +108,13 @@ short get_args
     char errmsg[STR_SIZE];           /* error message */
     char FUNC_NAME[] = "get_args";   /* function name */
     static int del_flag = 0;         /* flag for removing the source files */
+    static int convert_flag = 0;     /* flag for converting QA data */
     static struct option long_options[] =
     {
         {"del_src_files", no_argument, &del_flag, 1},
+        {"convert_qa", no_argument, &convert_flag, 1},
         {"xml", required_argument, 0, 'i'},
-        {"hdf", required_argument, 0, 'o'},
+        {"bip", required_argument, 0, 'o'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -139,8 +147,8 @@ short get_args
                 *xml_infile = strdup (optarg);
                 break;
      
-            case 'o':  /* HDF outfile */
-                *hdf_outfile = strdup (optarg);
+            case 'o':  /* BIP outfile */
+                *bip_outfile = strdup (optarg);
                 break;
      
             case '?':
@@ -162,9 +170,9 @@ short get_args
         return (ERROR);
     }
 
-    if (*hdf_outfile == NULL)
+    if (*bip_outfile == NULL)
     {
-        sprintf (errmsg, "HDF output file is a required argument");
+        sprintf (errmsg, "BIP output file is a required argument");
         error_handler (true, FUNC_NAME, errmsg);
         usage ();
         return (ERROR);
@@ -174,6 +182,10 @@ short get_args
     if (del_flag)
         *del_src = true;
 
+    /* Check the convert QA flag */
+    if (convert_flag)
+        *convert_qa = true;
+
     return (SUCCESS);
 }
 
@@ -181,10 +193,12 @@ short get_args
 /******************************************************************************
 MODULE:  main
 
-PURPOSE:  Converts the ESPA internal format (raw binary and associated XML
-metadata file) to HDF-EOS2 (HDF4). Each band represented in the input XML file
-will be written to a a single HDF file with each SDS being represented as an
-external dataset.
+PURPOSE:  Converts the ESPA internal format (raw binary, one band per file, and
+associated XML metadata file) to raw binary band interleave per pixel. Each
+band represented in the input XML file will be written to a single raw binary
+file with the all the bands for a single pixel being written, followed by all
+the bands for the next pixel, etc. An associated ENVI header file will be
+written for this raw binary file.
 
 RETURN VALUE:
 Type = int
@@ -196,31 +210,44 @@ SUCCESS         No errors encountered
 HISTORY:
 Date         Programmer       Reason
 ----------   --------------   -------------------------------------
-1/14/2014    Gail Schmidt     Original development
+8/25/2015    Gail Schmidt     Original development
+8/25/2015    Gail Schmidt     Add support for converting the QA bands to the
+                              same data type as band 1
 
 NOTES:
+  1. The bands in the XML file will be written, in order, to the BIP file.
+     These bands must be of the same datatype and same size, otherwise this
+     function will exit with an error.
+  2. If the data types are not the same, the convert_qa flag will allow the
+     user to specify that the QA bands (uint8) should be included in the output
+     BIP product however the QA bands will be converted to the same data type
+     as the first band in the XML file.
 ******************************************************************************/
 int main (int argc, char** argv)
 {
     char *xml_infile = NULL;     /* input XML filename */
-    char *hdf_outfile = NULL;    /* output HDF filename */
+    char *bip_outfile = NULL;    /* output BIP filename */
+    bool convert_qa = false;     /* should the QA bands (UINT8) be converted to
+                                    the native data type? */
     bool del_src = false;        /* should source files be removed? */
 
     /* Read the command-line arguments */
-    if (get_args (argc, argv, &xml_infile, &hdf_outfile, &del_src) != SUCCESS)
+    if (get_args (argc, argv, &xml_infile, &bip_outfile, &convert_qa,
+        &del_src) != SUCCESS)
     {   /* get_args already printed the error message */
         exit (EXIT_FAILURE);
     }
 
-    /* Convert the internal ESPA raw binary product to HDF with external SDSs */
-    if (convert_espa_to_hdf (xml_infile, hdf_outfile, del_src) != SUCCESS)
+    /* Convert the internal ESPA raw binary product to raw binary BIP */
+    if (convert_espa_to_raw_binary_bip (xml_infile, bip_outfile, convert_qa,
+        del_src) != SUCCESS)
     {  /* Error messages already written */
         exit (EXIT_FAILURE);
     }
 
     /* Free the pointers */
     free (xml_infile);
-    free (hdf_outfile);
+    free (bip_outfile);
 
     /* Successful completion */
     exit (EXIT_SUCCESS);

@@ -20,6 +20,9 @@ OBJ1 = $(SRC1:.c=.o)
 SRC2 = convert_espa_to_hdf.c
 OBJ2 = $(SRC2:.c=.o)
 
+SRC9 = convert_espa_to_bip.c
+OBJ9 = $(SRC9:.c=.o)
+
 SRC3 = convert_espa_to_gtif.c
 OBJ3 = $(SRC3:.c=.o)
 
@@ -50,6 +53,11 @@ LIB2   = \
     -L$(XML2LIB) -lxml2 \
     -L$(HDFEOS_LIB) -lhdfeos -L$(HDFEOS_GCTPLIB) -lGctp \
     -L$(HDFLIB) -lmfhdf -ldf -L$(JPEGLIB) -ljpeg -L$(JBIGLIB) -ljbig \
+    -L$(ZLIBLIB) -lz -lm
+
+LIB9   = \
+    -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
+    -L$(XML2LIB) -lxml2 -ljpeg -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz -lm
 
 LIB3   = \
@@ -85,8 +93,8 @@ LIB8   = \
 
 # Define the executable
 EXE = convert_lpgs_to_espa convert_espa_to_hdf convert_espa_to_gtif \
-      espa_band_subset espa_product_subset convert_modis_to_espa \
-      create_l8_angle_bands create_land_water_mask
+      convert_espa_to_bip espa_band_subset espa_product_subset \
+      convert_modis_to_espa create_l8_angle_bands create_land_water_mask
 
 # Target for the executable
 all: $(EXE)
@@ -96,6 +104,9 @@ convert_lpgs_to_espa: $(OBJ1) $(INC)
 
 convert_espa_to_hdf: $(OBJ2) $(INC)
 	$(CC) $(NCFLAGS) -o convert_espa_to_hdf $(OBJ2) $(LIB2)
+
+convert_espa_to_bip: $(OBJ9) $(INC)
+	$(CC) $(NCFLAGS) -o convert_espa_to_bip $(OBJ9) $(LIB9)
 
 convert_espa_to_gtif: $(OBJ3) $(INC)
 	$(CC) $(NCFLAGS) -o convert_espa_to_gtif $(OBJ3) $(LIB3)
@@ -128,6 +139,7 @@ endif
 
 $(OBJ1): $(INC)
 $(OBJ2): $(INC)
+$(OBJ9): $(INC)
 $(OBJ3): $(INC)
 $(OBJ4): $(INC)
 $(OBJ5): $(INC)
