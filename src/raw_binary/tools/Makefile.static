@@ -20,9 +20,6 @@ OBJ1 = $(SRC1:.c=.o)
 SRC2 = convert_espa_to_hdf.c
 OBJ2 = $(SRC2:.c=.o)
 
-SRC9 = convert_espa_to_bip.c
-OBJ9 = $(SRC9:.c=.o)
-
 SRC3 = convert_espa_to_gtif.c
 OBJ3 = $(SRC3:.c=.o)
 
@@ -41,6 +38,12 @@ OBJ7 = $(SRC7:.c=.o)
 SRC8 = create_land_water_mask.c
 OBJ8 = $(SRC8:.c=.o)
 
+SRC9 = convert_espa_to_bip.c
+OBJ9 = $(SRC9:.c=.o)
+
+SRC10 = create_julian_date_bands.c
+OBJ10 = $(SRC10:.c=.o)
+
 # Define the object libraries
 LIB1   = \
     -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
@@ -53,11 +56,6 @@ LIB2   = \
     -L$(XML2LIB) -lxml2 \
     -L$(HDFEOS_LIB) -lhdfeos -L$(HDFEOS_GCTPLIB) -lGctp \
     -L$(HDFLIB) -lmfhdf -ldf -L$(JPEGLIB) -ljpeg -L$(JBIGLIB) -ljbig \
-    -L$(ZLIBLIB) -lz -lm
-
-LIB9   = \
-    -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
-    -L$(XML2LIB) -lxml2 -ljpeg -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz -lm
 
 LIB3   = \
@@ -91,10 +89,21 @@ LIB8   = \
     -l_espa_l8_ang -L$(XML2LIB) -lxml2 \
     -lgctp3 -L$(ZLIBLIB) -lz -lm
 
+LIB9   = \
+    -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
+    -L$(XML2LIB) -lxml2 -ljpeg -L$(JBIGLIB) -ljbig \
+    -L$(ZLIBLIB) -lz -lm
+
+LIB10   = \
+    -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
+    -L$(XML2LIB) -lxml2 -ljpeg -L$(JBIGLIB) -ljbig \
+    -L$(ZLIBLIB) -lz -lm
+
 # Define the executable
 EXE = convert_lpgs_to_espa convert_espa_to_hdf convert_espa_to_gtif \
       convert_espa_to_bip espa_band_subset espa_product_subset \
-      convert_modis_to_espa create_l8_angle_bands create_land_water_mask
+      convert_modis_to_espa create_l8_angle_bands create_land_water_mask \
+      create_julian_date_bands
 
 # Target for the executable
 all: $(EXE)
@@ -104,9 +113,6 @@ convert_lpgs_to_espa: $(OBJ1) $(INC)
 
 convert_espa_to_hdf: $(OBJ2) $(INC)
 	$(CC) $(NCFLAGS) -o convert_espa_to_hdf $(OBJ2) $(LIB2)
-
-convert_espa_to_bip: $(OBJ9) $(INC)
-	$(CC) $(NCFLAGS) -o convert_espa_to_bip $(OBJ9) $(LIB9)
 
 convert_espa_to_gtif: $(OBJ3) $(INC)
 	$(CC) $(NCFLAGS) -o convert_espa_to_gtif $(OBJ3) $(LIB3)
@@ -126,6 +132,12 @@ create_l8_angle_bands: $(OBJ7) $(INC)
 create_land_water_mask: $(OBJ8) $(INC)
 	$(CC) $(NCFLAGS) -o create_land_water_mask $(OBJ8) $(LIB8)
 
+convert_espa_to_bip: $(OBJ9) $(INC)
+	$(CC) $(NCFLAGS) -o convert_espa_to_bip $(OBJ9) $(LIB9)
+
+create_julian_date_bands: $(OBJ10) $(INC)
+	$(CC) $(NCFLAGS) -o create_julian_date_bands $(OBJ10) $(LIB10)
+
 clean:
 	$(RM) *.o $(EXE)
 
@@ -139,13 +151,14 @@ endif
 
 $(OBJ1): $(INC)
 $(OBJ2): $(INC)
-$(OBJ9): $(INC)
 $(OBJ3): $(INC)
 $(OBJ4): $(INC)
 $(OBJ5): $(INC)
 $(OBJ6): $(INC)
 $(OBJ7): $(INC)
 $(OBJ8): $(INC)
+$(OBJ9): $(INC)
+$(OBJ10): $(INC)
 .c.o:
 	$(CC) $(NCFLAGS) -c $<
 
