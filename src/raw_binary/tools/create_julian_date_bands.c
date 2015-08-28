@@ -373,6 +373,7 @@ int main (int argc, char** argv)
                 break;
         }
 
+        out_bmeta->resample_method = ESPA_NN;
         out_bmeta->nlines = nlines;
         out_bmeta->nsamps = nsamps;
         out_bmeta->pixel_size[0] = bmeta->pixel_size[0];
