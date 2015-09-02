@@ -29,10 +29,10 @@ INC = convert_lpgs_to_espa.h convert_espa_to_hdf.h espa_hdf.h espa_hdf_eos.h \
 #-----------------------------------------
 # Define the source code and object files:
 #-----------------------------------------
-SRC	= \
-	convert_lpgs_to_espa.c convert_espa_to_hdf.c espa_hdf.c espa_hdf_eos.c \
-    convert_espa_to_gtif.c convert_modis_to_espa.c espa_geoloc.c \
-    convert_espa_to_raw_binary_bip.c generate_julian_date_bands.c
+SRC = \
+      convert_lpgs_to_espa.c convert_espa_to_hdf.c espa_hdf.c espa_hdf_eos.c \
+      convert_espa_to_gtif.c convert_modis_to_espa.c espa_geoloc.c \
+      convert_espa_to_raw_binary_bip.c generate_julian_date_bands.c
 
 OBJ = $(SRC:.c=.o)
 

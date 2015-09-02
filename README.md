@@ -14,14 +14,14 @@ See git tag [version_1.4.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
-  * TIFF libraries (3.8.2 or most current) -- ftp://ftp.remotesensing.org/pub/libtiff/
-  * GeoTIFF libraries (1.2.5 or most current) -- ftp://ftp.remotesensing.org/pub/geotiff/libgeotiff/
-  * HDF4 libraries (4.2.5 or most current) -- https://www.hdfgroup.org/ftp/HDF/releases/
-  * HDF-EOS2 libraries (2.18 or most current) -- ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release/
-  * JPEG libraries (version 6b) -- http://www.ijg.org/files/
-  * ZLIB libraries (version 1.2.8) -- http://zlib.net/
-  * XML2 libraries -- http://www.linuxfromscratch.org/blfs/view/svn/general/libxml2.html
-  * Land/water static polygon -- http://espa.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz
+  * TIFF libraries (3.8.2 or most current) -- [Found here](ftp://ftp.remotesensing.org/pub/libtiff/)
+  * GeoTIFF libraries (1.2.5 or most current) -- [Found here](ftp://ftp.remotesensing.org/pub/geotiff/libgeotiff/)
+  * HDF4 libraries (4.2.5 or most current) -- [Found here](https://www.hdfgroup.org/ftp/HDF/releases/)
+  * HDF-EOS2 libraries (2.18 or most current) -- [Found here](ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release/)
+  * JPEG libraries (version 6b) -- [Found here](http://www.ijg.org/files/)
+  * ZLIB libraries (version 1.2.8) -- [Found here](http://zlib.net/)
+  * XML2 libraries -- [Found here](ftp://xmlsoft.org/libxml2/)
+  * Land/water static polygon -- [Found here](http://espa.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz)
 
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
 
