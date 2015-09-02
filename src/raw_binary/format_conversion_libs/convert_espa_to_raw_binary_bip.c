@@ -137,7 +137,9 @@ int convert_espa_to_raw_binary_bip
     {
         if (bmeta[i].data_type != bmeta[0].data_type)
         {
-            if (convert_qa && bmeta[i].data_type == ESPA_UINT8)
+            /* Convert uint8 data types that are flagged as QA */
+            if (convert_qa && bmeta[i].data_type == ESPA_UINT8 &&
+                !strcmp (bmeta[i].category, "qa"))
             {
                 /* all is good, data type will be converted */
                 printf ("Band %s will be converted to native data type.\n",
@@ -273,7 +275,7 @@ int convert_espa_to_raw_binary_bip
         }
         file_buf = file_buf_u16;
 
-        /* Input data */
+        /* Output data */
         ofile_buf_u16 = calloc (bmeta[0].nsamps * xml_metadata.nbands, nbytes);
         if (ofile_buf_u16 == NULL)
         {
