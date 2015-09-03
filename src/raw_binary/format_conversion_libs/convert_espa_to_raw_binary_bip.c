@@ -203,96 +203,67 @@ int convert_espa_to_raw_binary_bip
 
     /* Allocate memory for a single line of the image and all the bands, based
        on the input data type of the first band */
-    if (bmeta[0].data_type == ESPA_UINT8)
+    switch (bmeta[0].data_type)
     {
-        nbytes = sizeof (uint8);
-
-        /* Input data */
-        file_buf_u8 = calloc (bmeta[0].nsamps * xml_metadata.nbands, nbytes);
-        if (file_buf_u8 == NULL)
-        {
-            sprintf (errmsg, "Allocating memory for a line of uint8 data "
-                "containing %d samples for all %d bands.", bmeta[0].nsamps,
-                xml_metadata.nbands);
+        case ESPA_UINT8:
+            nbytes = sizeof (uint8);
+            break;
+        case ESPA_INT16:
+            nbytes = sizeof (int16);
+            break;
+        case ESPA_UINT16:
+            nbytes = sizeof (uint16);
+            break;
+        default:
+            sprintf (errmsg, "Unsupported data type.  Currently only uint8, "
+                "int16, and uint16 are supported.");
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
-        }
-        file_buf = file_buf_u8;
-
-        /* Output data */
-        ofile_buf_u8 = calloc (bmeta[0].nsamps * xml_metadata.nbands, nbytes);
-        if (ofile_buf_u8 == NULL)
-        {
-            sprintf (errmsg, "Allocating memory for a line of uint8 data "
-                "containing %d samples for all %d bands.", bmeta[0].nsamps,
-                xml_metadata.nbands);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-        ofile_buf = ofile_buf_u8;
     }
-    else if (bmeta[0].data_type == ESPA_INT16)
+
+    /* Input data */
+    file_buf = calloc (bmeta[0].nsamps * xml_metadata.nbands, nbytes);
+    if (file_buf == NULL)
     {
-        nbytes = sizeof (int16);
-
-        /* Input data */
-        file_buf_i16 = calloc (bmeta[0].nsamps * xml_metadata.nbands, nbytes);
-        if (file_buf_i16 == NULL)
-        {
-            sprintf (errmsg, "Allocating memory for a line of int16 data "
-                "containing %d samples for all %d bands.", bmeta[0].nsamps,
-                xml_metadata.nbands);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-        file_buf = file_buf_i16;
-
-        /* Output data */
-        ofile_buf_i16 = calloc (bmeta[0].nsamps * xml_metadata.nbands, nbytes);
-        if (ofile_buf_i16 == NULL)
-        {
-            sprintf (errmsg, "Allocating memory for a line of int16 data "
-                "containing %d samples for all %d bands.", bmeta[0].nsamps,
-                xml_metadata.nbands);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-        ofile_buf = ofile_buf_i16;
-    }
-    else if (bmeta[0].data_type == ESPA_UINT16)
-    {
-        nbytes = sizeof (uint16);
-
-        /* Input data */
-        file_buf_u16 = calloc (bmeta[0].nsamps * xml_metadata.nbands, nbytes);
-        if (file_buf_u16 == NULL)
-        {
-            sprintf (errmsg, "Allocating memory for a line of uint16 data "
-                "containing %d samples for all %d bands.", bmeta[0].nsamps,
-                xml_metadata.nbands);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-        file_buf = file_buf_u16;
-
-        /* Output data */
-        ofile_buf_u16 = calloc (bmeta[0].nsamps * xml_metadata.nbands, nbytes);
-        if (ofile_buf_u16 == NULL)
-        {
-            sprintf (errmsg, "Allocating memory for a line of uint16 data "
-                "containing %d samples for all %d bands.", bmeta[0].nsamps,
-                xml_metadata.nbands);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-        ofile_buf = ofile_buf_u16;
-    }
-    else
-    {
-        sprintf (errmsg, "Unsupported data type.  Currently only uint8, "
-            "int16, and uint16 are supported.");
+        sprintf (errmsg, "Allocating memory for a line of %d-byte data "
+            "containing %d samples for all %d bands.", nbytes, bmeta[0].nsamps,
+            xml_metadata.nbands);
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
+    }
+
+    /* Output data */
+    ofile_buf = calloc (bmeta[0].nsamps * xml_metadata.nbands, nbytes);
+    if (ofile_buf == NULL)
+    {
+        sprintf (errmsg, "Allocating memory for a line of %d-byte data "
+            "containing %d samples for all %d bands.", nbytes, bmeta[0].nsamps,
+            xml_metadata.nbands);
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
+    /* Assign the datatype-specific pointer to the void pointer to be used
+       in the data conversion later for QA pixels */
+    switch (bmeta[0].data_type)
+    {
+        case ESPA_UINT8:
+            file_buf_u8 = file_buf;
+            ofile_buf_u8 = ofile_buf;
+            break;
+        case ESPA_INT16:
+            file_buf_i16 = file_buf;
+            ofile_buf_i16 = ofile_buf;
+            break;
+        case ESPA_UINT16:
+            file_buf_u16 = file_buf;
+            ofile_buf_u16 = ofile_buf;
+            break;
+        default:
+            sprintf (errmsg, "Unsupported data type.  Currently only uint8, "
+                "int16, and uint16 are supported.");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
     }
 
     /* The QA bands will be converted so allocate space for a temporary UINT8
@@ -355,7 +326,7 @@ int convert_espa_to_raw_binary_bip
             {
                 /* Read the current line from the raw binary file */
                 if (read_raw_binary (fp_rb[i], 1, bmeta[0].nsamps, nbytes,
-                    &file_buf[i*nbytes_line]) != SUCCESS)
+                    file_buf + (i*nbytes_line)) != SUCCESS)
                 {
                     sprintf (errmsg, "Reading image data from the raw binary "
                         "file for line %d and band %d", l, i);
