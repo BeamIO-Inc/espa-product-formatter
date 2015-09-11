@@ -91,13 +91,11 @@ LIB8   = \
 
 LIB9   = \
     -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
-    -L$(XML2LIB) -lxml2 -ljpeg -L$(JBIGLIB) -ljbig \
-    -L$(ZLIBLIB) -lz -lm
+    -L$(XML2LIB) -lxml2 -L$(JBIGLIB) -ljbig -L$(ZLIBLIB) -lz -lm
 
 LIB10   = \
     -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
-    -L$(XML2LIB) -lxml2 -ljpeg -L$(JBIGLIB) -ljbig \
-    -L$(ZLIBLIB) -lz -lm
+    -L$(XML2LIB) -lxml2 -L$(JBIGLIB) -ljbig -L$(ZLIBLIB) -lz -lm
 
 # Define the executable
 EXE = convert_lpgs_to_espa convert_espa_to_hdf convert_espa_to_gtif \
