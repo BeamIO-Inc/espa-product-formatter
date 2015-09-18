@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.4.0 Release Notes
-Release Date: May 27, 2015
+## ESPA-PRODUCT_FORMATTER Version 1.5.0 Release Notes
+Release Date: September 23, 2015
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -10,7 +10,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.4.0]
+See git tag [version_1.5.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -82,10 +82,7 @@ be needed for your application.
 
 
 ## Changes From Previous Version
-#### Updates on May 27, 2015 - USGS EROS
-  * Created schema version 1.2 to include the reflectance gain/bias.  Changed toa\_reflectance gain/bias to radiance gain/bias.  This will better match the MTL file nomenclature.  Added thermal constants K1 and K2.  Added the earth-sun distance.  Updated the espa-common libraries and tools to read the MTL file to populate these new optional parameters and write them to the XML file.  The HDF global attributes no longer contain the gain/bias values.  Writing these as an array to the HDF attributes doesn’t really allow us to document what band each one applies to.  The gain/bias values for both radiance and reflectance will be in the XML file and they are much better documented there.  These coefficients and constants exist for TM  (if reprocessing is done), ETM+ (after March 17th), and OLI/TIRS.  Also verified that the scene center time parameter containing quotes or not containing quotes won’t be an issue.
-  * Updated to include per-pixel solar/sensor angle libraries for Landsat 8.  A new tool in the tools directory will produce the solar/sensor angle bands for L8.
-  * The IAS libraries in per-pixel angles code defined ERROR to be -1 vs. our previously defined ERROR of 1.  Switched ERROR in common.h to be -1.  Also renamed common.h to espa\_common.h to be more specific to ESPA.
-  * Updated to install in $PREFIX/bin vs. $BIN
-  * Developed a library to create the scene-based static land/water mask from the land mass polygon.  There is a create\_land\_water\_mask application which creates the land/water mask band {scenename\_land\_water\_mask.img} and appends it to the XML file.  This is being tested with L4, L5, L7, and L8.  This library/application combination requires that ESPA\_LAND\_MASS\_POLYGON be defined to point to the land\_no\_buf.ply file which gets installed in $PREFIX/static\_data.
-  * Updated python metadata api for the schema changes.
+#### Updates on September 23, 2015 - USGS EROS
+  * Modified the per-pixel angle function and executable to support producing the average per-pixel angle of all the reflectance bands.
+  * Added support for BIP raw binary output products.
+  * Added support for generating Julian date, day, year bands.
