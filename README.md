@@ -21,12 +21,13 @@ See git tag [version_1.5.0]
   * JPEG libraries (version 6b) -- [Found here](http://www.ijg.org/files/)
   * ZLIB libraries (version 1.2.8) -- [Found here](http://zlib.net/)
   * XML2 libraries -- [Found here](ftp://xmlsoft.org/libxml2/)
+  * JBIG libraries -- [Found here] (http://www.cl.cam.ac.uk/~mgk25/jbigkit/)
   * Land/water static polygon -- [Found here](http://espa.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz)
 
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
 
 ### Installation
-  * Install dependent libraries - HDF-EOS GCTP (from HDF-EOS2), HDF4, HDF-EOS2, TIFF, GeoTIFF, JPEG, and XML2.
+  * Install dependent libraries - HDF-EOS GCTP (from HDF-EOS2), HDF4, HDF-EOS2, TIFF, GeoTIFF, JPEG, XML2, JBIG, and ZLIB.
 
   * Set up environment variables.  Can create an environment shell file or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.  Note: If the HDF library was configured and built with szip support, then the user will also need to add an environment variable for SZIP include (SZIPINC) and library (SZIPLIB) files.
   ```
@@ -44,6 +45,10 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
     export JPEGLIB="path_to_JPEG_libraries"
     export XML2INC="path_to_XML2_include_files"
     export XML2LIB="path_to_XML2_libraries"
+    export JBIGINC="path_to_JBIG_include_files"
+    export JBIGLIB="path_to_JBIG_libraries"
+    export ZLIBINC="path_to_ZLIB_include_files"
+    export ZLIBLIB="path_to_ZLIB_libraries"    
     export ESPAINC="path_to_format_converter_raw_binary_include_directory"
     export ESPALIB="path_to_format_converter_raw_binary_lib_directory"
   ```
@@ -66,12 +71,13 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
 ### Linking these libraries for other applications
 The following is an example of how to link these libraries into your
 source code. Depending on your needs, some of these libraries may not
-be needed for your application.
+be needed for your application or other espa product formatter libraries may need to be added.
 ```
  -L$(ESPALIB) -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
  -L$(XML2LIB) -lxml2 \
  -L$(HDFEOS_LIB) -lhdfeos -L$(HDFEOS_GCTPLIB) -lGctp \
- -L$(HDFLIB) -lmfhdf -ldf -L$(JPEGLIB) -ljpeg -L$(JBIGLIB) -ljbig -lz -lm
+ -L$(HDFLIB) -lmfhdf -ldf -L$(JPEGLIB) -ljpeg -L$(JBIGLIB) -ljbig \
+ -L$(ZLIBLIB) -lz -lm
 ```
 
 ### Verification Data
