@@ -10,7 +10,7 @@ EXTRA = -Wall -g -O2
 # Define the include files
 INC = 
 INCDIR  = -I. -I../include -I$(XML2INC) -I$(TIFFINC) -I$(GEOTIFF_INC) \
-    -I$(HDFINC) -I$(HDFEOS_INC) -I$(JBIGINC) -I$(LZMAINC)
+    -I$(HDFINC) -I$(HDFEOS_INC) -I$(JBIGINC) -I$(ZLIBINC)
 NCFLAGS = $(EXTRA) $(INCDIR)
 
 # Define the source code and object files
