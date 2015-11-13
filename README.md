@@ -1,5 +1,5 @@
 ## ESPA-PRODUCT_FORMATTER Version 1.5.0 Release Notes
-Release Date: September 23, 2015
+Release Date: November 23, 2015
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -88,7 +88,5 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Changes From Previous Version
-#### Updates on September 23, 2015 - USGS EROS
-  * Modified the per-pixel angle function and executable to support producing the average per-pixel angle of all the reflectance bands.
-  * Added support for BIP raw binary output products.
-  * Added support for generating Julian date, day, year bands.
+#### Updates on November 23, 2015 - USGS EROS
+  * Updated temporary degree and minutes variables to be integers instead of longs.  The key issue here is that abs() is being called with these variables.  labs should be used for long variables, but is not needed since they have been changed to integers. (per user feedback on Github)
