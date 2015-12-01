@@ -75,6 +75,7 @@ int read_lpgs_mtl
     char errmsg[STR_SIZE];    /* error message */
     int i;                    /* looping variable */
     int count;                /* number of chars copied in snprintf */
+    int neg_count;            /* number of latitude corners below zero */
     bool done_with_mtl;       /* are we done processing the MTL file? */
     bool gain_bias_available; /* are the radiance gain/bias values available
                                  in the MTL file? */
@@ -366,7 +367,20 @@ int read_lpgs_mtl
             }
             else if (!strcmp (label, "UTM_ZONE") ||
                      !strcmp (label, "ZONE_NUMBER"))
+            {
                 sscanf (tokenptr, "%d", &gmeta->proj_info.utm_zone);
+
+                /* If three or four of the latitude corners are negative
+                   then the majority of the scene is below the equator.
+                   Negate the UTM zone. */
+                neg_count = 0;
+                if (gmeta->ul_corner[0] < 0.0) neg_count++;
+                if (gmeta->lr_corner[0] < 0.0) neg_count++;
+                if (ur_corner[0] < 0.0) neg_count++;
+                if (ll_corner[0] < 0.0) neg_count++;
+                if (neg_count >= 3)
+                    gmeta->proj_info.utm_zone = -gmeta->proj_info.utm_zone;
+            }
             else if (!strcmp (label, "VERTICAL_LON_FROM_POLE") ||
                      !strcmp (label, "VERTICAL_LONGITUDE_FROM_POLE"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.longitude_pole);
