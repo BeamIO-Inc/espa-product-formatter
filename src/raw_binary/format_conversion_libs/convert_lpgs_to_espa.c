@@ -52,6 +52,7 @@ Date         Programmer       Reason
                               gain/bias, and K1/K2 constants. Changed
                               toa_gain/bias to rad_gain/bias to be consistent
                               with refl_gain/bias.
+12/10/2015   Gail Schmidt     Negate the UTM zone if it's in the southern hemi
 
 NOTES:
 1. The new MTL files contain the gain and bias coefficients for the TOA
