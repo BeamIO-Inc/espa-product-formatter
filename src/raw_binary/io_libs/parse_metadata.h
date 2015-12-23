@@ -88,6 +88,14 @@ int add_band_metadata_class_values
                                       band in the bands structure */
 );
 
+int add_band_metadata_percent_coverage
+(
+    xmlNode *a_node,            /* I/O: pointer to the element node to
+                                        process */
+    Espa_band_meta_t *bmeta     /* I: band metadata structure for current
+                                      band in the bands structure */
+);
+
 int add_band_metadata
 (
     xmlNode *a_node,            /* I: pointer to the element node to process */

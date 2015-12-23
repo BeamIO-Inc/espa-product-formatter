@@ -59,7 +59,6 @@ NOTES:
 #define OUTPUT_SATU_VALUE       ("_SaturateValue")
 #define OUTPUT_SCALE_FACTOR     ("scale_factor")
 #define OUTPUT_ADD_OFFSET       ("add_offset")
-#define OUTPUT_CALIBRATED_NT    ("calibrated_nt")
 #define OUTPUT_APP_VERSION      ("app_version")
 
 
@@ -474,21 +473,6 @@ int write_sds_attributes
         if (put_attr_double (sds_id, &attr, dval) != SUCCESS)
         {
             sprintf (errmsg, "Writing attribute (add offset) to SDS: %s",
-                bmeta->name);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-    }
-
-    if (fabs (bmeta->calibrated_nt - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
-    {
-        attr.type = DFNT_FLOAT32;
-        attr.nval = 1;
-        attr.name = OUTPUT_CALIBRATED_NT;
-        dval[0] = (double) bmeta->calibrated_nt;
-        if (put_attr_double (sds_id, &attr, dval) != SUCCESS)
-        {
-            sprintf (errmsg, "Writing attribute (calibrated nt) to SDS: %s",
                 bmeta->name);
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);

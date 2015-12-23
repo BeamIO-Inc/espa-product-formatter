@@ -226,7 +226,7 @@ Date         Programmer       Reason
 
 NOTES:
   1. Initializes the bitmap_description and class_values for each band to NULL
-     and sets the nbits and nclass to 0.
+     and sets the nbits, nclass, ncover to 0.
 ******************************************************************************/
 int allocate_band_metadata
 (
@@ -253,8 +253,8 @@ int allocate_band_metadata
     }
     bmeta = internal_meta->band;
 
-    /* Set the nbits and nclass fields in the band metadata to 0 for each band
-       and initialize the pointers to NULL.  Initialize the other fields to
+    /* Set the nbits, nclass, ncover fields in the band metadata to 0 for each
+       band and initialize the pointers to NULL.  Initialize the other fields to
        fill to make it easy to distinguish if they were populated by reading
        an input metadata file or assigned directly. */
     for (i = 0; i < nbands; i++)
@@ -263,6 +263,8 @@ int allocate_band_metadata
         bmeta[i].bitmap_description = NULL;
         bmeta[i].nclass = 0;
         bmeta[i].class_values = NULL;
+        bmeta[i].ncover = 0;
+        bmeta[i].percent_cover = NULL;
 
         strcpy (bmeta[i].product, ESPA_STRING_META_FILL);
         strcpy (bmeta[i].source, ESPA_STRING_META_FILL);
@@ -289,7 +291,6 @@ int allocate_band_metadata
         bmeta[i].refl_bias = ESPA_FLOAT_META_FILL;
         bmeta[i].k1_const = ESPA_FLOAT_META_FILL;
         bmeta[i].k2_const = ESPA_FLOAT_META_FILL;
-        bmeta[i].calibrated_nt = ESPA_FLOAT_META_FILL;
         strcpy (bmeta[i].qa_desc, ESPA_STRING_META_FILL);
         strcpy (bmeta[i].app_version, ESPA_STRING_META_FILL);
         strcpy (bmeta[i].production_date, ESPA_STRING_META_FILL);
@@ -336,6 +337,51 @@ int allocate_class_metadata
     {
         sprintf (errmsg, "Allocating ESPA band metadata for %d nclasses",
             nclass);
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
+    return (SUCCESS);
+}
+
+
+/******************************************************************************
+MODULE:  allocate_percent_coverage_metadata
+
+PURPOSE:  Allocates memory in the ESPA band metadata structure for ncover types.
+
+RETURN VALUE:
+Type = int
+Value           Description
+-----           -----------
+ERROR           Error allocating memory for ncover types
+SUCCESS         Successfully allocated memory
+
+HISTORY:
+Date         Programmer       Reason
+----------   --------------   -------------------------------------
+12/22/2015   Gail Schmidt     Original development
+
+NOTES:
+******************************************************************************/
+int allocate_percent_coverage_metadata
+(
+    Espa_band_meta_t *band_meta,  /* I: pointer to band metadata structure */
+    int ncover                    /* I: number of cover types to allocate for
+                                        the band metadata */
+)
+{
+    char FUNC_NAME[] = "allocate_percent_coverage_metadata"; /* function name */
+    char errmsg[STR_SIZE];        /* error message */
+
+    /* Allocate the number of cover types to ncover and the associated cover
+       type descripts to the pointer */
+    band_meta->ncover = ncover;
+    band_meta->percent_cover = calloc (ncover, sizeof (Espa_percent_cover_t));
+    if (band_meta->percent_cover == NULL)
+    {
+        sprintf (errmsg, "Allocating ESPA band metadata for %d cover types",
+            ncover);
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }

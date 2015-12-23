@@ -19,6 +19,7 @@ Date         Programmer       Reason
                               and bias since we are supporting both the
                               radiance and reflectance gain and bias from the
                               MTL. This is more consistent with their labeling.
+12/23/2015   Gail Schmidt     Support percent coverages, remove calibrated_nt
 
 NOTES:
   1. The XML metadata format written via this library follows the ESPA internal
@@ -407,11 +408,19 @@ int write_metadata
                 "            <qa_description>%s"
                 "            </qa_description>\n", bmeta[i].qa_desc);
 
-        if (fabs (bmeta[i].calibrated_nt-ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
+        if (bmeta[i].ncover != ESPA_FLOAT_META_FILL && bmeta[i].ncover > 0)
         {
             fprintf (fptr,
-                "            <calibrated_nt>%f</calibrated_nt>\n",
-                bmeta[i].calibrated_nt);
+                "            <percent_coverage>\n");
+            for (j = 0; j < bmeta[i].ncover; j++)
+            {
+                fprintf (fptr,
+                    "                <cover type=\"%s\">%f</cover>\n",
+                     bmeta[i].percent_cover[j].description,
+                     bmeta[i].percent_cover[j].percent);
+            }
+            fprintf (fptr,
+                "            </percent_coverage>\n");
         }
 
         fprintf (fptr,
@@ -664,11 +673,19 @@ int append_metadata
                 "            <qa_description>%s"
                 "            </qa_description>\n", bmeta[i].qa_desc);
 
-        if (fabs (bmeta[i].calibrated_nt - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
+        if (bmeta[i].ncover != ESPA_FLOAT_META_FILL && bmeta[i].ncover > 0)
         {
             fprintf (fptr,
-                "            <calibrated_nt>%f</calibrated_nt>\n",
-                bmeta[i].calibrated_nt);
+                "            <percent_coverage>\n");
+            for (j = 0; j < bmeta[i].ncover; j++)
+            {
+                fprintf (fptr,
+                    "                <cover type=\"%s\">%.2f</cover>\n",
+                     bmeta[i].percent_cover[j].description,
+                     bmeta[i].percent_cover[j].percent);
+            }
+            fprintf (fptr,
+                "            </percent_coverage>\n");
         }
 
         fprintf (fptr,
@@ -902,7 +919,16 @@ void print_metadata_struct
             }
         }
         printf ("    qa_description: %s\n", metadata->band[i].qa_desc);
-        printf ("    calibrated_nt: %f\n", metadata->band[i].calibrated_nt);
+        if (metadata->band[i].ncover != 0)
+        {
+            printf ("    Cover type descriptions:\n");
+            for (j = 0; j < metadata->band[i].ncover; j++)
+            {
+                printf ("      cover type %s: percentage %f\n",
+                     metadata->band[i].percent_cover[j].description,
+                     metadata->band[i].percent_cover[j].percent);
+            }
+        }
         printf ("    app_version: %s\n", metadata->band[i].app_version);
         printf ("    production_date: %s\n", metadata->band[i].production_date);
         printf ("\n");

@@ -59,7 +59,7 @@ NOTES:
 int subset_metadata_by_product
 (
     Espa_internal_meta_t *inmeta,  /* I: input metadata structure to be
-                                           subset */
+                                         subset */
     Espa_internal_meta_t *outmeta, /* O: output metadata structure containing
                                          only the specified bands */
     int nproducts,                 /* I: number of product types to be included
@@ -433,7 +433,36 @@ int subset_metadata_by_product
                      error_handler (true, FUNC_NAME, errmsg);
                      return (ERROR);
                  }
+            }
+        }
 
+        /* If there is are cover type descriptions, then allocate memory and
+           copy the information */
+        outmeta->band[iband].ncover = inmeta->band[i].ncover;
+        if (inmeta->band[i].ncover != 0)
+        {
+            if (allocate_percent_coverage_metadata (&outmeta->band[iband],
+                outmeta->band[iband].ncover) != SUCCESS)
+            {  /* Error messages already printed */
+                return (ERROR);
+            }
+
+            for (k = 0; k < inmeta->band[i].ncover; k++)
+            {
+                 outmeta->band[iband].percent_cover[k].percent =
+                     inmeta->band[i].percent_cover[k].percent;
+                 count = snprintf (
+                     outmeta->band[iband].percent_cover[k].description,
+                     sizeof (outmeta->band[iband].percent_cover[k].description),
+                     "%s", inmeta->band[i].percent_cover[k].description);
+                 if (count < 0 || count >= sizeof
+                      (outmeta->band[iband].percent_cover[k].description))
+                 {
+                     sprintf (errmsg, "Overflow of "
+                         "outmeta->band[iband].percent_cover[k].description");
+                     error_handler (true, FUNC_NAME, errmsg);
+                     return (ERROR);
+                 }
             }
         }
 
@@ -447,7 +476,6 @@ int subset_metadata_by_product
             return (ERROR);
         }
 
-        outmeta->band[iband].calibrated_nt = inmeta->band[i].calibrated_nt;
         count = snprintf (outmeta->band[iband].app_version,
             sizeof (outmeta->band[iband].app_version), "%s",
             inmeta->band[i].app_version);
@@ -552,7 +580,6 @@ int subset_metadata_by_band
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-
 
     /* Copy the global metadata */
     count = snprintf (outmeta->global.data_provider,
@@ -747,7 +774,7 @@ int subset_metadata_by_band
         }
 
         count = snprintf (outmeta->band[iband].source,
-            sizeof (outmeta->band[iband].source), "%s", inmeta->band[i].source);
+            sizeof (outmeta->band[iband].source), "%s", inmeta->band[j].source);
         if (count < 0 || count >= sizeof (outmeta->band[iband].source))
         {
             sprintf (errmsg, "Overflow of outmeta->band[iband].source string");
@@ -767,7 +794,7 @@ int subset_metadata_by_band
 
         count = snprintf (outmeta->band[iband].category,
             sizeof (outmeta->band[iband].category), "%s",
-            inmeta->band[i].category);
+            inmeta->band[j].category);
         if (count < 0 || count >= sizeof (outmeta->band[iband].category))
         {
             sprintf (errmsg, "Overflow of outmeta->band[iband].category "
@@ -902,9 +929,39 @@ int subset_metadata_by_band
             }
         }
 
+        /* If there is are cover type descriptions, then allocate memory and
+           copy the information */
+        outmeta->band[iband].ncover = inmeta->band[j].ncover;
+        if (inmeta->band[j].ncover != 0)
+        {
+            if (allocate_percent_coverage_metadata (&outmeta->band[iband],
+                outmeta->band[iband].ncover) != SUCCESS)
+            {  /* Error messages already printed */
+                return (ERROR);
+            }
+
+            for (k = 0; k < inmeta->band[j].ncover; k++)
+            {
+                 outmeta->band[iband].percent_cover[k].percent =
+                     inmeta->band[j].percent_cover[k].percent;
+                 count = snprintf (
+                     outmeta->band[iband].percent_cover[k].description,
+                     sizeof (outmeta->band[iband].percent_cover[k].description),
+                     "%s", inmeta->band[j].percent_cover[k].description);
+                 if (count < 0 || count >= sizeof
+                      (outmeta->band[iband].percent_cover[k].description))
+                 {
+                     sprintf (errmsg, "Overflow of "
+                         "outmeta->band[iband].percent_cover[k].description");
+                     error_handler (true, FUNC_NAME, errmsg);
+                     return (ERROR);
+                 }
+            }
+        }
+
         count = snprintf (outmeta->band[iband].qa_desc,
             sizeof (outmeta->band[iband].qa_desc), "%s",
-            inmeta->band[i].qa_desc);
+            inmeta->band[j].qa_desc);
         if (count < 0 || count >= sizeof (outmeta->band[iband].qa_desc))
         {
             sprintf (errmsg, "Overflow of outmeta->band[iband].qa_desc");
@@ -912,7 +969,6 @@ int subset_metadata_by_band
             return (ERROR);
         }
 
-        outmeta->band[iband].calibrated_nt = inmeta->band[j].calibrated_nt;
         count = snprintf (outmeta->band[iband].app_version,
             sizeof (outmeta->band[iband].app_version), "%s",
             inmeta->band[j].app_version);

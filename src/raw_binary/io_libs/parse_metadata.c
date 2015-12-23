@@ -20,6 +20,7 @@ Date         Programmer       Reason
                               gain/bias, and K1/K2 constants. Changed
                               toa_gain/bias to rad_gain/bias to be consistent
                               with refl_gain/bias.
+12/22/2015   Gail Schmidt     Added percent coverage. Removed calibrated_nt.
 
 
 NOTES:
@@ -1495,6 +1496,125 @@ int add_band_metadata_class_values
 
 
 /******************************************************************************
+MODULE:  add_band_metadata_percent_coverage
+
+PURPOSE: Adds the percent cover elements to the band metadata structure.
+
+RETURN VALUE:
+Type = int
+Value           Description
+-----           -----------
+ERROR           Error parsing the percent cover elements
+SUCCESS         Successful parse of the percent cover values
+
+HISTORY:
+Date         Programmer       Reason
+----------   --------------   -------------------------------------
+12/27/2013   Gail Schmidt     Original development
+
+NOTES:
+1. Memory is allocated in the band metadata for the number of cover types in
+   the percent cover container.
+******************************************************************************/
+int add_band_metadata_percent_coverage
+(
+    xmlNode *a_node,            /* I/O: pointer to the element node to
+                                        process */
+    Espa_band_meta_t *bmeta     /* I: band metadata structure for current
+                                      band in the bands structure */
+)
+{
+    char FUNC_NAME[] = "add_band_metadata_percent_coverage"; /* func name */
+    char errmsg[STR_SIZE];        /* error message */
+    xmlNode *cur_node = NULL;     /* pointer to the current node */
+    xmlNode *child_node = NULL;   /* pointer to the child node */
+    xmlAttrPtr attr = NULL;       /* pointer to the element attributes */
+    xmlChar *attr_val = NULL;     /* attribute value */
+    int ncover = 0;               /* number of cover types in the percent cover
+                                     container */
+    int count;                    /* number of chars copied in snprintf */
+
+    /* Count the number of siblings which are cover type descriptions */
+    for (cur_node = a_node; cur_node;
+         cur_node = xmlNextElementSibling (cur_node))
+    {
+        /* If this is a cover element then count it */
+        if (xmlStrEqual (cur_node->name, (const xmlChar *) "cover"))
+            ncover++;
+    }
+
+    /* Allocate memory in the band structure for the number of cover types */
+    if (allocate_percent_coverage_metadata (bmeta, ncover) != SUCCESS)
+    {
+        sprintf (errmsg, "Allocating memory to the band structure for %d "
+            "cover types in the percent_coverage container.", ncover);
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
+    /* Process the siblings as long as they are cover type elements */
+    ncover = 0;
+    for (cur_node = a_node; cur_node;
+         cur_node = xmlNextElementSibling (cur_node))
+    {
+        /* Set up the child pointer */
+        child_node = cur_node->children;
+
+        /* If this isn't a cover type element then skip to the next one */
+        if (!xmlStrEqual (cur_node->name, (const xmlChar *) "cover"))
+            continue;
+
+        /* Handle the element attributes */
+        for (attr = cur_node->properties; attr != NULL; attr = attr->next)
+        {
+            attr_val = xmlGetProp (cur_node, attr->name);
+            if (xmlStrEqual (attr->name, (const xmlChar *) "type"))
+            {
+                count = snprintf (bmeta->percent_cover[ncover].description,
+                    STR_SIZE, "%s",
+                    (const char *) attr_val);
+                if (count < 0 || count >= STR_SIZE)
+                {
+                    sprintf (errmsg,
+                        "Overflow of bmeta->percent_cover[ncover].description");
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+            }
+            else
+            {
+                sprintf (errmsg, "WARNING: unknown attribute for element "
+                    "(%s): %s\n", cur_node->name, attr->name);
+                error_handler (false, FUNC_NAME, errmsg);
+            }
+            xmlFree (attr_val);
+        }
+
+        /* Expect the child node to be a text node containing the value of
+           this field */
+        if (child_node == NULL || child_node->type != XML_TEXT_NODE) 
+        {
+            sprintf (errmsg, "Error processing band metadata element: %s.",
+                cur_node->name);
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
+
+        /* Copy the content of the child node into the array of cover types in
+           the percent_cover field */
+        bmeta->percent_cover[ncover].percent =
+            atof ((const char *) child_node->content);
+
+        /* Increment the cover type count */
+        ncover++;
+    }
+
+    /* Successful processing */
+    return (SUCCESS);
+}
+
+
+/******************************************************************************
 MODULE:  add_band_metadata
 
 PURPOSE: Add the current band element node to the current band metadata
@@ -1921,22 +2041,6 @@ int add_band_metadata
                 return (ERROR);
             }
         }
-        else if (xmlStrEqual (cur_node->name,
-            (const xmlChar *) "calibrated_nt"))
-        {
-            /* Expect the child node to be a text node containing the value of
-               this field */
-            if (child_node == NULL || child_node->type != XML_TEXT_NODE) 
-            {
-                sprintf (errmsg, "Processing band metadata element: %s.",
-                    cur_node->name);
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            /* Copy the content of the child node into value for this field */
-            bmeta->calibrated_nt = atof ((const char *) child_node->content);
-        }
         else if (xmlStrEqual (cur_node->name, (const xmlChar *) "app_version"))
         {
             /* Expect the child node to be a text node containing the value of
@@ -2001,6 +2105,18 @@ int add_band_metadata
                 SUCCESS)
             {
                 sprintf (errmsg, "Processing class_values element: %s.",
+                    cur_node->name);
+                error_handler (true, FUNC_NAME, errmsg);
+                return (ERROR);
+            }
+        }
+        else if (xmlStrEqual (cur_node->name,
+             (const xmlChar *) "percent_coverage"))
+        {
+            if (add_band_metadata_percent_coverage (cur_node->children, bmeta)
+                != SUCCESS)
+            {
+                sprintf (errmsg, "Processing percent_coverage element: %s.",
                     cur_node->name);
                 error_handler (true, FUNC_NAME, errmsg);
                 return (ERROR);

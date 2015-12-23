@@ -17,6 +17,7 @@ Date         Programmer       Reason
 3/30/2015    Gail Schmidt     Updated to support reflectance gain/bias, thermal
                               constants, and earth sun distance and a version
                               change of schema to v1.2
+12/23/2015   Gail Schmidt     Schema change to v1.3
 
 NOTES:
 *****************************************************************************/
@@ -37,11 +38,11 @@ NOTES:
 
 /* Defines */
 #define LIBXML_SCHEMAS_ENABLED
-#define ESPA_SCHEMA_VERSION "1.2"
-#define ESPA_NS "http://espa.cr.usgs.gov/v1.2"
-#define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v1.2"
-#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_2.xsd"
-#define LOCAL_ESPA_SCHEMA "/usr/local/espa-common/schema/espa_internal_metadata_v1_2.xsd"
+#define ESPA_SCHEMA_VERSION "1.3"
+#define ESPA_NS "http://espa.cr.usgs.gov/v1.3"
+#define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v1.3"
+#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_3.xsd"
+#define LOCAL_ESPA_SCHEMA "/usr/local/espa-common/schema/espa_internal_metadata_v1_3.xsd"
 
 /* Data types */
 enum Espa_data_type
@@ -80,6 +81,13 @@ typedef struct
     int class;                    /* class value */
     char description[STR_SIZE];   /* class description */
 } Espa_class_t;
+
+typedef struct
+{
+    float percent;                /* percentage for the cover type */
+    char description[STR_SIZE];   /* cover type description (snow, water,
+                                     cloud, etc.)*/
+} Espa_percent_cover_t;
 
 typedef struct
 {
@@ -186,10 +194,11 @@ typedef struct
                                     inclusive from 0 to nbits-1 */
     int nclass;                  /* number of classes in class_values */
     Espa_class_t *class_values;  /* support class value descriptions */
+    int ncover;                  /* number of cover types in percent_coverage */
+    Espa_percent_cover_t *percent_cover; /* support percent cover description */
     char qa_desc[HUGE_STR_SIZE]; /* description of the QA bits where
                                     they are not bit-specific and don't fit
                                     as classes */
-    float calibrated_nt;
     char app_version[STR_SIZE];  /* version of the application which produced
                                     the current band */
     char production_date[STR_SIZE];  /* date the band was produced */
@@ -229,6 +238,12 @@ int allocate_class_metadata
     Espa_band_meta_t *band_meta,  /* I: pointer to band metadata structure */
     int nclass                    /* I: number of classes to allocate for the
                                         band metadata */
+);
+
+int allocate_percent_coverage_metadata
+(
+    Espa_band_meta_t *band_meta,  /* I: pointer to band metadata structure */    int ncover                    /* I: number of cover types to allocate for
+                                        the band metadata */
 );
 
 int allocate_bitmap_metadata
