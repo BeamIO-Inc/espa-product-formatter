@@ -57,6 +57,7 @@ LIB2   = \
     -L$(HDFEOS_LIB) -lhdfeos -L$(HDFEOS_GCTPLIB) -lGctp \
     -L$(HDFLIB) -lmfhdf -ldf -L$(JPEGLIB) -ljpeg -L$(JBIGLIB) -ljbig \
     -L$(LZMALIB) -llzma -L$(ZLIBLIB) -lz -lm
+    -L$(LZMALIB) -llzma -L$(SZIPLIB) -lsz -L$(ZLIBLIB) -lz -lm
 
 LIB3   = \
     -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
@@ -78,7 +79,7 @@ LIB6   = \
     -L$(XML2LIB) -lxml2 \
     -L$(HDFEOS_LIB) -lhdfeos -L$(HDFEOS_GCTPLIB) -lGctp \
     -L$(HDFLIB) -lmfhdf -ldf -L$(JPEGLIB) -ljpeg -L$(JBIGLIB) -ljbig \
-    -L$(LZMALIB) -llzma -L$(ZLIBLIB) -lz -lm
+    -L$(LZMALIB) -llzma -L$(SZIPLIB) -lsz -L$(ZLIBLIB) -lz -lm
 
 LIB7   = \
     -L../lib -l_espa_common -l_espa_l8_angles -l_espa_l8_ang \
