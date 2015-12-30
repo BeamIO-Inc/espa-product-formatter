@@ -56,7 +56,6 @@ LIB2   = \
     -L$(XML2LIB) -lxml2 \
     -L$(HDFEOS_LIB) -lhdfeos -L$(HDFEOS_GCTPLIB) -lGctp \
     -L$(HDFLIB) -lmfhdf -ldf -L$(JPEGLIB) -ljpeg -L$(JBIGLIB) -ljbig \
-    -L$(LZMALIB) -llzma -L$(ZLIBLIB) -lz -lm
     -L$(LZMALIB) -llzma -L$(SZIPLIB) -lsz -L$(ZLIBLIB) -lz -lm
 
 LIB3   = \
