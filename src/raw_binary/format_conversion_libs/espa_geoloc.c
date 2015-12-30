@@ -704,6 +704,7 @@ Date          Programmer       Reason
 ----------    ---------------  -------------------------------------
 1/24/2014     Gail Schmidt     Original Development (based on input routines
                                from LEDAPS)
+9/29/2015     Gail Schmidt     tdeg and tmin don't need to be long values
 
 NOTES:
 1. The input 'deg' variable can contain the angle in degrees (code=DEG),
@@ -739,8 +740,8 @@ bool degdms
     double MINSEC = -60.0;    /* minimum seconds value */
     double tempmin;           /* temporary minutes value */
     double tempsec;           /* temporary seconds value */
-    long tdeg;                /* temporary degrees value */
-    long tmin;                /* temporary minutes value */
+    int tdeg;                /* temporary degrees value */
+    int tmin;                /* temporary minutes value */
     int sign;                 /* sign of the angle */
 
     /* Setup the max/min DMS value based on the type of angle to be processed */
@@ -772,8 +773,8 @@ bool degdms
             *deg = *deg / 3600.0;
 
         /* Convert to DMS */
-        tdeg = (long) find_deg (*deg);
-        tmin = (long) find_min (*deg);
+        tdeg = find_deg (*deg);
+        tmin = find_min (*deg);
         tsec = find_sec (*deg);
         sign = 1;
         if (*deg < 0)
