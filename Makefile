@@ -9,10 +9,11 @@ include make.config
 
 DIR_RAW_BINARY = raw_binary
 DIR_PYTHON = py_modules
+DIR_SCHEMA = schema
 
 all: all-raw-binary
 
-install: check-environment install-raw-binary install-python
+install: check-environment install-raw-binary install-python install-schema
 
 clean: clean-raw-binary
 
@@ -33,6 +34,11 @@ clean-raw-binary:
 install-python:
 	echo "make install in $(DIR_PYTHON)"; \
         (cd $(DIR_PYTHON); $(MAKE) install);
+
+#-----------------------------------------------------------------------------
+install-schema:
+	echo "make install in $(DIR_SCHEMA)"; \
+        (cd $(DIR_SCHEMA); $(MAKE) install);
 
 #-----------------------------------------------------------------------------
 check-environment:
