@@ -5,15 +5,15 @@
 
 # Specific exes #
 #################
-src/raw_binary/include/
-src/raw_binary/tools/convert_espa_to_bip
-src/raw_binary/tools/convert_espa_to_gtif
-src/raw_binary/tools/convert_espa_to_hdf
-src/raw_binary/tools/convert_lpgs_to_espa
-src/raw_binary/tools/convert_modis_to_espa
-src/raw_binary/tools/create_julian_date_bands
-src/raw_binary/tools/create_l8_angle_bands
-src/raw_binary/tools/create_land_water_mask
-src/raw_binary/tools/espa_band_subset
-src/raw_binary/tools/espa_product_subset
+raw_binary/include/
+raw_binary/tools/convert_espa_to_bip
+raw_binary/tools/convert_espa_to_gtif
+raw_binary/tools/convert_espa_to_hdf
+raw_binary/tools/convert_lpgs_to_espa
+raw_binary/tools/convert_modis_to_espa
+raw_binary/tools/create_julian_date_bands
+raw_binary/tools/create_l8_angle_bands
+raw_binary/tools/create_land_water_mask
+raw_binary/tools/espa_band_subset
+raw_binary/tools/espa_product_subset
 

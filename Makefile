@@ -1,27 +1,48 @@
-SUBDIRS	= py_modules scripts src
+#-----------------------------------------------------------------------------
+# Makefile
+#
+# Project Name: cloud masking
+#-----------------------------------------------------------------------------
+.PHONY: check-environment all install clean all-raw-binary install-raw-binary clean-raw-binary
 
-all:
-	@for dir in $(SUBDIRS); do \
-        echo "make all in $$dir..."; \
-        (cd $$dir; $(MAKE)); done
+include make.config
 
-install: all
-ifeq ($(PREFIX),)
-	echo "WARNING: PREFIX environment variable is not defined!  Schema will not be installed."
-else ifneq ($(PREFIX), $(CURDIR))
-	echo "Installing schema ..."; \
-	install -d $(PREFIX)/schema
-	install -m 644 ./schema/*.xsd $(PREFIX)/schema
-else
-	echo "$(PREFIX) is the same as the current directory. Schema file is already installed."
+DIR_RAW_BINARY = raw_binary
+DIR_PYTHON = py_modules
+DIR_SCHEMA = schema
+
+all: all-raw-binary
+
+install: check-environment install-raw-binary install-python install-schema
+
+clean: clean-raw-binary
+
+#-----------------------------------------------------------------------------
+all-raw-binary:
+	echo "make all in $(DIR_RAW_BINARY)"; \
+        (cd $(DIR_RAW_BINARY); $(MAKE) all);
+
+install-raw-binary:
+	echo "make install in $(DIR_RAW_BINARY)"; \
+        (cd $(DIR_RAW_BINARY); $(MAKE) install);
+
+clean-raw-binary:
+	echo "make clean in $(DIR_RAW_BINARY)"; \
+        (cd $(DIR_RAW_BINARY); $(MAKE) clean);
+
+#-----------------------------------------------------------------------------
+install-python:
+	echo "make install in $(DIR_PYTHON)"; \
+        (cd $(DIR_PYTHON); $(MAKE) install);
+
+#-----------------------------------------------------------------------------
+install-schema:
+	echo "make install in $(DIR_SCHEMA)"; \
+        (cd $(DIR_SCHEMA); $(MAKE) install);
+
+#-----------------------------------------------------------------------------
+check-environment:
+ifndef PREFIX
+    $(error Environment variable PREFIX is not defined)
 endif
-
-	@for dir in $(SUBDIRS); do \
-        echo "make install in $$dir..."; \
-        (cd $$dir; $(MAKE) install); done
-
-clean:
-	@for dir in $(SUBDIRS); do \
-        echo "make clean in $$dir..."; \
-        (cd $$dir; $(MAKE) clean); done
 

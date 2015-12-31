@@ -1,0 +1,21 @@
+#------------------------------------------------------------------------------
+# Makefile
+#
+# Simple makefile for installing the schema.
+#------------------------------------------------------------------------------
+.PHONY: all install clean
+
+# Inherit from upper-level make.config
+TOP = ..
+include $(TOP)/make.config
+
+SCHEMA = espa_internal_metadata_v1_3.xsd
+
+all:
+
+install:
+	install -d $(schema_install_path)
+	install -m 755 $(SCHEMA) $(schema_install_path)
+
+clean:
+
