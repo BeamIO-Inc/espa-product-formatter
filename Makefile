@@ -8,10 +8,11 @@
 include make.config
 
 DIR_RAW_BINARY = raw_binary
+DIR_PYTHON = py_modules
 
 all: all-raw-binary
 
-install: check-environment install-raw-binary
+install: check-environment install-raw-binary install-python
 
 clean: clean-raw-binary
 
@@ -27,6 +28,11 @@ install-raw-binary:
 clean-raw-binary:
 	echo "make clean in $(DIR_RAW_BINARY)"; \
         (cd $(DIR_RAW_BINARY); $(MAKE) clean);
+
+#-----------------------------------------------------------------------------
+install-python:
+	echo "make install in $(DIR_PYTHON)"; \
+        (cd $(DIR_PYTHON); $(MAKE) install);
 
 #-----------------------------------------------------------------------------
 check-environment:
