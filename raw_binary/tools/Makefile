@@ -141,6 +141,7 @@ LIB9   = \
     -L$(XML2LIB) -lxml2 \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB10   = \
@@ -148,6 +149,7 @@ LIB10   = \
     -L$(XML2LIB) -lxml2 \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 # Define C executables
