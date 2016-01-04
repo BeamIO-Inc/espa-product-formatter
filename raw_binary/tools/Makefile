@@ -133,6 +133,7 @@ LIB8   = \
     -L$(XML2LIB) -lxml2 \
     -lgctp3 \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB9   = \
