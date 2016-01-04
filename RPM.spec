@@ -68,6 +68,9 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 # All sub-directories are automatically included
 /usr/local/bin/*
+/usr/local/include/*
+/usr/local/lib/*
+/usr/local/python/*
 /usr/local/%{name}
 
 
