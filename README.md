@@ -14,17 +14,18 @@ See git tag [version_1.5.1]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
-  * TIFF libraries (3.8.2 or most current) -- [Found here](ftp://ftp.remotesensing.org/pub/libtiff/)
-  * GeoTIFF libraries (1.2.5 or most current) -- [Found here](ftp://ftp.remotesensing.org/pub/geotiff/libgeotiff/)
-  * HDF4 libraries (4.2.5 or most current) -- [Found here](https://www.hdfgroup.org/ftp/HDF/releases/)
-  * HDF-EOS2 libraries (2.18 or most current) -- [Found here](ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release/)
-  * JPEG libraries (version 6b) -- [Found here](http://www.ijg.org/files/)
-  * ZLIB libraries (version 1.2.8) -- [Found here](http://zlib.net/)
-  * XML2 libraries -- [Found here](ftp://xmlsoft.org/libxml2/)
-  * JBIG libraries -- [Found here] (http://www.cl.cam.ac.uk/~mgk25/jbigkit/)
-  * Land/water static polygon -- [Found here](http://espa.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz)
+  * TIFF libraries (3.8.2 or most current) -- ftp://ftp.remotesensing.org/pub/libtiff/
+  * GeoTIFF libraries (1.2.5 or most current) -- ftp://ftp.remotesensing.org/pub/geotiff/libgeotiff/
+  * HDF4 libraries (4.2.5 or most current) -- https://www.hdfgroup.org/ftp/HDF/releases/
+  * HDF-EOS2 libraries (2.18 or most current) -- ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release/
+  * JPEG libraries (version 6b) -- http://www.ijg.org/files/
+  * ZLIB libraries (version 1.2.8) -- http://zlib.net/
+  * XML2 libraries -- ftp://xmlsoft.org/libxml2/
+  * JBIG libraries -- http://www.cl.cam.ac.uk/~mgk25/jbigkit/
+  * Land/water static polygon -- http://espa.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz
 
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
+In addition, if the HDF-EOS2 ftp site is down you might be able to reach the file directly by going to  http://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release/hdfeos2.19v1.00.tar.Z
 
 ### Installation
   * Install dependent libraries - HDF-EOS GCTP (from HDF-EOS2), HDF4, HDF-EOS2, TIFF, GeoTIFF, JPEG, XML2, JBIG, and ZLIB.
