@@ -87,6 +87,7 @@ LIB3   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB4   = \
@@ -95,6 +96,7 @@ LIB4   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB5   = \
@@ -103,6 +105,7 @@ LIB5   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB6   = \
