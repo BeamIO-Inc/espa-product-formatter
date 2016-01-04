@@ -77,6 +77,7 @@ LIB2   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(SZIPLIB) -lsz \
     $(MATHLIB)
 
 LIB3   = \
@@ -112,6 +113,7 @@ LIB6   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(SZIPLIB) -lsz \
     $(MATHLIB)
 
 LIB7   = \
