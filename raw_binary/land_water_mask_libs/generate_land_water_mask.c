@@ -45,6 +45,7 @@ Date         Programmer       Reason
 ----------   ---------------  -------------------------------------
 4/10/2015    Landsat 8 Team   Original code received from the Landsat 8 IAS
 4/14/2015    Gail Schmidt     Modified for use in ESPA   
+1/4/2015     Gail Schmidt     Support ALBERS
 
 NOTES:
 1. Memory for the land water mask will be allocated for the entire image
@@ -159,6 +160,21 @@ int generate_land_water_mask
             deg_to_dms (gmeta->proj_info.longitude_pole);
         mask_projection.parameters[5] =
             deg_to_dms (gmeta->proj_info.latitude_true_scale);
+        mask_projection.parameters[6] = gmeta->proj_info.false_easting;
+        mask_projection.parameters[7] = gmeta->proj_info.false_northing;
+    }
+    else if (gmeta->proj_info.proj_type == GCTP_ALBERS_PROJ)
+    {
+        mask_projection.proj_code = GCTP_ALBERS_PROJ;
+        mask_projection.units = METER;
+        mask_projection.parameters[2] =
+            deg_to_dms (gmeta->proj_info.standard_parallel1);
+        mask_projection.parameters[3] =
+            deg_to_dms (gmeta->proj_info.standard_parallel2);
+        mask_projection.parameters[4] =
+            deg_to_dms (gmeta->proj_info.central_meridian);
+        mask_projection.parameters[5] =
+            deg_to_dms (gmeta->proj_info.origin_latitude);
         mask_projection.parameters[6] = gmeta->proj_info.false_easting;
         mask_projection.parameters[7] = gmeta->proj_info.false_northing;
     }

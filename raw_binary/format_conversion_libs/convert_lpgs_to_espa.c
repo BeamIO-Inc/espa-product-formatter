@@ -53,6 +53,7 @@ Date         Programmer       Reason
                               toa_gain/bias to rad_gain/bias to be consistent
                               with refl_gain/bias.
 12/10/2015   Gail Schmidt     Negate the UTM zone if it's in the southern hemi
+1/4/2016     Gail Schmidt     Support ALBERS projection in Level-1 products
 
 NOTES:
 1. The new MTL files contain the gain and bias coefficients for the TOA
@@ -328,10 +329,13 @@ int read_lpgs_mtl
                     gmeta->proj_info.proj_type = GCTP_UTM_PROJ;
                 else if (!strcmp (tokenptr, "PS"))
                     gmeta->proj_info.proj_type = GCTP_PS_PROJ;
+                else if (!strcmp (tokenptr, "AEA"))  /* ALBERS */
+                    gmeta->proj_info.proj_type = GCTP_ALBERS_PROJ;
                 else
                 {
                     sprintf (errmsg, "Unsupported projection type: %s. "
-                        "Only UTM and PS are supported for LPGS.", tokenptr);
+                        "Only UTM, PS, and ALBERS EQUAL AREA are supported "
+                        "for LPGS.", tokenptr);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
@@ -382,6 +386,8 @@ int read_lpgs_mtl
                 if (neg_count >= 3)
                     gmeta->proj_info.utm_zone = -gmeta->proj_info.utm_zone;
             }
+
+            /* PS projection parameters */
             else if (!strcmp (label, "VERTICAL_LON_FROM_POLE") ||
                      !strcmp (label, "VERTICAL_LONGITUDE_FROM_POLE"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.longitude_pole);
@@ -392,6 +398,17 @@ int read_lpgs_mtl
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.false_easting);
             else if (!strcmp (label, "FALSE_NORTHING"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.false_northing);
+
+            /* ALBERS projection parameters (in addition to false easting and
+               northing under PS proj params) */
+            else if (!strcmp (label, "STANDARD_PARALLEL_1"))
+                sscanf (tokenptr, "%lf", &gmeta->proj_info.standard_parallel1);
+            else if (!strcmp (label, "STANDARD_PARALLEL_2"))
+                sscanf (tokenptr, "%lf", &gmeta->proj_info.standard_parallel2);
+            else if (!strcmp (label, "CENTRAL_MERIDIAN"))
+                sscanf (tokenptr, "%lf", &gmeta->proj_info.central_meridian);
+            else if (!strcmp (label, "ORIGIN_LATITUDE"))
+                sscanf (tokenptr, "%lf", &gmeta->proj_info.origin_latitude);
 
             else if (!strcmp (label, "RESAMPLING_OPTION"))
             {

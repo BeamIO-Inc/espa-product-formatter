@@ -17,6 +17,7 @@ Date         Programmer       Reason
 5/5/2015     Gail Schmidt     Updated to support writing the average of the
                               reflectance bands for each angle vs. all the
                               bands
+1/4/2016     Gail Schmidt     Support ALBERS
 
 NOTES:
 *****************************************************************************/
@@ -369,10 +370,14 @@ int main (int argc, char** argv)
             {
                 envi_hdr.proj_type = GCTP_PS_PROJ;
             }
+            else if (frame[i].projection.proj_code == ALBERS)
+            {
+                envi_hdr.proj_type = GCTP_ALBERS_PROJ;
+            }
             else
             {
                 sprintf (errmsg, "Unsupported projection. Currently only "
-                    "expect UTM or PS.");
+                    "expect UTM, PS, or ALBERS.");
                 error_handler (true, FUNC_NAME, errmsg);
                 exit (ERROR);
             }
@@ -513,10 +518,14 @@ int main (int argc, char** argv)
             {
                 envi_hdr.proj_type = GCTP_PS_PROJ;
             }
+            else if (frame[i].projection.proj_code == ALBERS)
+            {
+                envi_hdr.proj_type = GCTP_ALBERS_PROJ;
+            }
             else
             {
                 sprintf (errmsg, "Unsupported projection. Currently only "
-                    "expect UTM or PS.");
+                    "expect UTM, PS, or ALBERS.");
                 error_handler (true, FUNC_NAME, errmsg);
                 exit (ERROR);
             }
@@ -658,10 +667,14 @@ int main (int argc, char** argv)
             {
                 envi_hdr.proj_type = GCTP_PS_PROJ;
             }
+            else if (frame[i].projection.proj_code == ALBERS)
+            {
+                envi_hdr.proj_type = GCTP_ALBERS_PROJ;
+            }
             else
             {
                 sprintf (errmsg, "Unsupported projection. Currently only "
-                    "expect UTM or PS.");
+                    "expect UTM, PS, or ALBERS.");
                 error_handler (true, FUNC_NAME, errmsg);
                 exit (ERROR);
             }
@@ -802,10 +815,14 @@ int main (int argc, char** argv)
             {
                 envi_hdr.proj_type = GCTP_PS_PROJ;
             }
+            else if (frame[i].projection.proj_code == ALBERS)
+            {
+                envi_hdr.proj_type = GCTP_ALBERS_PROJ;
+            }
             else
             {
                 sprintf (errmsg, "Unsupported projection. Currently only "
-                    "expect UTM or PS.");
+                    "expect UTM, PS, or ALBERS.");
                 error_handler (true, FUNC_NAME, errmsg);
                 exit (ERROR);
             }
@@ -958,10 +975,14 @@ int main (int argc, char** argv)
         {
             envi_hdr.proj_type = GCTP_PS_PROJ;
         }
+        else if (avg_frame.projection.proj_code == ALBERS)
+        {
+            envi_hdr.proj_type = GCTP_ALBERS_PROJ;
+        }
         else
         {
             sprintf (errmsg, "Unsupported projection. Currently only "
-                "expect UTM or PS.");
+                "expect UTM, PS, or ALBERS.");
             error_handler (true, FUNC_NAME, errmsg);
             exit (ERROR);
         }
