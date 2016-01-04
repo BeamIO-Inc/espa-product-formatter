@@ -32,6 +32,11 @@ Provides executables for converting from input formats to our internal format, a
 
 
 # ----------------------------------------------------------------------------
+# Turn off the brp-python-bytecompile script
+%global __os_install_post %(echo '%{__os_install_post}' | sed -e 's!/usr/lib[^[:space:]]*/brp-python-bytecompile[[:space:]].*$!!g')
+
+
+# ----------------------------------------------------------------------------
 %prep
 # We don't need to perform anything here
 
