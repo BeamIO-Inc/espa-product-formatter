@@ -25,7 +25,8 @@ See git tag [version_1.5.1]
   * Land/water static polygon -- http://espa.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz
 
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
-In addition, if the HDF-EOS2 ftp site is down you might be able to reach the file directly by going to  http://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release/hdfeos2.19v1.00.tar.Z
+Currently the NASA HDF-EOS2 ftp site is down and we are temporarily hosting the library on our ESPA site 
+http://espa.cr.usgs.gov/downloads/auxiliaries/hdfeos2.19v1.00.tar.Z
 
 ### Installation
   * Install dependent libraries - HDF-EOS GCTP (from HDF-EOS2), HDF4, HDF-EOS2, TIFF, GeoTIFF, JPEG, XML2, JBIG, and ZLIB.
