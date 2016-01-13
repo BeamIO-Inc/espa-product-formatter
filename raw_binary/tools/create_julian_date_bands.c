@@ -322,7 +322,7 @@ int main (int argc, char** argv)
 
         /* Use the band1 filename to create the land/mask filename */
         strcpy (out_bmeta->file_name, bmeta->file_name);
-        cptr = strchr (out_bmeta->file_name, '_');
+        cptr = strrchr (out_bmeta->file_name, '_');
         if (!cptr)
         {
             sprintf (errmsg, "Unable to find the _ in the band 1 filename for "
