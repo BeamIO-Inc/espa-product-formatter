@@ -54,6 +54,7 @@ Date         Programmer       Reason
                               with refl_gain/bias.
 12/10/2015   Gail Schmidt     Negate the UTM zone if it's in the southern hemi
 1/4/2016     Gail Schmidt     Support ALBERS projection in Level-1 products
+1/14/2016    Gail Schmidt     Updated to support the QA band for all instruments
 
 NOTES:
 1. The new MTL files contain the gain and bias coefficients for the TOA
@@ -75,14 +76,21 @@ int read_lpgs_mtl
 {
     char FUNC_NAME[] = "read_lpgs_mtl";  /* function name */
     char errmsg[STR_SIZE];    /* error message */
+    char category[STR_SIZE][MAX_LPGS_BANDS]; /* band category - qa, image */
+    char band_num[STR_SIZE][MAX_LPGS_BANDS]; /* band number for band name */
     int i;                    /* looping variable */
     int count;                /* number of chars copied in snprintf */
     int neg_count;            /* number of latitude corners below zero */
+    int band_count = 0;       /* count of the bands processed so we don't have
+                                 to specify each band number directly, which
+                                 get complicated as we are supporting TM, ETM+,
+                                 OLI, etc. */
     bool done_with_mtl;       /* are we done processing the MTL file? */
     bool gain_bias_available; /* are the radiance gain/bias values available
                                  in the MTL file? */
     bool refl_gain_bias_available; /* are TOA reflectance gain/bias values and
                                  K1/K2 constants available in the MTL file? */
+    bool thermal[MAX_LPGS_BANDS]; /* is this band a thermal band? */
     FILE *mtl_fptr=NULL;      /* file pointer to the MTL metadata file */
     Espa_global_meta_t *gmeta = &metadata->global;  /* pointer to the global
                                                        metadata structure */
@@ -433,219 +441,247 @@ int read_lpgs_mtl
                 break;
             }
 
-            /* Read the band names */
+            /* Read the band names and identify band-specific metadata
+               information */
             else if (!strcmp (label, "FILE_NAME_BAND_1") ||
                      !strcmp (label, "BAND1_FILE_NAME"))
             {
-                count = snprintf (band_fname[0], sizeof (band_fname[0]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[0]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[0] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "1");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_2") ||
                      !strcmp (label, "BAND2_FILE_NAME"))
             {
-                count = snprintf (band_fname[1], sizeof (band_fname[1]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[1]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[1] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "2");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_3") ||
                      !strcmp (label, "BAND3_FILE_NAME"))
             {
-                count = snprintf (band_fname[2], sizeof (band_fname[2]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[2]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[2] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "3");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_4") ||
                      !strcmp (label, "BAND4_FILE_NAME"))
             {
-                count = snprintf (band_fname[3], sizeof (band_fname[3]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[3]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[3] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "4");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_5") ||
                      !strcmp (label, "BAND5_FILE_NAME"))
             {
-                count = snprintf (band_fname[4], sizeof (band_fname[4]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[4]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[4] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "5");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_6") ||
                      !strcmp (label, "BAND6_FILE_NAME"))
             {
-                count = snprintf (band_fname[5], sizeof (band_fname[5]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[5]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[5] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "6");
+                if (!strcmp (gmeta->instrument, "TM"))
+                    thermal[band_count] = true;  /* TM thermal */
+                else
+                    thermal[band_count] = false;
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_7") ||
                      !strcmp (label, "BAND7_FILE_NAME"))
             {
-                if (!strcmp (gmeta->instrument, "TM") ||
-                    !strcmp (gmeta->instrument, "OLI_TIRS") ||
-                    !strcmp (gmeta->instrument, "OLI"))
-                {  /* only a single band 6 so count is normal */
-                    count = snprintf (band_fname[6], sizeof (band_fname[6]),
-                        "%s", tokenptr);
-                    if (count < 0 || count >= sizeof (band_fname[6]))
-                    {
-                        sprintf (errmsg, "Overflow of band_fname[6] string");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
+                {
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
                 }
-                else if (!strncmp (gmeta->instrument, "ETM", 3))
-                {  /* band 6L and 6H throw off the count for ETM+ */
-                    count = snprintf (band_fname[7], sizeof (band_fname[7]),
-                        "%s", tokenptr);
-                    if (count < 0 || count >= sizeof (band_fname[7]))
-                    {
-                        sprintf (errmsg, "Overflow of band_fname[7] string");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "7");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_8") ||
                      !strcmp (label, "BAND8_FILE_NAME"))
             {
-                if (!strcmp (gmeta->instrument, "OLI_TIRS") ||
-                    !strcmp (gmeta->instrument, "OLI"))
-                {  /* only a single band 6 so count is normal */
-                    count = snprintf (band_fname[7], sizeof (band_fname[7]),
-                        "%s", tokenptr);
-                    if (count < 0 || count >= sizeof (band_fname[7]))
-                    {
-                        sprintf (errmsg, "Overflow of band_fname[7] string");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
+                {
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
                 }
-                else if (!strncmp (gmeta->instrument, "ETM", 3))
-                {  /* band 6L and 6H throw off the count for ETM+ */
-                    count = snprintf (band_fname[8], sizeof (band_fname[8]),
-                        "%s", tokenptr);
-                    if (count < 0 || count >= sizeof (band_fname[8]))
-                    {
-                        sprintf (errmsg, "Overflow of band_fname[8] string");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "8");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_6_VCID_1") ||
                      !strcmp (label, "BAND61_FILE_NAME"))
             {
-                count = snprintf (band_fname[5], sizeof (band_fname[5]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[5]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[5] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "61");
+                thermal[band_count] = true;  /* ETM+ thermal */
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_6_VCID_2") ||
                      !strcmp (label, "BAND62_FILE_NAME"))
             {
-                count = snprintf (band_fname[6], sizeof (band_fname[6]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[6]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[6] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "62");
+                thermal[band_count] = true;  /* ETM+ thermal */
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_9") ||
                      !strcmp (label, "BAND9_FILE_NAME"))
             {
-                count = snprintf (band_fname[8], sizeof (band_fname[8]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[8]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[8] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "9");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_10") ||
                      !strcmp (label, "BAND10_FILE_NAME"))
             {
-                count = snprintf (band_fname[9], sizeof (band_fname[9]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[9]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[9] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "10");
+                thermal[band_count] = true;  /* TIRS */
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_11") ||
                      !strcmp (label, "BAND11_FILE_NAME"))
             {
-                count = snprintf (band_fname[10], sizeof (band_fname[10]), "%s",
-                    tokenptr);
-                if (count < 0 || count >= sizeof (band_fname[10]))
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
                 {
-                    sprintf (errmsg, "Overflow of band_fname[10] string");
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                strcpy (category[band_count], "image");
+                strcpy (band_num[band_count], "11");
+                thermal[band_count] = true;  /* TIRS */
+                band_count++;  /* increment the band count */
             }
             else if (!strcmp (label, "FILE_NAME_BAND_QUALITY"))
             {
-                if (!strcmp (gmeta->instrument, "OLI"))
-                {  /* only 9 bands total so QA is 10 */
-                    count = snprintf (band_fname[9], sizeof (band_fname[9]),
-                        "%s", tokenptr);
-                    if (count < 0 || count >= sizeof (band_fname[9]))
-                    {
-                        sprintf (errmsg, "Overflow of band_fname[9] string");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
+                {
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
                 }
-                else
-                {  /* OLI_TIRS has 11 bands total so QA is 12 */
-
-                    count = snprintf (band_fname[11], sizeof (band_fname[11]),
-                        "%s", tokenptr);
-                    if (count < 0 || count >= sizeof (band_fname[11]))
-                    {
-                        sprintf (errmsg, "Overflow of band_fname[11] string");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                }
+                strcpy (category[band_count], "qa");
+                strcpy (band_num[band_count], "bqa");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
             }
 
             /* Read the min pixel values */
@@ -952,6 +988,17 @@ int read_lpgs_mtl
             break;
     }  /* end while fgets */
 
+    /* Check the band count to make sure we didn't go over the maximum
+       expected */
+    if (band_count > MAX_LPGS_BANDS)
+    {
+        sprintf (errmsg, "The total band count of LPGS bands converted for "
+            "this product (%d) exceeds the maximum expected (%d).", band_count,
+            MAX_LPGS_BANDS);
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
     /* Set defaults that aren't in the MTL file */
     gmeta->wrs_system = 2;
     gmeta->orientation_angle = 0.0;
@@ -982,22 +1029,7 @@ int read_lpgs_mtl
     strcpy (gmeta->proj_info.grid_origin, "CENTER");
 
     /* Set up the number of total bands */
-    if (!strcmp (gmeta->instrument, "TM"))
-        metadata->nbands = 7;
-    else if (!strncmp (gmeta->instrument, "ETM", 3))
-        metadata->nbands = 9;
-    else if (!strcmp (gmeta->instrument, "OLI_TIRS"))
-        metadata->nbands = 12;  /* 11 image plus QA band */
-    else if (!strcmp (gmeta->instrument, "OLI"))
-        metadata->nbands = 10;  /* 9 image plus QA band */
-    else
-    {
-        sprintf (errmsg, "Unsupported instrument type: %s. Only TM, ETM+, OLI, "
-            "and OLI_TIRS are currently supported.", gmeta->instrument);
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-
+    metadata->nbands = band_count;
     if (allocate_band_metadata (metadata, metadata->nbands) != SUCCESS)
     {   /* Error messages already printed */
         return (ERROR);
@@ -1046,17 +1078,14 @@ int read_lpgs_mtl
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }
-        if ((!strcmp (gmeta->instrument, "OLI_TIRS") &&
-             i == 11 /* band quality */) ||
-            (!strcmp (gmeta->instrument, "OLI") &&
-             i == 9 /* band quality */))
+
+        count = snprintf (bmeta[i].category, sizeof (bmeta[i].category),
+            "%s", category[i]);
+        if (count < 0 || count >= sizeof (bmeta[i].category))
         {
-            /* This is a QA band and needs the class values set up */
-            strcpy (bmeta[i].category, "qa");
-        }
-        else
-        {
-            strcpy (bmeta[i].category, "image");
+            sprintf (errmsg, "Overflow of bmeta[i].category string");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
         }
 
         count = snprintf (bmeta[i].app_version, sizeof (bmeta[i].app_version),
@@ -1079,21 +1108,29 @@ int read_lpgs_mtl
 
         if (refl_gain_bias_available)
         {
-            /* Reflectance gain/bias values don't exist for the thermal bands */
-            if ((!strncmp (gmeta->instrument, "ETM", 3) &&
-                ((i != 5 /* band 61 */) && (i != 6 /* band 62 */))) ||
-                (!strcmp (gmeta->instrument, "TM") &&
-                (i != 5 /* band 6 */)) ||
-                (!strcmp (gmeta->instrument, "OLI_TIRS") &&
-                ((i != 9 /* band 10 */) && (i != 10 /* band 11 */))))
+            /* Gain/bias only exist for image bands */
+            if (!strcmp (category[i], "image"))
             {
-                bmeta[i].refl_gain = refl_gain[i];
-                bmeta[i].refl_bias = refl_bias[i];
+                /* Reflectance gain/bias values don't exist for the thermal
+                   bands, but the K constants do */
+                if (thermal[i])
+                {
+                    bmeta[i].k1_const = k1[i];
+                    bmeta[i].k2_const = k2[i];
+                }
+                else
+                {
+                    bmeta[i].refl_gain = refl_gain[i];
+                    bmeta[i].refl_bias = refl_bias[i];
+                }
             }
             else
             {
-                bmeta[i].k1_const = k1[i];
-                bmeta[i].k2_const = k2[i];
+                /* QA bands don't have these */
+                bmeta[i].refl_gain = ESPA_FLOAT_META_FILL;
+                bmeta[i].refl_bias = ESPA_FLOAT_META_FILL;
+                bmeta[i].k1_const = ESPA_FLOAT_META_FILL;
+                bmeta[i].k2_const = ESPA_FLOAT_META_FILL;
             }
         }
 
@@ -1154,90 +1191,23 @@ int read_lpgs_mtl
             strcpy (bmeta[i].short_name, "LO8DN");
         }
 
-        /* Handle the ETM+ and TIRS thermal bands */
-        if ((!strncmp (gmeta->instrument, "ETM", 3) &&
-            ((i == 5 /* band 61 */) || (i == 6 /* band 62 */))) ||
-            (!strcmp (gmeta->instrument, "TM") &&
-            (i == 5 /* band 6 */)) ||
-            (!strcmp (gmeta->instrument, "OLI_TIRS") &&
-            ((i == 9 /* band 10 */) || (i == 10 /* band 11 */))))
+        /* Set up the band names */
+        if (strcmp (band_num[i], "bqa"))
         {
-            if (!strncmp (gmeta->instrument, "ETM", 3) &&
-               (i == 5 /* band 61 */))
-            {
-                strcpy (bmeta[i].name, "band61");
-                strcpy (bmeta[i].long_name, "band 61 digital numbers");
-                count = snprintf (bmeta[i].file_name,
-                    sizeof (bmeta[i].file_name), "%s_B61.img", scene_id);
-                if (count < 0 || count >= sizeof (bmeta[i].file_name))
-                {
-                    sprintf (errmsg, "Overflow of bmeta[i].file_name");
-                    error_handler (true, FUNC_NAME, errmsg);
-                    return (ERROR);
-                }
-            }
-            else if (!strncmp (gmeta->instrument, "ETM", 3) &&
-                (i == 6 /* band 62 */))
-            {
-                strcpy (bmeta[i].name, "band62");
-                strcpy (bmeta[i].long_name, "band 62 digital numbers");
-                count = snprintf (bmeta[i].file_name,
-                    sizeof (bmeta[i].file_name), "%s_B62.img", scene_id);
-                if (count < 0 || count >= sizeof (bmeta[i].file_name))
-                {
-                    sprintf (errmsg, "Overflow of bmeta[i].file_name");
-                    error_handler (true, FUNC_NAME, errmsg);
-                    return (ERROR);
-                }
-            }
-            else
-            {
-                sprintf (bmeta[i].name, "band%d", i+1);
-                sprintf (bmeta[i].long_name, "band %d digital numbers", i+1);
-                count = snprintf (bmeta[i].file_name,
-                    sizeof (bmeta[i].file_name), "%s_B%d.img", scene_id, i+1);
-                if (count < 0 || count >= sizeof (bmeta[i].file_name))
-                {
-                    sprintf (errmsg, "Overflow of bmeta[i].file_name string");
-                    error_handler (true, FUNC_NAME, errmsg);
-                    return (ERROR);
-                }
-            }
-           
-            bmeta[i].nlines = tmp_bmeta_th.nlines;
-            bmeta[i].nsamps = tmp_bmeta_th.nsamps;
-            bmeta[i].pixel_size[0] = tmp_bmeta_th.pixel_size[0];
-            bmeta[i].pixel_size[1] = tmp_bmeta_th.pixel_size[1];
-        }
-
-        /* Handle the pan bands */
-        else if ((!strncmp (gmeta->instrument, "ETM", 3) &&
-            (i == 8 /* band 8 */)) ||
-            (!strncmp (gmeta->instrument, "OLI", 3) &&
-            ((i == 7 /* band 8 */))))
-        {
-            strcpy (bmeta[i].name, "band8");
-            strcpy (bmeta[i].long_name, "band 8 digital numbers");
-            count = snprintf (bmeta[i].file_name, sizeof (bmeta[i].file_name),
-                "%s_B8.img", scene_id);
+            sprintf (bmeta[i].name, "band%s", band_num[i]);
+            sprintf (bmeta[i].long_name, "band %s digital numbers",
+              band_num[i]);
+            count = snprintf (bmeta[i].file_name,
+                sizeof (bmeta[i].file_name), "%s_B%s.img", scene_id,
+                band_num[i]);
             if (count < 0 || count >= sizeof (bmeta[i].file_name))
             {
-                sprintf (errmsg, "Overflow of bmeta[i].file_name string");
+                sprintf (errmsg, "Overflow of bmeta[i].file_name");
                 error_handler (true, FUNC_NAME, errmsg);
                 return (ERROR);
             }
-
-            bmeta[i].nlines = tmp_bmeta_pan.nlines;
-            bmeta[i].nsamps = tmp_bmeta_pan.nsamps;
-            bmeta[i].pixel_size[0] = tmp_bmeta_pan.pixel_size[0];
-            bmeta[i].pixel_size[1] = tmp_bmeta_pan.pixel_size[1];
         }
-
-        /* Handle the OLI_TIRS quality band */
-        else if ((!strcmp (gmeta->instrument, "OLI_TIRS") &&
-            (i == 11 /* quality band */)) ||
-            (!strcmp (gmeta->instrument, "OLI") &&
-            (i == 9 /* quality band */)))
+        else if (!strcmp (band_num[i], "bqa"))
         {
             strcpy (bmeta[i].name, "qa");
             strcpy (bmeta[i].long_name, "band quality");
@@ -1249,42 +1219,32 @@ int read_lpgs_mtl
                 error_handler (true, FUNC_NAME, errmsg);
                 return (ERROR);
             }
+        }
 
+        /* Set up the image size and resolution */
+        if (thermal[i])
+        {  /* thermal bands */
+            bmeta[i].nlines = tmp_bmeta_th.nlines;
+            bmeta[i].nsamps = tmp_bmeta_th.nsamps;
+            bmeta[i].pixel_size[0] = tmp_bmeta_th.pixel_size[0];
+            bmeta[i].pixel_size[1] = tmp_bmeta_th.pixel_size[1];
+        }
+        else if (!strcmp (band_num[i], "8"))
+        {  /* pan bands - both ETM+ and OLI band 8 are pan bands */
+            bmeta[i].nlines = tmp_bmeta_pan.nlines;
+            bmeta[i].nsamps = tmp_bmeta_pan.nsamps;
+            bmeta[i].pixel_size[0] = tmp_bmeta_pan.pixel_size[0];
+            bmeta[i].pixel_size[1] = tmp_bmeta_pan.pixel_size[1];
+        }
+        else if (!strcmp (band_num[i], "bqa"))
+        {  /* quality band */
             bmeta[i].nlines = tmp_bmeta.nlines;
             bmeta[i].nsamps = tmp_bmeta.nsamps;
             bmeta[i].pixel_size[0] = tmp_bmeta.pixel_size[0];
             bmeta[i].pixel_size[1] = tmp_bmeta.pixel_size[1];
         }
-
-        /* Handle the TM/OLI thermal and all reflective bands */
         else
-        {
-            if (!strncmp (gmeta->instrument, "ETM", 3) && i > 6)
-            {
-                strcpy (bmeta[i].name, "band7");
-                strcpy (bmeta[i].long_name, "band 7 digital numbers");
-                count = snprintf (bmeta[i].file_name,
-                    sizeof (bmeta[i].file_name), "%s_B7.img", scene_id);
-                if (count < 0 || count >= sizeof (bmeta[i].file_name))
-                {
-                    sprintf (errmsg, "Overflow of bmeta[i].file_name string");
-                    error_handler (true, FUNC_NAME, errmsg);
-                    return (ERROR);
-                }
-            }
-            else  /* bands 1-5 */
-            {
-                sprintf (bmeta[i].name, "band%d", i+1);
-                sprintf (bmeta[i].long_name, "band %d digital numbers", i+1);
-                count = snprintf (bmeta[i].file_name,
-                    sizeof (bmeta[i].file_name), "%s_B%d.img", scene_id, i+1);
-                if (count < 0 || count >= sizeof (bmeta[i].file_name))
-                {
-                    sprintf (errmsg, "Overflow of bmeta[i].file_name string");
-                    error_handler (true, FUNC_NAME, errmsg);
-                    return (ERROR);
-                }
-            }
+        {  /* reflective bands */
             bmeta[i].nlines = tmp_bmeta.nlines;
             bmeta[i].nsamps = tmp_bmeta.nsamps;
             bmeta[i].pixel_size[0] = tmp_bmeta.pixel_size[0];
@@ -1293,10 +1253,7 @@ int read_lpgs_mtl
 
         /* If this is the OLI_TIRS QA band, then overwrite some things for the
            QA band itself */
-        if ((!strcmp (gmeta->instrument, "OLI_TIRS") &&
-             i == 11 /* band quality */) ||
-            ((!strcmp (gmeta->instrument, "OLI") &&
-             i == 9 /* band quality */)))
+        if (!strcmp (band_num[i], "bqa"))
         {
             count = snprintf (bmeta[i].data_units, sizeof (bmeta[i].data_units),
                 "quality/feature classification");
@@ -1307,14 +1264,11 @@ int read_lpgs_mtl
                 return (ERROR);
             }
 
+            bmeta[i].data_type = ESPA_UINT16;
             bmeta[i].valid_range[0] = 0;
             bmeta[i].valid_range[1] = 65535;
             bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
             bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
-            bmeta[i].refl_gain = ESPA_FLOAT_META_FILL;
-            bmeta[i].refl_bias = ESPA_FLOAT_META_FILL;
-            bmeta[i].k1_const = ESPA_FLOAT_META_FILL;
-            bmeta[i].k2_const = ESPA_FLOAT_META_FILL;
 
             if (allocate_bitmap_metadata (&bmeta[i], 16) != SUCCESS)
             {
@@ -1325,26 +1279,39 @@ int read_lpgs_mtl
 
             strcpy (bmeta[i].bitmap_description[0],
                 "Data Fill Flag (0 = valid data, 1 = invalid data)");
-            strcpy (bmeta[i].bitmap_description[1],
-                "Dropped Frame (0 = not a dropped frame , 1 = dropped frame)");
-            strcpy (bmeta[i].bitmap_description[2],
-                "Terrain Occlusion (0 = not terrain occluded, "
-                "1 = terrain occluded)");
-            strcpy (bmeta[i].bitmap_description[3], "Reserved");
-            strcpy (bmeta[i].bitmap_description[4], "Water Confidence");
-            strcpy (bmeta[i].bitmap_description[5], "Water Confidence");
-            strcpy (bmeta[i].bitmap_description[6],
-                "Reserved for cloud shadow");
-            strcpy (bmeta[i].bitmap_description[7],
-                "Reserved for cloud shadow");
-            strcpy (bmeta[i].bitmap_description[8], "Vegetation Confidence");
-            strcpy (bmeta[i].bitmap_description[9], "Vegetation Confidence");
+            if (!strncmp (gmeta->instrument, "OLI", 3))
+            {  /* OLI */
+                strcpy (bmeta[i].bitmap_description[1],
+                    "Terrain Occlusion (0 = not terrain occluded, "
+                    "1 = terrain occluded)");
+            }
+            else
+            {  /* TM/ETM+ */
+                strcpy (bmeta[i].bitmap_description[1], "Dropped Pixel "
+                    "(0 = not a dropped pixel , 1 = dropped pixel)");
+            }
+            strcpy (bmeta[i].bitmap_description[2], "Radiometric Saturation");
+            strcpy (bmeta[i].bitmap_description[3], "Radiometric Saturation");
+            strcpy (bmeta[i].bitmap_description[4], "Cloud");
+            strcpy (bmeta[i].bitmap_description[5], "Cloud Confidence");
+            strcpy (bmeta[i].bitmap_description[6], "Cloud Confidence");
+            strcpy (bmeta[i].bitmap_description[7], "Cloud Shadow Confidence");
+            strcpy (bmeta[i].bitmap_description[8], "Cloud Shadow Confidence");
+            strcpy (bmeta[i].bitmap_description[9], "Snow/Ice Confidence");
             strcpy (bmeta[i].bitmap_description[10], "Snow/Ice Confidence");
-            strcpy (bmeta[i].bitmap_description[11], "Snow/Ice Confidence");
-            strcpy (bmeta[i].bitmap_description[12], "Cirrus Confidence");
-            strcpy (bmeta[i].bitmap_description[13], "Cirrus Confidence");
-            strcpy (bmeta[i].bitmap_description[14], "Cloud Confidence");
-            strcpy (bmeta[i].bitmap_description[15], "Cloud Confidence");
+            if (!strncmp (gmeta->instrument, "OLI", 3))
+            {  /* OLI */
+                strcpy (bmeta[i].bitmap_description[11], "Cirrus Confidence");
+                strcpy (bmeta[i].bitmap_description[12], "Cirrus Confidence");
+            }
+            else
+            {  /* TM/ETM+ */
+                strcpy (bmeta[i].bitmap_description[11], "Not used");
+                strcpy (bmeta[i].bitmap_description[12], "Not used");
+            }
+            strcpy (bmeta[i].bitmap_description[13], "Not used");
+            strcpy (bmeta[i].bitmap_description[14], "Not used");
+            strcpy (bmeta[i].bitmap_description[15], "Not used");
         }
     }
 
