@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------
 # Makefile
 #
-# for ESPA format conversion libraries
+# for ESPA Level-1 related libraries
 #-----------------------------------------------------------------------------
 .PHONY: all install-headers install-lib install clean
 
@@ -18,25 +18,16 @@ EXTRA = -Wall $(EXTRA_OPTIONS)
 
 
 # Define the include files
-INC = convert_lpgs_to_espa.h convert_espa_to_hdf.h espa_hdf.h espa_hdf_eos.h \
-      convert_espa_to_gtif.h espa_geoloc.h convert_modis_to_espa.h \
-      convert_espa_to_raw_binary_bip.h
+INC = clip_band_misalignment.h generate_julian_date_bands.h
 
 # Define the source code and object files
 SRC = \
-      convert_lpgs_to_espa.c           \
-      convert_espa_to_hdf.c            \
-      espa_hdf.c                       \
-      espa_hdf_eos.c                   \
-      convert_espa_to_gtif.c           \
-      convert_modis_to_espa.c          \
-      espa_geoloc.c                    \
-      convert_espa_to_raw_binary_bip.c
+      clip_band_misalignment.c  \
+      generate_julian_date_bands.c
 OBJ = $(SRC:.c=.o)
 
 # Define include paths
-INCDIR  = -I. -I../include -I$(XML2INC) -I$(TIFFINC) -I$(GEOTIFF_INC) \
-          -I$(HDFINC) -I$(HDFEOS_INC) -I$(HDFEOS_GCTPINC)
+INCDIR  = -I. -I../include -I$(XML2INC)
 NCFLAGS = $(EXTRA) $(INCDIR)
 
 # Define the object libraries and paths
@@ -46,7 +37,7 @@ NCFLAGS = $(EXTRA) $(INCDIR)
 #LOADLIB = $(EXLIB) $(MATHLIB)
 
 # Define the C library/archive
-ARCHIVE = lib_espa_format_conversion.a
+ARCHIVE = lib_espa_level1_libs.a
 
 #-----------------------------------------------------------------------------
 all: $(ARCHIVE)
