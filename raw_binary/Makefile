@@ -8,6 +8,7 @@
 LIBDIRS = common \
           io_libs \
           format_conversion_libs \
+          level1_libs \
           per_pixel_angles_libs/ias_lib \
           per_pixel_angles_libs \
           land_water_mask_libs/GCTP3 \
