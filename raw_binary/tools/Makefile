@@ -68,6 +68,7 @@ LIB1   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB2   = \
@@ -79,6 +80,8 @@ LIB2   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
+    -L$(SZIPLIB) -lsz \
     $(MATHLIB)
 
 LIB3   = \
@@ -87,6 +90,7 @@ LIB3   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB4   = \
@@ -95,6 +99,7 @@ LIB4   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB5   = \
@@ -103,6 +108,7 @@ LIB5   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB6   = \
@@ -114,6 +120,8 @@ LIB6   = \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
+    -L$(SZIPLIB) -lsz \
     $(MATHLIB)
 
 LIB7   = \
@@ -128,6 +136,7 @@ LIB8   = \
     -L$(XML2LIB) -lxml2 \
     -lgctp3 \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB9   = \
@@ -135,6 +144,7 @@ LIB9   = \
     -L$(XML2LIB) -lxml2 \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB10   = \
@@ -142,6 +152,7 @@ LIB10   = \
     -L$(XML2LIB) -lxml2 \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB11   = \
@@ -149,6 +160,7 @@ LIB11   = \
     -L$(XML2LIB) -lxml2 \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 # Define C executables
