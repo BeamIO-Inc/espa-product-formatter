@@ -152,6 +152,7 @@ LIB10   = \
     -L$(XML2LIB) -lxml2 \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB11   = \
