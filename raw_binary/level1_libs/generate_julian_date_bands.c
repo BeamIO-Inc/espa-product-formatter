@@ -125,7 +125,7 @@ int generate_julian_date_bands
     /* Pull the year, month, and day from the acquisition date in the XML
        metadata (Example YYYY-MM-DD) */
     strncpy (year_str, gmeta->acquisition_date, 4);
-    year_str[5] = '\0';
+    year_str[4] = '\0';
     year = atoi (year_str);
     if (year < 1970 || year > 9999)
     {

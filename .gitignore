@@ -16,4 +16,5 @@ raw_binary/tools/create_l8_angle_bands
 raw_binary/tools/create_land_water_mask
 raw_binary/tools/espa_band_subset
 raw_binary/tools/espa_product_subset
+raw_binary/tools/clip_band_misalignment
 

@@ -48,6 +48,9 @@ OBJ9 = $(SRC9:.c=.o)
 SRC10 = create_julian_date_bands.c
 OBJ10 = $(SRC10:.c=.o)
 
+SRC11 = clip_band_misalignment.c
+OBJ11 = $(SRC11:.c=.o)
+
 # Define include paths
 INCDIR  = -I. -I../include -I$(XML2INC) -I$(TIFFINC) -I$(GEOTIFF_INC) \
           -I$(HDFINC) -I$(HDFEOS_INC) -I$(JBIGINC) -I$(ZLIBINC)
@@ -145,7 +148,14 @@ LIB9   = \
     $(MATHLIB)
 
 LIB10   = \
-    -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
+    -L../lib -l_espa_level1_libs -l_espa_raw_binary -l_espa_common \
+    -L$(XML2LIB) -lxml2 \
+    -L$(JBIGLIB) -ljbig \
+    -L$(ZLIBLIB) -lz \
+    $(MATHLIB)
+
+LIB11   = \
+    -L../lib -l_espa_level1_libs -l_espa_raw_binary -l_espa_common \
     -L$(XML2LIB) -lxml2 \
     -L$(JBIGLIB) -ljbig \
     -L$(ZLIBLIB) -lz \
@@ -163,7 +173,8 @@ EXE7 = create_l8_angle_bands
 EXE8 = create_land_water_mask
 EXE9 = convert_espa_to_bip
 EXE10 = create_julian_date_bands
-ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10)
+EXE11 = clip_band_misalignment
+ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11)
 
 #-----------------------------------------------------------------------------
 all: $(ALL_EXES)
@@ -198,6 +209,9 @@ $(EXE9): $(OBJ9) $(INC)
 $(EXE10): $(OBJ10) $(INC)
 	$(CC) $(NCFLAGS) -o $(EXE10) $(OBJ10) $(LIB10)
 
+$(EXE11): $(OBJ11) $(INC)
+	$(CC) $(NCFLAGS) -o $(EXE11) $(OBJ11) $(LIB11)
+
 #-----------------------------------------------------------------------------
 install: $(ALL_EXES)
 	install -d $(bin_link_path)
@@ -223,6 +237,7 @@ $(OBJ7): $(INC)
 $(OBJ8): $(INC)
 $(OBJ9): $(INC)
 $(OBJ10): $(INC)
+$(OBJ11): $(INC)
 
 .c.o:
 	$(CC) $(NCFLAGS) -c $<
