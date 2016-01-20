@@ -415,7 +415,7 @@ int write_metadata
             for (j = 0; j < bmeta[i].ncover; j++)
             {
                 fprintf (fptr,
-                    "                <cover type=\"%s\">%f</cover>\n",
+                    "                <cover type=\"%s\">%.2f</cover>\n",
                      bmeta[i].percent_cover[j].description,
                      bmeta[i].percent_cover[j].percent);
             }
@@ -924,7 +924,7 @@ void print_metadata_struct
             printf ("    Cover type descriptions:\n");
             for (j = 0; j < metadata->band[i].ncover; j++)
             {
-                printf ("      cover type %s: percentage %f\n",
+                printf ("      cover type %s: percentage %.2f\n",
                      metadata->band[i].percent_cover[j].description,
                      metadata->band[i].percent_cover[j].percent);
             }
