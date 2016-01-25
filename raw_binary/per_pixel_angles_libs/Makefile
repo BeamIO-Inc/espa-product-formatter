@@ -34,7 +34,7 @@ NCFLAGS = $(EXTRA) $(INCDIR)
 #LOADLIB = $(EXLIB) $(MATHLIB)
 
 # Define the C library/archive
-ARCHIVE = lib_espa_l8_angles.a
+ARCHIVE = lib_espa_band_angles.a
 
 #-----------------------------------------------------------------------------
 all: $(ARCHIVE)

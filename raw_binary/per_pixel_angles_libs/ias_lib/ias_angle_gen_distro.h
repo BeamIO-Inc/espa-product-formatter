@@ -10,7 +10,7 @@
 #define IAS_ANGLE_GEN_NUM_RPC_COEF 5     /* Number of image RPC coefficients */
 #define IAS_ANGLE_GEN_ANG_RPC_COEF 10    /* Number of angle RPC coefficients */
 #define IAS_ANGLE_GEN_SPACECRAFT_SIZE 32 /* Spacecraft name size */
-#define IAS_ANGLE_GEN_SCENE_ID_LENGTH 21 /* Scene ID length */
+#define IAS_ANGLE_GEN_SCENE_ID_LENGTH 40 /* Scene ID length */
 #define IAS_ANGLE_GEN_ZENITH_INDEX 0    /* Array index for the zenith angle */
 #define IAS_ANGLE_GEN_AZIMUTH_INDEX 1   /* Array index for the azimuth angle */
 
@@ -88,8 +88,8 @@ typedef struct IAS_ANGLE_GEN_BAND
     double image_start_time;/* Image start time, offset in seconds from
                                ephemeris epoch */
     double seconds_per_line;/* L1R line time increment in seconds */
-    double active_l1t_corner_lines[4]; /* UL, UR, LL, LR, UL corner lines */
-    double active_l1t_corner_samps[4]; /* UL, UR, LL, LR, UL corner samps */ 
+    double active_l1t_corner_lines[4]; /* UL, UR, LL, LR corner lines */
+    double active_l1t_corner_samps[4]; /* UL, UR, LL, LR corner samps */ 
     IAS_ANGLE_GEN_ANG_RPC satellite;   /* Satellite viewing angles */
     IAS_ANGLE_GEN_ANG_RPC solar;       /* Solar angles */
     IAS_ANGLE_GEN_IMAGE_RPC sca_metadata[IAS_MAX_NSCAS]; /* SCA RPCs */

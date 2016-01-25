@@ -36,7 +36,7 @@ OBJ5 = $(SRC5:.c=.o)
 SRC6 = convert_modis_to_espa.c
 OBJ6 = $(SRC6:.c=.o)
 
-SRC7 = create_l8_angle_bands.c
+SRC7 = create_angle_bands.c
 OBJ7 = $(SRC7:.c=.o)
 
 SRC8 = create_land_water_mask.c
@@ -126,7 +126,8 @@ LIB6   = \
 
 LIB7   = \
     -L../lib -l_espa_raw_binary -l_espa_common \
-    -l_espa_l8_angles -l_espa_l8_ang \
+    -L$(XML2LIB) -lxml2 \
+    -l_espa_band_angles -l_espa_l8_ang \
     -L$(ZLIBLIB) -lz \
     $(MATHLIB)
 
@@ -170,7 +171,7 @@ EXE3 = convert_espa_to_gtif
 EXE4 = espa_band_subset
 EXE5 = espa_product_subset
 EXE6 = convert_modis_to_espa
-EXE7 = create_l8_angle_bands
+EXE7 = create_angle_bands
 EXE8 = create_land_water_mask
 EXE9 = convert_espa_to_bip
 EXE10 = create_julian_date_bands

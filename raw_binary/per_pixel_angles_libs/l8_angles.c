@@ -216,6 +216,7 @@ int l8_per_pixel_angles
 
         /* Get framing information for this band if return is not successful
            then band is not present in metadata so continue */
+/* GAIL -- do we need an array of frames vs. a single frame?? */
         if (get_frame(&metadata, band_index, &frame[band_index]) != SUCCESS)
         {
             IAS_LOG_WARNING("Band not present in metadata for band number %d",
@@ -412,7 +413,6 @@ int l8_per_pixel_angles
 }
 
 
-#define WRITE_BAND_DIFF_FROM_AVG 1
 /**************************************************************************
 NAME: l8_per_pixel_avg_refl_angles
 
@@ -447,11 +447,12 @@ NOTES:
 ***************************************************************************/
 int l8_per_pixel_avg_refl_angles
 (
-    char *angle_coeff_name, /* I: Angle coefficient filename */
-    int subsamp_fact,       /* I: Subsample factor used when calculating the
-                                  angles (1=full resolution). OW take every Nth
-                                  sample from the line, where N=subsamp_fact */
-    short fill_pix_value,   /* I: Fill pixel value to use (-32768:32767) */
+    char *angle_coeff_name,   /* I: Angle coefficient filename */
+    int subsamp_fact,         /* I: Subsample factor used when calculating the
+                                    angles (1=full resolution). OW take every
+                                    Nth sample from the line, where
+                                    N=subsamp_fact */
+    short fill_pix_value,     /* I: Fill pixel value to use (-32768:32767) */
     ANGLES_FRAME *avg_frame,  /* O: Image frame info for the scene */
     short **avg_solar_zenith, /* O: Addr of pointer for the average solar zenith
                                     angle array (if NULL, don't process),
@@ -471,27 +472,12 @@ int l8_per_pixel_avg_refl_angles
                                     the subsample factor */
 )
 {
-    char tmpfile[1024];               /* temporary filename for band diffs */
-    int count;                        /* number of chars copied in snprintf */
-    FILE *fptr=NULL;                  /* file pointer for band diffs */
     int band_index;                   /* band index */
     int sub_sample;                   /* subsampling factor */
     int line;                         /* line index */
     int samp;                         /* sample index */
     int index;                        /* current sample index */
     int angle_size;                   /* memory alloc angle size */
-    int center_pixel;                 /* location of the scene center pixel */
-    int min, max;                     /* minimum & maximum differences for the
-                                         current band (across all pixels)
-                                         between the band average and band
-                                         angle */
-    int min4, max4;                   /* minimum & maximum differences between
-                                         band 4 (across all pixels) and the
-                                         current band angle */
-    short *bdiff = NULL;              /* array to hold the difference of the
-                                         average from the actual band angle */
-    short bdiff4;                     /* variable to hold the difference of
-                                         band 4 from the actual band angle */
     ushort *pix_count = NULL;         /* array to carry the count of the
                                          non-zero pixels used for the sum */
     long *sum = NULL;                 /* array to carry the sum of the angles
@@ -512,7 +498,6 @@ int l8_per_pixel_avg_refl_angles
                                          azimuth angle array, one per
                                          reflectance band. Degrees scaled by
                                          100 */
-    int BAND4 = 3;                    /* index for band 4 */
     char refl_band_list[] = "1,2,3,4,5,6,7,9"; /* list of reflectance bands to
                                          be used in the average */
     bool process_band[L8_NBANDS] = {true, true, true, true, true, true, true,
@@ -623,10 +608,8 @@ int l8_per_pixel_avg_refl_angles
                         pix_count[index]++;
                     }
 
-#ifndef WRITE_BAND_DIFF_FROM_AVG
             /* Release the memory */
             free (sat_zenith[band_index]);
-#endif
         }
 
         /* Get the average */
@@ -666,10 +649,8 @@ int l8_per_pixel_avg_refl_angles
                         pix_count[index]++;
                     }
 
-#ifndef WRITE_BAND_DIFF_FROM_AVG
             /* Release the memory */
             free (sat_azimuth[band_index]);
-#endif
         }
 
         /* Get the average */
@@ -709,10 +690,8 @@ int l8_per_pixel_avg_refl_angles
                         pix_count[index]++;
                     }
 
-#ifndef WRITE_BAND_DIFF_FROM_AVG
             /* Release the memory */
             free (solar_zenith[band_index]);
-#endif
         }
 
         /* Get the average */
@@ -754,10 +733,8 @@ int l8_per_pixel_avg_refl_angles
                         pix_count[index]++;
                     }
 
-#ifndef WRITE_BAND_DIFF_FROM_AVG
             /* Release the memory */
             free (solar_azimuth[band_index]);
-#endif
         }
 
         /* Get the average */
@@ -773,387 +750,6 @@ int l8_per_pixel_avg_refl_angles
     /* Free memory */
     free (sum);
     free (pix_count);
-
-#ifdef WRITE_BAND_DIFF_FROM_AVG
-    /* Allocate memory to hold the difference from the average for each band.
-       Just use the first band (band 1) for the size of the band. */
-    bdiff = calloc (angle_size, sizeof (short));
-    if (bdiff == NULL)
-    {
-        IAS_LOG_ERROR("Allocating array for holding the difference from the "
-            "average for each band.");
-        return ERROR;
-    }
-
-    /* Write out the difference for each band from the band average */
-    center_pixel = (nlines[0]/2) * nsamps[0] + (nsamps[0]/2);
-    if (avg_sat_zenith != NULL)
-    {
-        /* Loop through the reflectance bands and compute the difference from
-           the average for each of these bands */
-        for (band_index = 0; band_index < L8_NBANDS; band_index++)
-        {
-            /* Check if this band be added to the average */
-            if (!process_band[band_index])
-                continue;
-
-            /* Compute the differences, but skip the scene edge pixels with
-               an angle value of 0 */
-            min = min4 = 65536;
-            max = max4 = -65536;
-            for (line = 0, index = 0; line < frame[band_index].num_lines;
-                 line += sub_sample)
-                for (samp = 0; samp < frame[band_index].num_samps;
-                     samp += sub_sample, index++)
-                {
-                    if (sat_zenith[band_index][index] != 0 &&
-                        sat_zenith[BAND4][index] != 0)
-                    {
-                        bdiff[index] = (*avg_sat_zenith)[index] -
-                            sat_zenith[band_index][index];
-                        bdiff4 = sat_zenith[BAND4][index] -
-                            sat_zenith[band_index][index];
-                    }
-                    else
-                    {
-                        bdiff[index] = 0;
-                        bdiff4 = 0;
-                    }
-
-                    if (bdiff[index] < min)
-                        min = bdiff[index];
-                    if (bdiff[index] > max)
-                        max = bdiff[index];
-
-                    if (bdiff4 < min4)
-                        min4 = bdiff4;
-                    if (bdiff4 > max4)
-                        max4 = bdiff4;
-                }
-
-            /* Print the stats for this band */
-            printf ("*** Band %d -- Satellite Zenith ***\n", band_index+1);
-            printf ("    average at scene center: %d\n",
-                (*avg_sat_zenith)[center_pixel]);
-            printf ("    angle at scene center: %d\n",
-                sat_zenith[band_index][center_pixel]);
-            printf ("    minimum difference from band avg: %d\n", min);
-            printf ("    maximum difference from band avg: %d\n", max);
-            printf ("    minimum difference from band4: %d\n", min4);
-            printf ("    maximum difference from band4: %d\n", max4);
-
-            /* Release the memory */
-            if (band_index != BAND4)
-                free (sat_zenith[band_index]);
-
-            /* Open the difference file for this band */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "satellite_zenith_band_diff_from_avg_B%d.img", band_index+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                IAS_LOG_ERROR("Overflow of tmpfile");
-                return ERROR;
-            }
-
-            fptr = open_raw_binary (tmpfile, "wb");
-            if (!fptr)
-            {
-                IAS_LOG_ERROR("Unable to open the satellite zenith band "
-                    "difference file");
-                return ERROR;
-            }
-    
-            /* Write the data for this band.  Just use nlines/nsamps for the
-               first band since that's the assumption we've used all along. */
-            if (write_raw_binary (fptr, nlines[0], nsamps[0], sizeof (short),
-                bdiff) != SUCCESS)
-            {
-                IAS_LOG_ERROR("Unable to write to the band difference file");
-                return ERROR;
-            }
-    
-            /* Close the file */
-            close_raw_binary (fptr);
-        }  /* for band_index */
-    }
-
-    if (avg_sat_azimuth != NULL)
-    {
-        /* Loop through the reflectance bands and compute the difference from
-           the average for each of these bands */
-        for (band_index = 0; band_index < L8_NBANDS; band_index++)
-        {
-            /* Check if this band be added to the average */
-            if (!process_band[band_index])
-                continue;
-
-            /* Compute the differences, but skip the scene edge pixels with
-               an angle value of 0 */
-            min = min4 = 65536;
-            max = max4 = -65536;
-            for (line = 0, index = 0; line < frame[band_index].num_lines;
-                 line += sub_sample)
-                for (samp = 0; samp < frame[band_index].num_samps;
-                     samp += sub_sample, index++)
-                {
-                    if (sat_azimuth[band_index][index] != 0 &&
-                        sat_azimuth[BAND4][index] != 0)
-                    {
-                        bdiff[index] = (*avg_sat_azimuth)[index] -
-                            sat_azimuth[band_index][index];
-                        bdiff4 = sat_azimuth[BAND4][index] -
-                            sat_azimuth[band_index][index];
-                    }
-                    else
-                    {
-                        bdiff[index] = 0;
-                        bdiff4 = 0;
-                    }
-
-                    if (bdiff[index] < min)
-                        min = bdiff[index];
-                    if (bdiff[index] > max)
-                        max = bdiff[index];
-
-                    if (bdiff4 < min4)
-                        min4 = bdiff4;
-                    if (bdiff4 > max4)
-                        max4 = bdiff4;
-                }
-
-            /* Print the stats for this band */
-            printf ("*** Band %d -- Satellite Azimuth ***\n", band_index+1);
-            printf ("    average at scene center: %d\n",
-                (*avg_sat_azimuth)[center_pixel]);
-            printf ("    angle at scene center: %d\n",
-                sat_azimuth[band_index][center_pixel]);
-            printf ("    minimum difference from band avg: %d\n", min);
-            printf ("    maximum difference from band avg: %d\n", max);
-            printf ("    minimum difference from band4: %d\n", min4);
-            printf ("    maximum difference from band4: %d\n", max4);
-
-            /* Release the memory */
-            if (band_index != BAND4)
-                free (sat_azimuth[band_index]);
-
-            /* Open the difference file for this band */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "satellite_azimuth_band_diff_from_avg_B%d.img", band_index+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                IAS_LOG_ERROR("Overflow of tmpfile");
-                return ERROR;
-            }
-
-            fptr = open_raw_binary (tmpfile, "wb");
-            if (!fptr)
-            {
-                IAS_LOG_ERROR("Unable to open the satellite azimuth band "
-                    "difference file");
-                return ERROR;
-            }
-    
-            /* Write the data for this band.  Just use nlines/nsamps for the
-               first band since that's the assumption we've used all along. */
-            if (write_raw_binary (fptr, nlines[0], nsamps[0], sizeof (short),
-                bdiff) != SUCCESS)
-            {
-                IAS_LOG_ERROR("Unable to write to the band difference file");
-                return ERROR;
-            }
-    
-            /* Close the file */
-            close_raw_binary (fptr);
-        }  /* for band_index */
-    }
-
-    if (avg_solar_zenith != NULL)
-    {
-        /* Loop through the reflectance bands and compute the difference from
-           the average for each of these bands */
-        for (band_index = 0; band_index < L8_NBANDS; band_index++)
-        {
-            /* Check if this band be added to the average */
-            if (!process_band[band_index])
-                continue;
-
-            /* Compute the differences, but skip the scene edge pixels with
-               an angle value of 0 */
-            min = min4 = 65536;
-            max = max4 = -65536;
-            for (line = 0, index = 0; line < frame[band_index].num_lines;
-                 line += sub_sample)
-                for (samp = 0; samp < frame[band_index].num_samps;
-                     samp += sub_sample, index++)
-                {
-                    if (solar_zenith[band_index][index] != 0 &&
-                        solar_zenith[BAND4][index] != 0)
-                    {
-                        bdiff[index] = (*avg_solar_zenith)[index] -
-                            solar_zenith[band_index][index];
-                        bdiff4 = solar_zenith[BAND4][index] -
-                            solar_zenith[band_index][index];
-                    }
-                    else
-                    {
-                        bdiff[index] = 0;
-                        bdiff4 = 0;
-                    }
-
-                    if (bdiff[index] < min)
-                        min = bdiff[index];
-                    if (bdiff[index] > max)
-                        max = bdiff[index];
-
-                    if (bdiff4 < min4)
-                        min4 = bdiff4;
-                    if (bdiff4 > max4)
-                        max4 = bdiff4;
-                }
-
-            /* Print the stats for this band */
-            printf ("*** Band %d -- Solar Zenith ***\n", band_index+1);
-            printf ("    average at scene center: %d\n",
-                (*avg_solar_zenith)[center_pixel]);
-            printf ("    angle at scene center: %d\n",
-                solar_zenith[band_index][center_pixel]);
-            printf ("    minimum difference from band avg: %d\n", min);
-            printf ("    maximum difference from band avg: %d\n", max);
-            printf ("    minimum difference from band4: %d\n", min4);
-            printf ("    maximum difference from band4: %d\n", max4);
-
-            /* Release the memory */
-            if (band_index != BAND4)
-                free (solar_zenith[band_index]);
-
-            /* Open the difference file for this band */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "solar_zenith_band_diff_from_avg_B%d.img", band_index+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                IAS_LOG_ERROR("Overflow of tmpfile");
-                return ERROR;
-            }
-
-            fptr = open_raw_binary (tmpfile, "wb");
-            if (!fptr)
-            {
-                IAS_LOG_ERROR("Unable to open the solar zenith band "
-                    "difference file");
-                return ERROR;
-            }
-    
-            /* Write the data for this band.  Just use nlines/nsamps for the
-               first band since that's the assumption we've used all along. */
-            if (write_raw_binary (fptr, nlines[0], nsamps[0], sizeof (short),
-                bdiff) != SUCCESS)
-            {
-                IAS_LOG_ERROR("Unable to write to the band difference file");
-                return ERROR;
-            }
-    
-            /* Close the file */
-            close_raw_binary (fptr);
-        }  /* for band_index */
-    }
-
-    if (avg_solar_azimuth != NULL)
-    {
-        /* Loop through the reflectance bands and compute the difference from
-           the average for each of these bands */
-        for (band_index = 0; band_index < L8_NBANDS; band_index++)
-        {
-            /* Check if this band be added to the average */
-            if (!process_band[band_index])
-                continue;
-
-            /* Compute the differences, but skip the scene edge pixels with
-               an angle value of 0 */
-            min = min4 = 65536;
-            max = max4 = -65536;
-            for (line = 0, index = 0; line < frame[band_index].num_lines;
-                 line += sub_sample)
-                for (samp = 0; samp < frame[band_index].num_samps;
-                     samp += sub_sample, index++)
-                {
-                    if (solar_azimuth[band_index][index] != 0 &&
-                        solar_azimuth[BAND4][index] != 0)
-                    {
-                        bdiff[index] = (*avg_solar_azimuth)[index] -
-                            solar_azimuth[band_index][index];
-                        bdiff4 = solar_azimuth[BAND4][index] -
-                            solar_azimuth[band_index][index];
-                    }
-                    else
-                    {
-                        bdiff[index] = 0;
-                        bdiff4 = 0;
-                    }
-
-                    if (bdiff[index] < min)
-                        min = bdiff[index];
-                    if (bdiff[index] > max)
-                        max = bdiff[index];
-
-                    if (bdiff4 < min4)
-                        min4 = bdiff4;
-                    if (bdiff4 > max4)
-                        max4 = bdiff4;
-                }
-
-            /* Print the stats for this band */
-            printf ("*** Band %d -- Solar Azimuth ***\n", band_index+1);
-            printf ("    average at scene center: %d\n",
-                (*avg_solar_azimuth)[center_pixel]);
-            printf ("    angle at scene center: %d\n",
-                solar_azimuth[band_index][center_pixel]);
-            printf ("    minimum difference from band avg: %d\n", min);
-            printf ("    maximum difference from band avg: %d\n", max);
-            printf ("    minimum difference from band4: %d\n", min4);
-            printf ("    maximum difference from band4: %d\n", max4);
-
-            /* Release the memory */
-            if (band_index != BAND4)
-                free (solar_azimuth[band_index]);
-
-            /* Open the difference file for this band */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "solar_azimuth_band_diff_from_avg_B%d.img", band_index+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                IAS_LOG_ERROR("Overflow of tmpfile");
-                return ERROR;
-            }
-
-            fptr = open_raw_binary (tmpfile, "wb");
-            if (!fptr)
-            {
-                IAS_LOG_ERROR("Unable to open the solar azimuth band "
-                    "difference file");
-                return ERROR;
-            }
-    
-            /* Write the data for this band.  Just use nlines/nsamps for the
-               first band since that's the assumption we've used all along. */
-            if (write_raw_binary (fptr, nlines[0], nsamps[0], sizeof (short),
-                bdiff) != SUCCESS)
-            {
-                IAS_LOG_ERROR("Unable to write to the band difference file");
-                return ERROR;
-            }
-    
-            /* Close the file */
-            close_raw_binary (fptr);
-        }  /* for band_index */
-    }
-
-    /* Free memory */
-    free (bdiff);
-    free (sat_zenith[BAND4]);
-    free (sat_azimuth[BAND4]);
-    free (solar_zenith[BAND4]);
-    free (solar_azimuth[BAND4]);
-#endif
 
     /* Populate the band average frame using the first band (band 1) from the
        band frames */

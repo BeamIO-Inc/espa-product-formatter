@@ -3,6 +3,7 @@
 
 /* IAS Library Includes */
 #include "ias_logging.h"
+#include "ias_math.h"
 #include "ias_angle_gen_private.h"
 
 /*******************************************************************************
@@ -67,10 +68,6 @@ Purpose: Calculates the satellite viewing and solar illumination zenith and
 Return: 
     Type = integer
     SUCCESS / ERROR
-
-Notes:
-    1. zenith values are from 0 to pi radians
-    2. azimuth values are from -pi to pi radians
  ******************************************************************************/
 int ias_angle_gen_calculate_angles_rpc
 (
@@ -147,6 +144,7 @@ int ias_angle_gen_calculate_angles_rpc
     /* Check the located SCAs */
     for (sca_index = 0; sca_index < nsca_found; sca_index++)
     {
+        IAS_VECTOR unit_vector;     /* Normalized vector */
         IAS_VECTOR vector;          /* Viewing vector */
         double l1r_line_from_offset;/* L1R line location using offset */        
         double l1r_samp_from_offset;/* L1R sample location using offset */
@@ -173,11 +171,18 @@ int ias_angle_gen_calculate_angles_rpc
             data_ptr->z_terms.numerator, data_ptr->z_terms.denominator, 
             &vector.z);
 
-        /* Calculate zenith and azimuth angles
-           zenith values are from 0 to pi radians (returned from acos)
-           azimuth values are from -pi to pi radians (returned from atan2) */
-        angle[IAS_ANGLE_GEN_ZENITH_INDEX] += acos(vector.z);
-        angle[IAS_ANGLE_GEN_AZIMUTH_INDEX] += atan2(vector.x, vector.y);
+        /* Normalize the vector in case the polynomial fit results in non-unit
+           vectors that will fail the following trig functions */
+        if (ias_math_compute_unit_vector(&vector, &unit_vector) != SUCCESS)
+        {
+            IAS_LOG_ERROR("Unable to normalize the rpc vector");
+            return ERROR;
+        }
+
+        /* Calculate zenith and azimuth angles */
+        angle[IAS_ANGLE_GEN_ZENITH_INDEX] += acos(unit_vector.z);
+        angle[IAS_ANGLE_GEN_AZIMUTH_INDEX] += atan2(unit_vector.x, 
+            unit_vector.y);
     }
 
     /* Average the angles */

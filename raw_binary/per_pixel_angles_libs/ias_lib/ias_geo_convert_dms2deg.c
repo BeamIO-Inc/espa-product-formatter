@@ -13,7 +13,7 @@ ALGORITHM DESCRIPTION:
         Receive an angle in DMS
         Convert the angle to total degrees (in place).
         The angle is then checked to be sure it is within the limits of
-          its use (LAT, LON, or DEGREES).
+          its use (LAT, LON, NOLIMIT, or DEGREES).
 
 *****************************************************************************/
 #include <string.h>
@@ -25,7 +25,8 @@ int ias_geo_convert_dms2deg
 (
     double angle_dms,     /* I: Angle in DMS (DDDMMMSSS) format */
     double *angle_degrees,/* O: Angle in decimal degrees */
-    const char *type      /* I: Angle usage type (LAT, LON, or DEGREES) */
+    const char *type      /* I: Angle usage type (LAT, LON, NOLIMIT, 
+                                or DEGREES) */
 )
 {
     float second;     /* Second of DMS angle value */
@@ -35,6 +36,7 @@ int ias_geo_convert_dms2deg
     int  degree;      /* Degree of DMS angle value */
     int  minute;      /* Minute of DMS angle value */
     short sign;       /* Sign of the angle */
+    int check_limit = 1; /* Flag to check the converted value */
 
     /* Find the upper and lower bound limits for the angle based on its
        usage type.  */
@@ -48,6 +50,17 @@ int ias_geo_convert_dms2deg
         upper = 180.0;
         lower = -180.0;
     } /* LON */
+    else if (strncmp (type,"NOLIMIT",7) == 0)
+    {
+        check_limit = 0;
+
+        /* Prevent older compilers from mistakenly warning that upper and
+           lower might be used uninitialized.  These values are not used in
+           this case. */
+        upper = 360.0;
+        lower = -360.0;
+
+    }
     else
     { /* DEGREES */
         upper = 360.0;
@@ -71,7 +84,7 @@ int ias_geo_convert_dms2deg
 
     /* Check to make sure the angle is within the limits of its use (LAT, LON,
        or DEGREES) */
-    if ((*angle_degrees > upper) || (*angle_degrees < lower))
+    if (check_limit && ((*angle_degrees > upper) || (*angle_degrees < lower)))
     {
         IAS_LOG_ERROR("Illegal coordinate value in decdeg");
         IAS_LOG_ERROR("Calculated angle of %f outside bounds of %f to %f",

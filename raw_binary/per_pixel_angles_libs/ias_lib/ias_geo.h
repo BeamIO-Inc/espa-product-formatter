@@ -15,6 +15,7 @@ int ias_geo_convert_dms2deg
 (
     double angle_dms,     /* I: Angle in DMS (DDDMMMSSS) format */
     double *angle_degrees,/* O: Angle in decimal degrees */
-    const char *type      /* I: Angle usage type (LAT, LON, or DEGREES) */
+    const char *type      /* I: Angle usage type (LAT, LON, NOLIMIT, 
+                                or DEGREES) */
 );
 #endif

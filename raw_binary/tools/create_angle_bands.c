@@ -1,9 +1,9 @@
 /*****************************************************************************
-FILE: create_l8_angle_bands
+FILE: create_angle_bands
 
 PURPOSE: Creates the Landsat 8 solar and view/satellite per-pixel angles.
 Both the zenith and azimuth angles are created for each angle type for each
-Landsat 8 band or for the average of the L8 reflective bands.
+Landsat band or for the average of the Landsat reflective bands.
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
@@ -18,6 +18,7 @@ Date         Programmer       Reason
                               reflectance bands for each angle vs. all the
                               bands
 1/4/2016     Gail Schmidt     Support ALBERS
+1/19/2016    Gail Schmidt     Updated to support all instruments
 
 NOTES:
 *****************************************************************************/
@@ -26,6 +27,7 @@ NOTES:
 #include <stdio.h>
 #include <string.h>
 #include "error_handler.h"
+#include "parse_metadata.h"
 #include "l8_angles.h"
 
 /******************************************************************************
@@ -40,37 +42,34 @@ HISTORY:
 Date         Programmer       Reason
 ---------    ---------------  -------------------------------------
 4/3/2015     Gail Schmidt     Original development
+1/19/2016    Gail Schmidt     Updated to use the input XML file
 
 NOTES:
 ******************************************************************************/
 void usage ()
 {
-    printf ("create_l8_angle_bands creates the Landsat 8 solar and view "
+    printf ("create_angle_bands creates the Landsat solar and view "
             "(satellite) per-pixel angles for each band or for an average of "
             "the reflective bands.  Both the zenith and azimuth angles are "
             "created for each angle.  Values are written in degrees and scaled "
             "by 100.\n\n");
-    printf ("usage: create_l8_angle_bands "
-            "--ang=angle_coefficient_filename\n"
-            "--outfile=base_output_filename "
+    printf ("usage: create_angle_bands "
+            "--xml=input_metadata_filename\n"
             "{--average}");
 
     printf ("\nwhere the following parameters are required:\n");
-    printf ("    -ang: input angle coefficient file\n");
-    printf ("    -outfile: base filename of the output angle files\n");
-    printf ("and the following parameters are optional:\n");
+    printf ("    -xml: name of the input XML metadata file wich follows the "
+            "ESPA internal raw binary schema\n");
     printf ("    -average: write the reflectance band averages instead of "
             "writing each of the band angles.\n\n");
 
-    printf ("\nExample: create_l8_angle_bands "
-            "--ang=LC80470272013287LGN00_ANG.txt "
-            "--outfile=LC80470272013287LGN00\n");
+    printf ("\nExample: create_angle_bands "
+            "--xml=LC80470272013287LGN00.xml\n");
     printf ("This writes a single band file for each of the bands for the "
             "solar azimuth/zenith and the satellite azimuth/zenith angles.\n");
 
-    printf ("\nExample: create_l8_angle_bands "
-            "--ang=LC80470272013287LGN00_ANG.txt "
-            "--outfile=LC80470272013287LGN00 --average\n");
+    printf ("\nExample: create_angle_bands "
+            "--xml=LC80470272013287LGN00.xml --average\n");
     printf ("This writes an average band file for the solar azimuth/zenith "
             "and the satellite azimuth/zenith angles.\n");
 }
@@ -94,6 +93,7 @@ HISTORY:
 Date         Programmer       Reason
 ----------   --------------   -------------------------------------
 4/3/2015     Gail Schmidt     Original development
+1/19/2016    Gail Schmidt     Updated to use the input XML file
 
 NOTES:
   1. Memory is allocated for the input and output files.  All of these should
@@ -104,8 +104,7 @@ short get_args
 (
     int argc,             /* I: number of cmd-line args */
     char *argv[],         /* I: string of cmd-line args */
-    char **ang_infile,    /* O: address of input angle coefficient filename */
-    char **outfile,       /* O: address of output base filename */
+    char **xml_infile,    /* O: address of input XML filename */
     bool *band_avg        /* O: should the reflectance band average be
                                 processed? */
 )
@@ -119,8 +118,7 @@ short get_args
     static struct option long_options[] =
     {
         {"average", no_argument, &avg_flag, 1},
-        {"ang", required_argument, 0, 'a'},
-        {"outfile", required_argument, 0, 'o'},
+        {"xml", required_argument, 0, 'i'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -149,12 +147,8 @@ short get_args
                 return (ERROR);
                 break;
 
-            case 'a':  /* input angle coefficient file */
-                *ang_infile = strdup (optarg);
-                break;
-     
-            case 'o':  /* base outfile */
-                *outfile = strdup (optarg);
+            case 'i':  /* XML file */
+                *xml_infile = strdup (optarg);
                 break;
      
             case '?':
@@ -168,17 +162,9 @@ short get_args
     }
 
     /* Make sure the infiles and outfiles were specified */
-    if (*ang_infile == NULL)
+    if (*xml_infile == NULL)
     {
-        sprintf (errmsg, "Input angle coefficient file is a required argument");
-        error_handler (true, FUNC_NAME, errmsg);
-        usage ();
-        return (ERROR);
-    }
-
-    if (*outfile == NULL)
-    {
-        sprintf (errmsg, "Base output file is a required argument");
+        sprintf (errmsg, "Input XML file is a required argument");
         error_handler (true, FUNC_NAME, errmsg);
         usage ();
         return (ERROR);
@@ -195,10 +181,10 @@ short get_args
 /******************************************************************************
 MODULE:  main
 
-PURPOSE: Creates the Landsat 8 solar and view/satellite per-pixel angles.
-Both the zenith and azimuth angles are created for each angle type for each
-band (bands 1-11).  An option is supported to write the average of the
-reflectance bands for each angle instead of writing the angle for each band.
+PURPOSE: Creates the Landsat solar and view/satellite per-pixel angles.  Both
+the zenith and azimuth angles are created for each angle type for each
+band.  An option is supported to write the average of the reflectance bands for
+each angle instead of writing the angle for each band.
 
 RETURN VALUE:
 Type = int
@@ -211,6 +197,8 @@ HISTORY:
 Date         Programmer       Reason
 ----------   --------------   -------------------------------------
 4/3/2015     Gail Schmidt     Original development
+1/19/2016    Gail Schmidt     Support all Landsat products
+                              Updated to use the input XML file
 
 NOTES:
 1. Angles are written in degrees and scaled by 100.
@@ -224,6 +212,7 @@ int main (int argc, char** argv)
 {
     bool band_avg;               /* should the reflectance band average be
                                     processed? */
+    bool process_l8;             /* are we processing L8 vs. L4-7 */
     int i;                       /* looping variable */
     int parm;                    /* looping variable */
     int count;                   /* number of chars copied in snprintf */
@@ -231,11 +220,13 @@ int main (int argc, char** argv)
     int nsamps[L8_NBANDS];       /* number of samples for each band */
     int avg_nlines;              /* number of lines for band average */
     int avg_nsamps;              /* number of samples for band average */
-    char FUNC_NAME[] = "create_l8_angle_bands";  /* function name */
+    char FUNC_NAME[] = "create_angle_bands";  /* function name */
     char errmsg[STR_SIZE];       /* error message */
     char tmpfile[1024];          /* temporary filename */
-    char *ang_infile = NULL;     /* input angle coefficient filename */
-    char *outfile = NULL;        /* output base filename for angle bands */
+    char ang_infile[STR_SIZE];   /* input angle coefficient filename */
+    char outfile[STR_SIZE];      /* output base filename for angle bands */
+    char *cptr = NULL;           /* pointer to file extension */
+    char *xml_infile = NULL;     /* input XML filename */
     ANGLES_FRAME frame[L8_NBANDS];   /* image frame info for each band */
     short *solar_zenith[L8_NBANDS];  /* array of pointers for the solar zenith
                                         angle array, one per band */
@@ -252,23 +243,74 @@ int main (int argc, char** argv)
     short *avg_sat_azimuth=NULL;   /* array for satellite azimuth angle avg */
     FILE *fptr=NULL;               /* file pointer */
     Envi_header_t envi_hdr;        /* output ENVI header information */
+    Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
+                                   populated by reading the input XML metadata
+                                   file */
+    Espa_band_meta_t *bmeta=NULL;   /* pointer to the array of bands metadata */
+    Espa_global_meta_t *gmeta=NULL; /* pointer to the global metadata
+                                       structure */
 
     /* Read the command-line arguments */
-    if (get_args (argc, argv, &ang_infile, &outfile, &band_avg) != SUCCESS)
+    if (get_args (argc, argv, &xml_infile, &band_avg) != SUCCESS)
     {   /* get_args already printed the error message */
         exit (ERROR);
     }
 
+    /* Validate the input metadata file */
+    if (validate_xml_file (xml_infile) != SUCCESS)
+    {  /* Error messages already written */
+        return (ERROR);
+    }
+
+    /* Initialize the metadata structure */
+    init_metadata_struct (&xml_metadata);
+
+    /* Parse the metadata file into our internal metadata structure; also
+       allocates space as needed for various pointers in the global and band
+       metadata */
+    if (parse_metadata (xml_infile, &xml_metadata) != SUCCESS)
+    {  /* Error messages already written */
+        return (ERROR);
+    }
+    bmeta = xml_metadata.band;
+    gmeta = &xml_metadata.global;
+
+    /* Determine if L8 is being processed */
+    if (!strncmp (gmeta->instrument, "OLI", 3))
+        process_l8 = true;
+    else
+        process_l8 = false;
+
+    /* Determine the angle coefficient filename and the output file basename */
+    strcpy (ang_infile, xml_infile);
+    cptr = strchr (ang_infile, '.');
+    strcpy (cptr, "_ANG.txt");
+
+    strcpy (outfile, xml_infile);
+    cptr = strchr (outfile, '.');
+    *cptr = '\0';
+
+    /* Process */
     if (!band_avg)
     {
-        /* Create the Landsat 8 angle bands for all bands.  Create a full
-           resolution product with a fill value of -9999 to match the Landsat 8
+        /* Create the Landsat angle bands for all bands.  Create a full
+           resolution product with a fill value of -9999 to match the Landsat
            image data. */
-        if (l8_per_pixel_angles (ang_infile, 1, -9999, "ALL", frame,
-            solar_zenith, solar_azimuth, sat_zenith, sat_azimuth, nlines,
-            nsamps) != SUCCESS)
-        {  /* Error messages already written */
-            exit (ERROR);
+        if (process_l8)
+        {  /* Landsat 8 */
+            if (l8_per_pixel_angles (ang_infile, 1, -9999, "ALL", frame,
+                solar_zenith, solar_azimuth, sat_zenith, sat_azimuth, nlines,
+                nsamps) != SUCCESS)
+            {  /* Error messages already written */
+                exit (ERROR);
+            }
+        }
+        else
+        {  /* Landsat 4-7 */
+           /* GAIL HANDLE THIS */
+            sprintf (errmsg, "Only Landsat 8 is currently supported");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
         }
 
         /* Write the solar zenith output angles */
@@ -867,14 +909,24 @@ int main (int argc, char** argv)
     }
     else
     {
-        /* Create the average Landsat 8 angle bands over the reflectance bands.
+        /* Create the average Landsat angle bands over the reflectance bands.
            Create a full resolution product with a fill value of -9999 to match
-           the Landsat 8 image data. */
-        if (l8_per_pixel_avg_refl_angles (ang_infile, 1, -9999, &avg_frame,
-            &avg_solar_zenith, &avg_solar_azimuth, &avg_sat_zenith,
-            &avg_sat_azimuth, &avg_nlines, &avg_nsamps) != SUCCESS)
-        {  /* Error messages already written */
-            exit (ERROR);
+           the Landsat image data. */
+        if (process_l8)
+        {  /* Landsat 8 */
+            if (l8_per_pixel_avg_refl_angles (ang_infile, 1, -9999, &avg_frame,
+                &avg_solar_zenith, &avg_solar_azimuth, &avg_sat_zenith,
+                &avg_sat_azimuth, &avg_nlines, &avg_nsamps) != SUCCESS)
+            {  /* Error messages already written */
+                exit (ERROR);
+            }
+        }
+        else
+        {  /* Landsat 4-7 */
+           /* GAIL HANDLE THIS */
+            sprintf (errmsg, "Only Landsat 8 is currently supported");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
         }
 
         /** Write the solar zenith output angle **/
@@ -1221,8 +1273,7 @@ int main (int argc, char** argv)
     }
 
     /* Free the pointers */
-    free (ang_infile);
-    free (outfile);
+    free (xml_infile);
 
     /* Successful completion */
     exit (SUCCESS);

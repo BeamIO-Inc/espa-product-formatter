@@ -5,7 +5,6 @@
 #include "ias_const.h"
 #include "ias_structures.h"
 
-
 /* Define names for the line intersection return values */
 #define IAS_LINES_INTERSECT 1
 #define IAS_LINES_PARALLEL 0
@@ -333,6 +332,15 @@ int ias_math_point_in_polygon
     const double *y_vert,   /* I: Vertices of polygon */
     double x_coord,         /* I: X coordinate of point */
     double y_coord          /* I: Y coordinate of point */
+);
+
+int ias_math_calculate_polygon_centroid
+(
+    const double *x_points, /* I: Array of x points. Parallel to y_points. */
+    const double *y_points, /* I: Array of y points. Parallel to x_points. */
+    int num_points,   /* I: Number of provided points */
+    double *x_center, /* O: X coordinate of polygon center */
+    double *y_center  /* O: Y coordinate of polygon center */
 );
 
 int ias_math_predict_state
@@ -717,5 +725,13 @@ int ias_math_point_in_closed_polygon_distance
     double *distance        /* O: Distance from point to polygon boundary in
                                specified direction */
 );
+
+/* math constants */
+double ias_math_get_pi();
+double ias_math_get_two_pi();
+double ias_math_get_arcsec_to_radian_conversion();
+double ias_math_get_radians_per_degree();
+double ias_math_get_degrees_per_radian();
+double ias_math_get_degrees_per_hour();
 
 #endif

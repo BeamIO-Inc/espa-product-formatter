@@ -171,6 +171,14 @@ typedef struct ias_parm_parameter_definition
 /* Gets the parameter table size */
 #define IAS_PARM_GET_TABLE_SIZE(table) (count_##table)
 
+/* Provide access to the count of parameters in the table */
+#define IAS_PARM_GET_TABLE_COUNT(table) count_##table
+
+/* Allow the previously added parameter to be "popped" off the end of the 
+   parameter table.  This is to facilitate conditionally writing parameters
+   to the OMF file. */
+#define IAS_PARM_POP_LAST_PARAMETER(table) count_##table--
+
 /* Gets the count of values to read */
 #define IAS_PARM_GET_COUNT_READ(table, parm_name) \
         parm_name##_##table.count_read

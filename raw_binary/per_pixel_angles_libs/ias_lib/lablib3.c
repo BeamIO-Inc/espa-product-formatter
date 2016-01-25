@@ -4291,6 +4291,7 @@ short OdlValidElement (char *text, char *message_fname,
     char *message = NULL;
     char element_prompt[TB_MAXLINE + 1];
     char *save_units = 0;
+    char *first_blank = {NULL};
     char *first_char = {NULL};
     char *last_char = {NULL};
     char *units_start = {NULL};
@@ -4306,6 +4307,7 @@ short OdlValidElement (char *text, char *message_fname,
 
     single_quote = (char *) strchr(text+1, (int) '\'');
     double_quote = (char *) strchr(text+1, (int) '"');
+    first_blank  = (char *) strchr(text+1, (int) ' ');
     first_char = text;
     last_char = (char *) LastChar(text);
 
