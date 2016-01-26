@@ -169,7 +169,7 @@ RETURN VALUE:
 Type = int
 Value           Description
 -----           -----------
-ERROR           Error creating the land/water mask
+ERROR           Error creating the Julian date bands
 SUCCESS         No errors encountered
 
 HISTORY:
@@ -207,10 +207,10 @@ int main (int argc, char** argv)
     Envi_header_t envi_hdr;      /* output ENVI header information */
     Espa_global_meta_t *gmeta = NULL; /* pointer to global metadata structure */
     Espa_band_meta_t *bmeta = NULL;   /* pointer to band metadata structure */
-    Espa_band_meta_t *out_bmeta = NULL;/* band metadata for land-water mask */
-    Espa_internal_meta_t out_meta;    /* output metadata for land-water mask */
-    Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
-                                populated by reading the MTL metadata file */
+    Espa_band_meta_t *out_bmeta = NULL;/* band metadata for julian bands */
+    Espa_internal_meta_t out_meta;     /* output metadata for julian bands */
+    Espa_internal_meta_t xml_metadata; /* XML metadata structure to be populated
+                                          by reading the XML metadata file */
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &espa_xml_file) != SUCCESS)
@@ -264,7 +264,7 @@ int main (int argc, char** argv)
     }
 
     /* Make sure the band 1 number of lines and samples matches what was used
-       for creating the land/water mask, otherwise we will have a mismatch
+       for creating the Julian date bands, otherwise we will have a mismatch
        in the resolution and output XML information. */
     bmeta = &xml_metadata.band[refl_indx];
     if (nlines != bmeta->nlines || nsamps != bmeta->nsamps)
@@ -315,18 +315,18 @@ int main (int argc, char** argv)
     /* Loop through the three bands and append them to the XML file */
     for (i = 0; i < 3; i++)
     {
-        /* Set up the band metadata for the land/water mask */
+        /* Set up the band metadata for the Julian date bands */
         out_bmeta = &out_meta.band[i];
         strcpy (out_bmeta->product, "intermediate_data");
         strcpy (out_bmeta->source, "level1");
 
-        /* Use the band1 filename to create the land/mask filename */
+        /* Use the band1 filename to create the Julian date filename */
         strcpy (out_bmeta->file_name, bmeta->file_name);
         cptr = strrchr (out_bmeta->file_name, '_');
         if (!cptr)
         {
             sprintf (errmsg, "Unable to find the _ in the band 1 filename for "
-                "creating the land/water mask filename.");
+                "creating the Julian date filename.");
             error_handler (true, FUNC_NAME, errmsg);
             exit (ERROR);
         }

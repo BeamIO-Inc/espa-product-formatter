@@ -19,6 +19,8 @@ Date         Programmer       Reason
                               bands
 1/4/2016     Gail Schmidt     Support ALBERS
 1/19/2016    Gail Schmidt     Updated to support all instruments
+1/26/2016    Gail Schmidt     Updated to write the solar/sensor angle bands to
+                              the XML file
 
 NOTES:
 *****************************************************************************/
@@ -26,9 +28,29 @@ NOTES:
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+
 #include "error_handler.h"
+#include "envi_header.h"
 #include "parse_metadata.h"
+#include "write_metadata.h"
 #include "l8_angles.h"
+
+/* Define the band information for each of the instruments.  Currently the
+   maximum number of input bands is the number of bands for L8. */
+#define MAX_NBANDS L8_NBANDS
+#define L45_NBANDS 7
+#define L7_NBANDS 8
+
+/* Define the solar/sensor angle band indices */
+typedef enum
+{
+    SOLAR_ZEN = 0,
+    SOLAR_AZ,
+    SENSOR_ZEN,
+    SENSOR_AZ,
+    NANGLE_BANDS
+} Angle_band_t;
 
 /******************************************************************************
 MODULE: usage
@@ -178,6 +200,7 @@ short get_args
 }
 
 
+#define MAX_DATE_LEN 28
 /******************************************************************************
 MODULE:  main
 
@@ -197,58 +220,77 @@ HISTORY:
 Date         Programmer       Reason
 ----------   --------------   -------------------------------------
 4/3/2015     Gail Schmidt     Original development
-1/19/2016    Gail Schmidt     Support all Landsat products
+1/19/2016    Gail Schmidt     Support all Landsat products, even though L4-7
+                              isn't fully supported at this time.
                               Updated to use the input XML file
+1/26/2016    Gail Schmidt     Modified to write the angle bands to the XML file
 
 NOTES:
 1. Angles are written in degrees and scaled by 100.
-2. Note this is a memory hog.  The goal here was to have an application to
+2. There are 4 bands written per input band (or average): solar zenith, solar
+   azimuth, sensor zenith, sensor azimuth.
+3. Note this is a memory hog.  The goal here was to have an application to
    be able to write out the per-pixel angle bands for testing the per-pixel
    angles.  In order to make this a less memory hog, then break it down to
-   process the solar angles, write the solar angles, process the satellite
-   angles, and write the satellite angles.
+   process the solar angles, write the solar angles, process the
+   satellite/sensor/view angles, and write the satellite/sensor/view angles.
 ******************************************************************************/
 int main (int argc, char** argv)
 {
-    bool band_avg;               /* should the reflectance band average be
-                                    processed? */
-    bool process_l8;             /* are we processing L8 vs. L4-7 */
-    int i;                       /* looping variable */
-    int parm;                    /* looping variable */
-    int count;                   /* number of chars copied in snprintf */
-    int nlines[L8_NBANDS];       /* number of lines for each band */
-    int nsamps[L8_NBANDS];       /* number of samples for each band */
-    int avg_nlines;              /* number of lines for band average */
-    int avg_nsamps;              /* number of samples for band average */
     char FUNC_NAME[] = "create_angle_bands";  /* function name */
     char errmsg[STR_SIZE];       /* error message */
-    char tmpfile[1024];          /* temporary filename */
+    char tmpstr[STR_SIZE];       /* temporary string */
+    char tmpfile[STR_SIZE];      /* temporary filename */
     char ang_infile[STR_SIZE];   /* input angle coefficient filename */
     char outfile[STR_SIZE];      /* output base filename for angle bands */
+    char production_date[MAX_DATE_LEN+1]; /* current date/year for production */
+    char band_angle[NANGLE_BANDS][STR_SIZE] = {"solar zenith", "solar azimuth",
+                                    "sensor zenith", "sensor azimuth"};
     char *cptr = NULL;           /* pointer to file extension */
     char *xml_infile = NULL;     /* input XML filename */
-    ANGLES_FRAME frame[L8_NBANDS];   /* image frame info for each band */
-    short *solar_zenith[L8_NBANDS];  /* array of pointers for the solar zenith
-                                        angle array, one per band */
-    short *solar_azimuth[L8_NBANDS]; /* array of pointers for the solar azimuth
-                                        angle array, one per band */
-    short *sat_zenith[L8_NBANDS];    /* array of pointers for the satellite
-                                        zenith angle array, one per band */
-    short *sat_azimuth[L8_NBANDS];   /* array of pointers for the satellite
-                                        azimuth angle array, one per band */
+    bool band_avg;               /* should the reflectance band average be
+                                    processed? */
+    bool process_l8 = false;     /* are we processing L8 vs. L4-7 */
+    bool process_l7 = false;     /* are we processing L7 vs. L4-5 or L8 */
+    bool process_l45 = false;    /* are we processing L4-5 vs. L7 or L8 */
+    int i;                       /* looping variable for bands */
+    int ang;                     /* looping variable for solar/senor angle */
+    int count;                   /* number of chars copied in snprintf */
+    int curr_band;               /* current input band number */
+    int curr_bndx;               /* index of current input band */
+    int nbands;                  /* number of input bands to be read */
+    int out_nbands;              /* number of output bands to be written */
+    int nlines[MAX_NBANDS];      /* number of lines for each band */
+    int nsamps[MAX_NBANDS];      /* number of samples for each band */
+    int avg_nlines;              /* number of lines for band average */
+    int avg_nsamps;              /* number of samples for band average */
+    int l7_bands[] = {1, 2, 3, 4, 5, 61, 62, 7, 8}; /* Landsat 7 band numbers */
+    ANGLES_FRAME frame[MAX_NBANDS];   /* image frame info for each band */
+    short *solar_zenith[MAX_NBANDS];  /* array of pointers for the solar zenith
+                                         angle array, one per band */
+    short *solar_azimuth[MAX_NBANDS]; /* array of pointers for the solar azimuth
+                                         angle array, one per band */
+    short *sat_zenith[MAX_NBANDS];    /* array of pointers for the satellite
+                                         zenith angle array, one per band */
+    short *sat_azimuth[MAX_NBANDS];   /* array of pointers for the satellite
+                                         azimuth angle array, one per band */
+    short *curr_angle = NULL;      /* pointer to the current angle array */
     ANGLES_FRAME avg_frame;        /* image frame info for band average */
     short *avg_solar_zenith=NULL;  /* array for solar zenith angle average */
     short *avg_solar_azimuth=NULL; /* array for solar azimuth angle average */
     short *avg_sat_zenith=NULL;    /* array for satellite zenith angle avg */
     short *avg_sat_azimuth=NULL;   /* array for satellite azimuth angle avg */
+    time_t tp;                     /* time structure */
+    struct tm *tm = NULL;          /* time structure for UTC time */
     FILE *fptr=NULL;               /* file pointer */
     Envi_header_t envi_hdr;        /* output ENVI header information */
-    Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
-                                   populated by reading the input XML metadata
-                                   file */
-    Espa_band_meta_t *bmeta=NULL;   /* pointer to the array of bands metadata */
-    Espa_global_meta_t *gmeta=NULL; /* pointer to the global metadata
-                                       structure */
+    Espa_internal_meta_t xml_metadata;
+                                   /* XML metadata structure to be populated by
+                                      reading the input XML metadata file */
+    Espa_band_meta_t *bmeta=NULL;    /* pointer to array of bands metadata */
+    Espa_global_meta_t *gmeta=NULL;  /* pointer to the global metadata struct */
+    Espa_band_meta_t *out_bmeta = NULL; /* band metadata for angle bands */
+    Espa_internal_meta_t out_meta;      /* output metadata for angle bands */
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile, &band_avg) != SUCCESS)
@@ -278,8 +320,10 @@ int main (int argc, char** argv)
     /* Determine if L8 is being processed */
     if (!strncmp (gmeta->instrument, "OLI", 3))
         process_l8 = true;
+    else if (!strncmp (gmeta->instrument, "ETM", 3))
+        process_l7 = true;
     else
-        process_l8 = false;
+        process_l45 = true;
 
     /* Determine the angle coefficient filename and the output file basename */
     strcpy (ang_infile, xml_infile);
@@ -290,7 +334,62 @@ int main (int argc, char** argv)
     cptr = strchr (outfile, '.');
     *cptr = '\0';
 
-    /* Process */
+    /* Initialize the output metadata structure.  The global metadata will
+       not be used and will not be valid. */
+    init_metadata_struct (&out_meta);
+
+    /* Determine the number of input bands */
+    if (process_l8)
+        nbands = L8_NBANDS;
+    else if (process_l7)
+        nbands = L7_NBANDS;
+    else
+        nbands = L45_NBANDS;
+
+    /* Determine the number of output bands */
+    if (band_avg)
+        out_nbands = NANGLE_BANDS;
+    else if (process_l8)
+        out_nbands = L8_NBANDS * NANGLE_BANDS;
+    else if (process_l7)
+        out_nbands = L7_NBANDS * NANGLE_BANDS;
+    else
+        out_nbands = L45_NBANDS * NANGLE_BANDS;
+
+    /* Allocate memory for the output bands */
+printf ("DEBUG: Allocating band metadata for %d output bands\n", out_nbands);
+    if (allocate_band_metadata (&out_meta, out_nbands) != SUCCESS)
+    {
+        sprintf (errmsg, "Cannot allocate memory for the %d angle bands",
+            out_nbands);
+        error_handler (true, FUNC_NAME, errmsg);
+        exit (ERROR);
+    }
+
+    /* Get the current date/time (UTC) for the production date of each band */
+    if (time (&tp) == -1)
+    {
+        sprintf (errmsg, "Unable to obtain the current time.");
+        error_handler (true, FUNC_NAME, errmsg);
+        exit (ERROR);
+    }
+
+    tm = gmtime (&tp);
+    if (tm == NULL)
+    {
+        sprintf (errmsg, "Converting time to UTC.");
+        error_handler (true, FUNC_NAME, errmsg);
+        exit (ERROR);
+    }
+
+    if (strftime (production_date, MAX_DATE_LEN, "%Y-%m-%dT%H:%M:%SZ", tm) == 0)
+    {
+        sprintf (errmsg, "Formatting the production date/time.");
+        error_handler (true, FUNC_NAME, errmsg);
+        exit (ERROR);
+    }
+
+    /* Process the solar/sensor angle bands */
     if (!band_avg)
     {
         /* Create the Landsat angle bands for all bands.  Create a full
@@ -313,600 +412,196 @@ int main (int argc, char** argv)
             return (ERROR);
         }
 
-        /* Write the solar zenith output angles */
-        printf ("Writing solar zenith angles ...\n");
-        for (i = 0; i < L8_NBANDS; i++)
+        /* Setup the XML file for these bands */
+        for (i = 0; i < out_nbands; i++)
         {
-            /* Open the output file for this band */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "%s_B%d_solar_zenith.img", outfile, i+1);
-            if (count < 0 || count >= sizeof (tmpfile))
+            /* Set up the band metadata for the current band */
+            out_bmeta = &out_meta.band[i];
+            strcpy (out_bmeta->product, "intermediate_data");
+            strcpy (out_bmeta->source, "level1");
+            strcpy (out_bmeta->category, "image");
+
+            /* Setup filename-related items for all four bands: solar zenith,
+               solar azimuth, sensor zenith, sensor azimuth.  L4-5 and L8 band
+               numbers follow a normal numbering scheme.  L7 band numbering
+               needs a little help to get it correct. */
+            curr_band = i / NANGLE_BANDS + 1;  /* current input band number */
+            curr_bndx = curr_band - 1;   /* index of current input band */
+            if (process_l7)
+                curr_band = l7_bands[curr_bndx];
+            switch (i % NANGLE_BANDS)
             {
-                sprintf (errmsg, "Overflow of tmpfile");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
+                case (SOLAR_ZEN):  /* solar zenith */
+                    /* Determine the output file for the solar zenith band */
+                    count = snprintf (tmpfile, sizeof (tmpfile),
+                        "%s_B%d_solar_zenith.img", outfile, curr_band);
+                    if (count < 0 || count >= sizeof (tmpfile))
+                    {
+                        sprintf (errmsg, "Overflow of tmpfile");
+                        error_handler (true, FUNC_NAME, errmsg);
+                        return (ERROR);
+                    }
+                    strcpy (out_bmeta->file_name, tmpfile);
+                    sprintf (out_bmeta->name, "solar_zenith_band%d", curr_band);
+                    strncpy (tmpstr, bmeta->short_name, 3);
+                    sprintf (out_bmeta->short_name, "%sSOLZEN", tmpstr);
+                    sprintf (out_bmeta->long_name,
+                        "band %d solar zenith angles", curr_band);
+                    break;
+
+                case (SOLAR_AZ):  /* solar azimuth */
+                    /* Determine the output file for the solar azimuth band */
+                    count = snprintf (tmpfile, sizeof (tmpfile),
+                        "%s_B%d_solar_azimuth.img", outfile, curr_band);
+                    if (count < 0 || count >= sizeof (tmpfile))
+                    {
+                        sprintf (errmsg, "Overflow of tmpfile");
+                        error_handler (true, FUNC_NAME, errmsg);
+                        return (ERROR);
+                    }
+                    strcpy (out_bmeta->file_name, tmpfile);
+                    sprintf (out_bmeta->name, "solar_azimuth_band%d",
+                        curr_band);
+                    strncpy (tmpstr, bmeta->short_name, 3);
+                    sprintf (out_bmeta->short_name, "%sSOLAZ", tmpstr);
+                    sprintf (out_bmeta->long_name,
+                        "band %d solar azimuth angles", curr_band);
+                    break;
+
+                case (SENSOR_ZEN):  /* sensor zenith */
+                    /* Determine the output file for the sensor zenith band */
+                    count = snprintf (tmpfile, sizeof (tmpfile),
+                        "%s_B%d_sensor_zenith.img", outfile, curr_band);
+                    if (count < 0 || count >= sizeof (tmpfile))
+                    {
+                        sprintf (errmsg, "Overflow of tmpfile");
+                        error_handler (true, FUNC_NAME, errmsg);
+                        return (ERROR);
+                    }
+                    strcpy (out_bmeta->file_name, tmpfile);
+                    sprintf (out_bmeta->name, "sensor_zenith_band%d",
+                        curr_band);
+                    strncpy (tmpstr, bmeta->short_name, 3);
+                    sprintf (out_bmeta->short_name, "%sSENZEN", tmpstr);
+                    sprintf (out_bmeta->long_name,
+                        "band %d sensor zenith angles", curr_band);
+                    break;
+
+                case (SENSOR_AZ):  /* sensor azimuth */
+                    /* Determine the output file for the sensor azimuth band */
+                    count = snprintf (tmpfile, sizeof (tmpfile),
+                        "%s_B%d_sensor_azimuth.img", outfile, curr_band);
+                    if (count < 0 || count >= sizeof (tmpfile))
+                    {
+                        sprintf (errmsg, "Overflow of tmpfile");
+                        error_handler (true, FUNC_NAME, errmsg);
+                        return (ERROR);
+                    }
+                    strcpy (out_bmeta->file_name, tmpfile);
+                    sprintf (out_bmeta->name, "sensor_azimuth_band%d",
+                        curr_band);
+                    strncpy (tmpstr, bmeta->short_name, 3);
+                    sprintf (out_bmeta->short_name, "%sSENAZ", tmpstr);
+                    sprintf (out_bmeta->long_name,
+                        "band %d sensor azimuth angles", curr_band);
+                    break;
             }
 
-            fptr = open_raw_binary (tmpfile, "wb");
-            if (!fptr)
-            {
-                sprintf (errmsg, "Unable to open the solar zenith file");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
+            out_bmeta->data_type = ESPA_INT16;
+            out_bmeta->fill_value = -9999;
+            out_bmeta->scale_factor = 0.01;
+            strcpy (out_bmeta->data_units, "degrees");
+            out_bmeta->nlines = nlines[curr_bndx];
+            out_bmeta->nsamps = nsamps[curr_bndx];
+            out_bmeta->pixel_size[0] = bmeta[curr_bndx].pixel_size[0];
+            out_bmeta->pixel_size[1] = bmeta[curr_bndx].pixel_size[1];
+            strcpy (out_bmeta->pixel_units, bmeta[curr_bndx].pixel_units);
+            sprintf (out_bmeta->app_version, "create_angle_bands_%s",
+                ESPA_COMMON_VERSION);
+            strcpy (out_bmeta->production_date, production_date);
+        }
 
-            /* Write the data for this band */
-            if (write_raw_binary (fptr, nlines[i], nsamps[i], sizeof (short),
-                &solar_zenith[i][0]) != SUCCESS)
+        /* Loop through the four different angle files and write them for each
+           band */
+        for (ang = 0; ang < NANGLE_BANDS; ang++)
+        {
+            /* Write the angle bands */
+            printf ("Writing %s angles ...\n", band_angle[ang]);
+            for (i = 0; i < nbands; i++)
             {
-                sprintf (errmsg, "Unable to write to the solar zenith file");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
+                /* Grab the correct data array to be written for this angle
+                   band */
+                switch (ang)
+                {
+                    case (SOLAR_ZEN):
+                        curr_angle = &solar_zenith[i][0];
+                        break;
+                    case (SOLAR_AZ):
+                        curr_angle = &solar_azimuth[i][0];
+                        break;
+                    case (SENSOR_ZEN):
+                        curr_angle = &sat_zenith[i][0];
+                        break;
+                    case (SENSOR_AZ):
+                        curr_angle = &sat_azimuth[i][0];
+                        break;
+                }
 
-            /* Close the file and free the pointer for this band */
-            close_raw_binary (fptr);
+                /* Open the output file for this band */
+                out_bmeta = &out_meta.band[i*NANGLE_BANDS + ang];
+                strcpy (tmpfile, out_bmeta->file_name);
+                fptr = open_raw_binary (tmpfile, "wb");
+                if (!fptr)
+                {
+                    sprintf (errmsg, "Unable to open the %s file",
+                        band_angle[ang]);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    exit (ERROR);
+                }
+
+                /* Write the data for this band */
+                if (write_raw_binary (fptr, nlines[i], nsamps[i],
+                    sizeof (short), curr_angle) != SUCCESS)
+                {
+                    sprintf (errmsg, "Unable to write to the %s file",
+                        band_angle[ang]);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    exit (ERROR);
+                }
+
+                /* Close the file for this band */
+                close_raw_binary (fptr);
+
+                /* Create the ENVI header */
+                if (create_envi_struct (out_bmeta, gmeta, &envi_hdr) != SUCCESS)
+                {
+                    sprintf (errmsg, "Error creating the ENVI header file.");
+                    error_handler (true, FUNC_NAME, errmsg);
+                    exit (ERROR);
+                }
+
+                /* Write the ENVI header */
+                sprintf (tmpfile, "%s", out_bmeta->file_name);
+                sprintf (&tmpfile[strlen(tmpfile)-3], "hdr");
+                if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
+                {
+                    sprintf (errmsg, "Writing the ENVI header file: %s.",
+                        tmpfile);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    exit (ERROR);
+                }
+            }  /* for i < nbands */
+        }  /* for ang < NANGLE_BANDS */
+
+        /* Free the pointers */
+        for (i = 0; i < nbands; i++)
+        {
             free (solar_zenith[i]);
-
-            /* Create the ENVI header */
-            count = snprintf (envi_hdr.description,
-                sizeof (envi_hdr.description), "Solar angle file");
-            if (count < 0 || count >= sizeof (envi_hdr.description))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.description");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            envi_hdr.nlines = nlines[i];
-            envi_hdr.nsamps = nsamps[i];
-            envi_hdr.nbands = 1;
-            envi_hdr.header_offset = 0;
-            envi_hdr.byte_order = 0;
-
-            count = snprintf (envi_hdr.file_type, sizeof (envi_hdr.file_type),
-                "ENVI Standard");
-            if (count < 0 || count >= sizeof (envi_hdr.file_type))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.file_type");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            envi_hdr.data_type = 2;
-            envi_hdr.data_ignore_value = -9999;
-            count = snprintf (envi_hdr.interleave, sizeof (envi_hdr.interleave),
-                "BSQ");
-            if (count < 0 || count >= sizeof (envi_hdr.interleave))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.interleave");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            count = snprintf (envi_hdr.sensor_type,
-                sizeof (envi_hdr.sensor_type), "Landsat OLI/TIRS");
-            if (count < 0 || count >= sizeof (envi_hdr.sensor_type))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.interleave");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            if (frame[i].projection.spheroid == WGS84_SPHEROID)
-                envi_hdr.datum_type = ESPA_WGS84;
-            else
-            {
-                sprintf (errmsg, "Unsupported datum. Currently only expect "
-                    "WGS84.");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            if (frame[i].projection.proj_code == UTM)
-            {
-                envi_hdr.proj_type = GCTP_UTM_PROJ;
-                envi_hdr.utm_zone = frame[i].projection.zone;
-            }
-            else if (frame[i].projection.proj_code == PS)
-            {
-                envi_hdr.proj_type = GCTP_PS_PROJ;
-            }
-            else if (frame[i].projection.proj_code == ALBERS)
-            {
-                envi_hdr.proj_type = GCTP_ALBERS_PROJ;
-            }
-            else
-            {
-                sprintf (errmsg, "Unsupported projection. Currently only "
-                    "expect UTM, PS, or ALBERS.");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            for (parm = 0; parm < IAS_PROJ_PARAM_SIZE; parm++)
-                envi_hdr.proj_parms[parm] =
-                    frame[i].projection.parameters[parm];
-            envi_hdr.pixel_size[0] = frame[i].pixel_size;
-            envi_hdr.pixel_size[1] = frame[i].pixel_size;
-            envi_hdr.ul_corner[0] = frame[i].ul_corner.x -
-                frame[i].pixel_size * 0.5;
-            envi_hdr.ul_corner[1] = frame[i].ul_corner.y +
-                frame[i].pixel_size * 0.5;
-            envi_hdr.xy_start[0] = 1;
-            envi_hdr.xy_start[1] = 1;
-            count = snprintf (envi_hdr.band_names[0],
-                sizeof (envi_hdr.band_names[0]), "Solar zenith angle");
-            if (count < 0 || count >= sizeof (envi_hdr.band_names[0]))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.band_names[0]");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            /* Write the ENVI header */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "%s_B%d_solar_zenith.hdr", outfile, i+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                sprintf (errmsg, "Overflow of tmpfile");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
-            {
-                sprintf (errmsg, "Writing the ENVI header file: %s.", tmpfile);
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-        }
-
-        /* Write the solar azimuth output angles */
-        printf ("Writing solar azimuth angles ...\n");
-        for (i = 0; i < L8_NBANDS; i++)
-        {
-            /* Open the output file for this band */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "%s_B%d_solar_azimuth.img", outfile, i+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                sprintf (errmsg, "Overflow of tmpfile");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            fptr = open_raw_binary (tmpfile, "wb");
-            if (!fptr)
-            {
-                sprintf (errmsg, "Unable to open the solar azimuth file");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            /* Write the data for this band */
-            if (write_raw_binary (fptr, nlines[i], nsamps[i], sizeof (short),
-                &solar_azimuth[i][0]) != SUCCESS)
-            {
-                sprintf (errmsg, "Unable to write to the solar azimuth file");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            /* Close the file and free the pointer for this band */
-            close_raw_binary (fptr);
             free (solar_azimuth[i]);
-
-            /* Create the ENVI header */
-            count = snprintf (envi_hdr.description,
-                sizeof (envi_hdr.description), "Solar angle file");
-            if (count < 0 || count >= sizeof (envi_hdr.description))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.description");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            envi_hdr.nlines = nlines[i];
-            envi_hdr.nsamps = nsamps[i];
-            envi_hdr.nbands = 1;
-            envi_hdr.header_offset = 0;
-            envi_hdr.byte_order = 0;
-            count = snprintf (envi_hdr.file_type, sizeof (envi_hdr.file_type),
-                "ENVI Standard");
-            if (count < 0 || count >= sizeof (envi_hdr.file_type))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.file_type");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            envi_hdr.data_type = 2;
-            envi_hdr.data_ignore_value = -9999;
-            count = snprintf (envi_hdr.interleave, sizeof (envi_hdr.interleave),
-                "BSQ");
-            if (count < 0 || count >= sizeof (envi_hdr.interleave))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.interleave");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            count = snprintf (envi_hdr.sensor_type,
-                sizeof (envi_hdr.sensor_type), "Landsat OLI/TIRS");
-            if (count < 0 || count >= sizeof (envi_hdr.sensor_type))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.interleave");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            if (frame[i].projection.spheroid == WGS84_SPHEROID)
-                envi_hdr.datum_type = ESPA_WGS84;
-            else
-            {
-                sprintf (errmsg, "Unsupported datum. Currently only expect "
-                    "WGS84.");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            if (frame[i].projection.proj_code == UTM)
-            {
-                envi_hdr.proj_type = GCTP_UTM_PROJ;
-                envi_hdr.utm_zone = frame[i].projection.zone;
-            }
-            else if (frame[i].projection.proj_code == PS)
-            {
-                envi_hdr.proj_type = GCTP_PS_PROJ;
-            }
-            else if (frame[i].projection.proj_code == ALBERS)
-            {
-                envi_hdr.proj_type = GCTP_ALBERS_PROJ;
-            }
-            else
-            {
-                sprintf (errmsg, "Unsupported projection. Currently only "
-                    "expect UTM, PS, or ALBERS.");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            for (parm = 0; parm < IAS_PROJ_PARAM_SIZE; parm++)
-                envi_hdr.proj_parms[parm] =
-                    frame[i].projection.parameters[parm];
-            envi_hdr.pixel_size[0] = frame[i].pixel_size;
-            envi_hdr.pixel_size[1] = frame[i].pixel_size;
-            envi_hdr.ul_corner[0] = frame[i].ul_corner.x -
-                frame[i].pixel_size * 0.5;
-            envi_hdr.ul_corner[1] = frame[i].ul_corner.y +
-                frame[i].pixel_size * 0.5;
-            envi_hdr.xy_start[0] = 1;
-            envi_hdr.xy_start[1] = 1;
-            count = snprintf (envi_hdr.band_names[0],
-                sizeof (envi_hdr.band_names[0]), "Solar azimuth angle");
-            if (count < 0 || count >= sizeof (envi_hdr.band_names[0]))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.band_names[0]");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            /* Write the ENVI header */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "%s_B%d_solar_azimuth.hdr", outfile, i+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                sprintf (errmsg, "Overflow of tmpfile");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
-            {
-                sprintf (errmsg, "Writing the ENVI header file: %s.", tmpfile);
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-        }
-
-        /* Write the sat zenith output angles */
-        printf ("Writing view zenith angles ...\n");
-        for (i = 0; i < L8_NBANDS; i++)
-        {
-            /* Open the output file for this band */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "%s_B%d_sensor_zenith.img", outfile, i+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                sprintf (errmsg, "Overflow of tmpfile");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            fptr = open_raw_binary (tmpfile, "wb");
-            if (!fptr)
-            {
-                sprintf (errmsg, "Unable to open the sat zenith file");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            /* Write the data for this band */
-            if (write_raw_binary (fptr, nlines[i], nsamps[i], sizeof (short),
-                &sat_zenith[i][0]) != SUCCESS)
-            {
-                sprintf (errmsg, "Unable to write to the sat zenith file");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            /* Close the file and free the pointer for this band */
-            close_raw_binary (fptr);
             free (sat_zenith[i]);
-
-            /* Create the ENVI header */
-            count = snprintf (envi_hdr.description,
-                sizeof (envi_hdr.description), "Satellite/View angle file");
-            if (count < 0 || count >= sizeof (envi_hdr.description))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.description");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            envi_hdr.nlines = nlines[i];
-            envi_hdr.nsamps = nsamps[i];
-            envi_hdr.nbands = 1;
-            envi_hdr.header_offset = 0;
-            envi_hdr.byte_order = 0;
-
-            count = snprintf (envi_hdr.file_type, sizeof (envi_hdr.file_type),
-                "ENVI Standard");
-            if (count < 0 || count >= sizeof (envi_hdr.file_type))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.file_type");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            envi_hdr.data_type = 2;
-            envi_hdr.data_ignore_value = -9999;
-            count = snprintf (envi_hdr.interleave, sizeof (envi_hdr.interleave),
-                "BSQ");
-            if (count < 0 || count >= sizeof (envi_hdr.interleave))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.interleave");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            count = snprintf (envi_hdr.sensor_type,
-                sizeof (envi_hdr.sensor_type), "Landsat OLI/TIRS");
-            if (count < 0 || count >= sizeof (envi_hdr.sensor_type))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.interleave");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            if (frame[i].projection.spheroid == WGS84_SPHEROID)
-                envi_hdr.datum_type = ESPA_WGS84;
-            else
-            {
-                sprintf (errmsg, "Unsupported datum. Currently only expect "
-                    "WGS84.");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            if (frame[i].projection.proj_code == UTM)
-            {
-                envi_hdr.proj_type = GCTP_UTM_PROJ;
-                envi_hdr.utm_zone = frame[i].projection.zone;
-            }
-            else if (frame[i].projection.proj_code == PS)
-            {
-                envi_hdr.proj_type = GCTP_PS_PROJ;
-            }
-            else if (frame[i].projection.proj_code == ALBERS)
-            {
-                envi_hdr.proj_type = GCTP_ALBERS_PROJ;
-            }
-            else
-            {
-                sprintf (errmsg, "Unsupported projection. Currently only "
-                    "expect UTM, PS, or ALBERS.");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            for (parm = 0; parm < IAS_PROJ_PARAM_SIZE; parm++)
-                envi_hdr.proj_parms[parm] =
-                    frame[i].projection.parameters[parm];
-            envi_hdr.pixel_size[0] = frame[i].pixel_size;
-            envi_hdr.pixel_size[1] = frame[i].pixel_size;
-            envi_hdr.ul_corner[0] = frame[i].ul_corner.x -
-                frame[i].pixel_size * 0.5;
-            envi_hdr.ul_corner[1] = frame[i].ul_corner.y +
-                frame[i].pixel_size * 0.5;
-            envi_hdr.xy_start[0] = 1;
-            envi_hdr.xy_start[1] = 1;
-            count = snprintf (envi_hdr.band_names[0],
-                sizeof (envi_hdr.band_names[0]), "View zenith angle");
-            if (count < 0 || count >= sizeof (envi_hdr.band_names[0]))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.band_names[0]");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            /* Write the ENVI header */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "%s_B%d_sensor_zenith.hdr", outfile, i+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                sprintf (errmsg, "Overflow of tmpfile");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
-            {
-                sprintf (errmsg, "Writing the ENVI header file: %s.", tmpfile);
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-        }
-
-        /* Write the sat azimuth output angles */
-        printf ("Writing view azimuth angles ...\n");
-        for (i = 0; i < L8_NBANDS; i++)
-        {
-            /* Open the output file for this band */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "%s_B%d_sensor_azimuth.img", outfile, i+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                sprintf (errmsg, "Overflow of tmpfile");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            fptr = open_raw_binary (tmpfile, "wb");
-            if (!fptr)
-            {
-                sprintf (errmsg, "Unable to open the sat azimuth file");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            /* Write the data for this band */
-            if (write_raw_binary (fptr, nlines[i], nsamps[i], sizeof (short),
-                &sat_azimuth[i][0]) != SUCCESS)
-            {
-                sprintf (errmsg, "Unable to write to the sat azimuth file");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            /* Close the file and free the pointer for this band */
-            close_raw_binary (fptr);
             free (sat_azimuth[i]);
-
-            /* Create the ENVI header */
-            count = snprintf (envi_hdr.description,
-                sizeof (envi_hdr.description), "Satellite/View angle file");
-            if (count < 0 || count >= sizeof (envi_hdr.description))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.description");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            envi_hdr.nlines = nlines[i];
-            envi_hdr.nsamps = nsamps[i];
-            envi_hdr.nbands = 1;
-            envi_hdr.header_offset = 0;
-            envi_hdr.byte_order = 0;
-            count = snprintf (envi_hdr.file_type, sizeof (envi_hdr.file_type),
-                "ENVI Standard");
-            if (count < 0 || count >= sizeof (envi_hdr.file_type))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.file_type");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            envi_hdr.data_type = 2;
-            envi_hdr.data_ignore_value = -9999;
-            count = snprintf (envi_hdr.interleave, sizeof (envi_hdr.interleave),
-                "BSQ");
-            if (count < 0 || count >= sizeof (envi_hdr.interleave))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.interleave");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            count = snprintf (envi_hdr.sensor_type,
-                sizeof (envi_hdr.sensor_type), "Landsat OLI/TIRS");
-            if (count < 0 || count >= sizeof (envi_hdr.sensor_type))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.interleave");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            if (frame[i].projection.spheroid == WGS84_SPHEROID)
-                envi_hdr.datum_type = ESPA_WGS84;
-            else
-            {
-                sprintf (errmsg, "Unsupported datum. Currently only expect "
-                    "WGS84.");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            if (frame[i].projection.proj_code == UTM)
-            {
-                envi_hdr.proj_type = GCTP_UTM_PROJ;
-                envi_hdr.utm_zone = frame[i].projection.zone;
-            }
-            else if (frame[i].projection.proj_code == PS)
-            {
-                envi_hdr.proj_type = GCTP_PS_PROJ;
-            }
-            else if (frame[i].projection.proj_code == ALBERS)
-            {
-                envi_hdr.proj_type = GCTP_ALBERS_PROJ;
-            }
-            else
-            {
-                sprintf (errmsg, "Unsupported projection. Currently only "
-                    "expect UTM, PS, or ALBERS.");
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
-
-            for (parm = 0; parm < IAS_PROJ_PARAM_SIZE; parm++)
-                envi_hdr.proj_parms[parm] =
-                    frame[i].projection.parameters[parm];
-            envi_hdr.pixel_size[0] = frame[i].pixel_size;
-            envi_hdr.pixel_size[1] = frame[i].pixel_size;
-            envi_hdr.ul_corner[0] = frame[i].ul_corner.x -
-                frame[i].pixel_size * 0.5;
-            envi_hdr.ul_corner[1] = frame[i].ul_corner.y +
-                frame[i].pixel_size * 0.5;
-            envi_hdr.xy_start[0] = 1;
-            envi_hdr.xy_start[1] = 1;
-            count = snprintf (envi_hdr.band_names[0],
-                sizeof (envi_hdr.band_names[0]), "View azimuth angle");
-            if (count < 0 || count >= sizeof (envi_hdr.band_names[0]))
-            {
-                sprintf (errmsg, "Overflow of envi_hdr.band_names[0]");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            /* Write the ENVI header */
-            count = snprintf (tmpfile, sizeof (tmpfile),
-                "%s_B%d_sensor_azimuth.hdr", outfile, i+1);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                sprintf (errmsg, "Overflow of tmpfile");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
-            {
-                sprintf (errmsg, "Writing the ENVI header file: %s.", tmpfile);
-                error_handler (true, FUNC_NAME, errmsg);
-                exit (ERROR);
-            }
         }
-    }
+    }  /* if !band_avg */
     else
     {
         /* Create the average Landsat angle bands over the reflectance bands.
@@ -929,348 +624,186 @@ int main (int argc, char** argv)
             return (ERROR);
         }
 
-        /** Write the solar zenith output angle **/
-        printf ("Writing solar zenith band average angle ...\n");
-
-        /* Open the output file for this angle */
-        count = snprintf (tmpfile, sizeof (tmpfile),
-            "%s_avg_solar_zenith.img", outfile);
-        if (count < 0 || count >= sizeof (tmpfile))
+        /* Setup the XML file for these bands */
+        for (i = 0; i < out_nbands; i++)
         {
-            sprintf (errmsg, "Overflow of tmpfile");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
+            /* Set up the band metadata for the current band */
+            out_bmeta = &out_meta.band[i];
+            strcpy (out_bmeta->product, "intermediate_data");
+            strcpy (out_bmeta->source, "level1");
+            strcpy (out_bmeta->category, "image");
+
+            /* Setup filename-related items for all four bands: solar zenith,
+               solar azimuth, sensor zenith, sensor azimuth */
+            switch (i)
+            {
+                case (SOLAR_ZEN):  /* solar zenith */
+                    /* Determine the output file for the solar zenith band */
+                    count = snprintf (tmpfile, sizeof (tmpfile),
+                        "%s_avg_solar_zenith.img", outfile);
+                    if (count < 0 || count >= sizeof (tmpfile))
+                    {
+                        sprintf (errmsg, "Overflow of tmpfile");
+                        error_handler (true, FUNC_NAME, errmsg);
+                        return (ERROR);
+                    }
+                    strcpy (out_bmeta->file_name, tmpfile);
+                    sprintf (out_bmeta->name, "avg_solar_zenith_band");
+                    strncpy (tmpstr, bmeta->short_name, 3);
+                    sprintf (out_bmeta->short_name, "%sSOLZEN", tmpstr);
+                    sprintf (out_bmeta->long_name,
+                        "average solar zenith angles");
+                    break;
+
+                case (SOLAR_AZ):  /* solar zenith */
+                    /* Determine the output file for the solar azimuth band */
+                    count = snprintf (tmpfile, sizeof (tmpfile),
+                        "%s_avg_solar_azimuth.img", outfile);
+                    if (count < 0 || count >= sizeof (tmpfile))
+                    {
+                        sprintf (errmsg, "Overflow of tmpfile");
+                        error_handler (true, FUNC_NAME, errmsg);
+                        return (ERROR);
+                    }
+                    strcpy (out_bmeta->file_name, tmpfile);
+                    sprintf (out_bmeta->name, "avg_solar_azimuth_band");
+                    strncpy (tmpstr, bmeta->short_name, 3);
+                    sprintf (out_bmeta->short_name, "%sSOLAZ", tmpstr);
+                    sprintf (out_bmeta->long_name,
+                        "average solar azimuth angles");
+                    break;
+
+                case (SENSOR_ZEN):  /* sensor zenith */
+                    /* Determine the output file for the sensor zenith band */
+                    count = snprintf (tmpfile, sizeof (tmpfile),
+                        "%s_avg_sensor_zenith.img", outfile);
+                    if (count < 0 || count >= sizeof (tmpfile))
+                    {
+                        sprintf (errmsg, "Overflow of tmpfile");
+                        error_handler (true, FUNC_NAME, errmsg);
+                        return (ERROR);
+                    }
+                    strcpy (out_bmeta->file_name, tmpfile);
+                    sprintf (out_bmeta->name, "avg_sensor_zenith_band");
+                    strncpy (tmpstr, bmeta->short_name, 3);
+                    sprintf (out_bmeta->short_name, "%sSENZEN", tmpstr);
+                    sprintf (out_bmeta->long_name,
+                        "average sensor zenith angles");
+                    break;
+
+                case (SENSOR_AZ):  /* sensor azimuth */
+                    /* Determine the output file for the sensor azimuth band */
+                    count = snprintf (tmpfile, sizeof (tmpfile),
+                        "%s_avg_sensor_azimuth.img", outfile);
+                    if (count < 0 || count >= sizeof (tmpfile))
+                    {
+                        sprintf (errmsg, "Overflow of tmpfile");
+                        error_handler (true, FUNC_NAME, errmsg);
+                        return (ERROR);
+                    }
+                    strcpy (out_bmeta->file_name, tmpfile);
+                    sprintf (out_bmeta->name, "avg_sensor_azimuth_band");
+                    strncpy (tmpstr, bmeta->short_name, 3);
+                    sprintf (out_bmeta->short_name, "%sSENAZ", tmpstr);
+                    sprintf (out_bmeta->long_name,
+                        "average sensor azimuth angles");
+                    break;
+            }
+
+            out_bmeta->data_type = ESPA_INT16;
+            out_bmeta->fill_value = -9999;
+            out_bmeta->scale_factor = 0.01;
+            strcpy (out_bmeta->data_units, "degrees");
+            out_bmeta->nlines = avg_nlines;
+            out_bmeta->nsamps = avg_nsamps;
+            out_bmeta->pixel_size[0] = bmeta[0].pixel_size[0];
+            out_bmeta->pixel_size[1] = bmeta[0].pixel_size[1];
+            strcpy (out_bmeta->pixel_units, bmeta[0].pixel_units);
+            sprintf (out_bmeta->app_version, "create_angle_bands_%s",
+                ESPA_COMMON_VERSION);
+            strcpy (out_bmeta->production_date, production_date);
         }
 
-        fptr = open_raw_binary (tmpfile, "wb");
-        if (!fptr)
+        /* Loop through the four different angle bands and write them */
+        for (ang = 0; ang < NANGLE_BANDS; ang++)
         {
-            sprintf (errmsg, "Unable to open the average solar zenith file");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
+            printf ("Writing %s band average angle ...\n", band_angle[ang]);
 
-        /* Write the data for this band */
-        if (write_raw_binary (fptr, avg_nlines, avg_nsamps, sizeof (short),
-            avg_solar_zenith) != SUCCESS)
-        {
-            sprintf (errmsg, "Unable to write to average solar zenith file");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
+            /* Grab the correct data array to be written for this angle
+               band */
+            switch (ang)
+            {
+                case (SOLAR_ZEN):
+                    curr_angle = avg_solar_zenith;
+                    break;
+                case (SOLAR_AZ):
+                    curr_angle = avg_solar_azimuth;
+                    break;
+                case (SENSOR_ZEN):
+                    curr_angle = avg_sat_zenith;
+                    break;
+                case (SENSOR_AZ):
+                    curr_angle = avg_sat_azimuth;
+                    break;
+            }
 
-        /* Close the file and free the pointer for this angle */
-        close_raw_binary (fptr);
-        free (avg_solar_zenith);
+            /* Open the output file for this angle */
+            out_bmeta = &out_meta.band[ang];
+            strcpy (tmpfile, out_bmeta->file_name);
+            fptr = open_raw_binary (tmpfile, "wb");
+            if (!fptr)
+            {
+                sprintf (errmsg, "Unable to open the average %s file",
+                    band_angle[ang]);
+                error_handler (true, FUNC_NAME, errmsg);
+                exit (ERROR);
+            }
+    
+            /* Write the data for this band */
+            if (write_raw_binary (fptr, avg_nlines, avg_nsamps, sizeof (short),
+                curr_angle) != SUCCESS)
+            {
+                sprintf (errmsg, "Unable to write to average %s file",
+                    band_angle[ang]);
+                error_handler (true, FUNC_NAME, errmsg);
+                exit (ERROR);
+            }
 
-        /* Create the ENVI header */
-        count = snprintf (envi_hdr.description,
-            sizeof (envi_hdr.description), "Solar angle file");
-        if (count < 0 || count >= sizeof (envi_hdr.description))
-        {
-            sprintf (errmsg, "Overflow of envi_hdr.description");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
+            /* Close the file and free the memory for this angle */
+            close_raw_binary (fptr);
+            free (curr_angle);
 
-        envi_hdr.nlines = avg_nlines;
-        envi_hdr.nsamps = avg_nsamps;
-        envi_hdr.nbands = 1;
-        envi_hdr.header_offset = 0;
-        envi_hdr.byte_order = 0;
+            /* Create the ENVI header */
+            if (create_envi_struct (out_bmeta, gmeta, &envi_hdr) != SUCCESS)
+            {   
+                sprintf (errmsg, "Error creating the ENVI header file.");
+                error_handler (true, FUNC_NAME, errmsg);
+                exit (ERROR);
+            }
+    
+            /* Write the ENVI header */
+            sprintf (tmpfile, "%s", out_bmeta->file_name);
+            sprintf (&tmpfile[strlen(tmpfile)-3], "hdr");
+            if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
+            {
+                sprintf (errmsg, "Writing the ENVI header file: %s.", tmpfile);
+                error_handler (true, FUNC_NAME, errmsg);
+                exit (ERROR);
+            }
+        }  /* for ang < NANGLE_BANDS */
+    }  /* else (if !band_avg) */
 
-        count = snprintf (envi_hdr.file_type, sizeof (envi_hdr.file_type),
-            "ENVI Standard");
-        if (count < 0 || count >= sizeof (envi_hdr.file_type))
-        {
-            sprintf (errmsg, "Overflow of envi_hdr.file_type");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        envi_hdr.data_type = 2;
-        envi_hdr.data_ignore_value = -9999;
-        count = snprintf (envi_hdr.interleave, sizeof (envi_hdr.interleave),
-            "BSQ");
-        if (count < 0 || count >= sizeof (envi_hdr.interleave))
-        {
-            sprintf (errmsg, "Overflow of envi_hdr.interleave");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        count = snprintf (envi_hdr.sensor_type,
-            sizeof (envi_hdr.sensor_type), "Landsat OLI/TIRS");
-        if (count < 0 || count >= sizeof (envi_hdr.sensor_type))
-        {
-            sprintf (errmsg, "Overflow of envi_hdr.interleave");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        if (avg_frame.projection.spheroid == WGS84_SPHEROID)
-            envi_hdr.datum_type = ESPA_WGS84;
-        else
-        {
-            sprintf (errmsg, "Unsupported datum. Currently only expect "
-                "WGS84.");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        if (avg_frame.projection.proj_code == UTM)
-        {
-            envi_hdr.proj_type = GCTP_UTM_PROJ;
-            envi_hdr.utm_zone = avg_frame.projection.zone;
-        }
-        else if (avg_frame.projection.proj_code == PS)
-        {
-            envi_hdr.proj_type = GCTP_PS_PROJ;
-        }
-        else if (avg_frame.projection.proj_code == ALBERS)
-        {
-            envi_hdr.proj_type = GCTP_ALBERS_PROJ;
-        }
-        else
-        {
-            sprintf (errmsg, "Unsupported projection. Currently only "
-                "expect UTM, PS, or ALBERS.");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        for (parm = 0; parm < IAS_PROJ_PARAM_SIZE; parm++)
-            envi_hdr.proj_parms[parm] =
-                avg_frame.projection.parameters[parm];
-        envi_hdr.pixel_size[0] = avg_frame.pixel_size;
-        envi_hdr.pixel_size[1] = avg_frame.pixel_size;
-        envi_hdr.ul_corner[0] = avg_frame.ul_corner.x -
-            avg_frame.pixel_size * 0.5;
-        envi_hdr.ul_corner[1] = avg_frame.ul_corner.y +
-            avg_frame.pixel_size * 0.5;
-        envi_hdr.xy_start[0] = 1;
-        envi_hdr.xy_start[1] = 1;
-        count = snprintf (envi_hdr.band_names[0],
-            sizeof (envi_hdr.band_names[0]), "Solar zenith angle");
-        if (count < 0 || count >= sizeof (envi_hdr.band_names[0]))
-        {
-            sprintf (errmsg, "Overflow of envi_hdr.band_names[0]");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        /* Write the ENVI header */
-        count = snprintf (tmpfile, sizeof (tmpfile),
-            "%s_avg_solar_zenith.hdr", outfile);
-        if (count < 0 || count >= sizeof (tmpfile))
-        {
-            sprintf (errmsg, "Overflow of tmpfile");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
-        {
-            sprintf (errmsg, "Writing the ENVI header file: %s.", tmpfile);
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        /** Write the solar azimuth output angle **/
-        printf ("Writing solar azimuth band average angle ...\n");
-
-        /* Open the output file for this angle */
-        count = snprintf (tmpfile, sizeof (tmpfile),
-            "%s_avg_solar_azimuth.img", outfile);
-        if (count < 0 || count >= sizeof (tmpfile))
-        {
-            sprintf (errmsg, "Overflow of tmpfile");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        fptr = open_raw_binary (tmpfile, "wb");
-        if (!fptr)
-        {
-            sprintf (errmsg, "Unable to open the average solar azimuth file");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        /* Write the data for this band */
-        if (write_raw_binary (fptr, avg_nlines, avg_nsamps, sizeof (short),
-            avg_solar_azimuth) != SUCCESS)
-        {
-            sprintf (errmsg, "Unable to write to average solar azimuth file");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        /* Close the file and free the pointer for this angle */
-        close_raw_binary (fptr);
-        free (avg_solar_azimuth);
-
-        /* Create the ENVI header.  Many of the fields needed have already been
-           filled in above with the solar zenith fields. */
-        count = snprintf (envi_hdr.band_names[0],
-            sizeof (envi_hdr.band_names[0]), "Solar azimuth angle");
-        if (count < 0 || count >= sizeof (envi_hdr.band_names[0]))
-        {
-            sprintf (errmsg, "Overflow of envi_hdr.band_names[0]");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        /* Write the ENVI header */
-        count = snprintf (tmpfile, sizeof (tmpfile),
-            "%s_avg_solar_azimuth.hdr", outfile);
-        if (count < 0 || count >= sizeof (tmpfile))
-        {
-            sprintf (errmsg, "Overflow of tmpfile");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
-        {
-            sprintf (errmsg, "Writing the ENVI header file: %s.", tmpfile);
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        /** Write the satellite zenith output angle **/
-        printf ("Writing view zenith band average angle ...\n");
-
-        /* Open the output file for this angle */
-        count = snprintf (tmpfile, sizeof (tmpfile),
-            "%s_avg_sensor_zenith.img", outfile);
-        if (count < 0 || count >= sizeof (tmpfile))
-        {
-            sprintf (errmsg, "Overflow of tmpfile");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        fptr = open_raw_binary (tmpfile, "wb");
-        if (!fptr)
-        {
-            sprintf (errmsg, "Unable to open the average sensor zenith file");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        /* Write the data for this band */
-        if (write_raw_binary (fptr, avg_nlines, avg_nsamps, sizeof (short),
-            avg_sat_zenith) != SUCCESS)
-        {
-            sprintf (errmsg, "Unable to write to average sensor zenith file");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        /* Close the file and free the pointer for this angle */
-        close_raw_binary (fptr);
-        free (avg_sat_zenith);
-
-        /* Create the ENVI header.  Many of the fields needed have already been
-           filled in above with the solar zenith fields. */
-        count = snprintf (envi_hdr.description,
-            sizeof (envi_hdr.description), "Satellite/View angle file");
-        if (count < 0 || count >= sizeof (envi_hdr.description))
-        {
-            sprintf (errmsg, "Overflow of envi_hdr.description");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        count = snprintf (envi_hdr.band_names[0],
-            sizeof (envi_hdr.band_names[0]), "View zenith angle");
-        if (count < 0 || count >= sizeof (envi_hdr.band_names[0]))
-        {
-            sprintf (errmsg, "Overflow of envi_hdr.band_names[0]");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        /* Write the ENVI header */
-        count = snprintf (tmpfile, sizeof (tmpfile),
-            "%s_avg_sensor_zenith.hdr", outfile);
-        if (count < 0 || count >= sizeof (tmpfile))
-        {
-            sprintf (errmsg, "Overflow of tmpfile");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
-        {
-            sprintf (errmsg, "Writing the ENVI header file: %s.", tmpfile);
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        /** Write the satellite azimuth output angle **/
-        printf ("Writing view azimuth band average angle ...\n");
-
-        /* Open the output file for this angle */
-        count = snprintf (tmpfile, sizeof (tmpfile),
-            "%s_avg_sensor_azimuth.img", outfile);
-        if (count < 0 || count >= sizeof (tmpfile))
-        {
-            sprintf (errmsg, "Overflow of tmpfile");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        fptr = open_raw_binary (tmpfile, "wb");
-        if (!fptr)
-        {
-            sprintf (errmsg, "Unable to open the average sensor azimuth file");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        /* Write the data for this band */
-        if (write_raw_binary (fptr, avg_nlines, avg_nsamps, sizeof (short),
-            avg_sat_azimuth) != SUCCESS)
-        {
-            sprintf (errmsg, "Unable to write to average sensor azimuth file");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
-        /* Close the file and free the pointer for this angle */
-        close_raw_binary (fptr);
-        free (avg_sat_azimuth);
-
-        /* Create the ENVI header.  Many of the fields needed have already been
-           filled in above with the solar zenith fields. */
-        count = snprintf (envi_hdr.band_names[0],
-            sizeof (envi_hdr.band_names[0]), "View azimuth angle");
-        if (count < 0 || count >= sizeof (envi_hdr.band_names[0]))
-        {
-            sprintf (errmsg, "Overflow of envi_hdr.band_names[0]");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        /* Write the ENVI header */
-        count = snprintf (tmpfile, sizeof (tmpfile),
-            "%s_avg_sensor_azimuth.hdr", outfile);
-        if (count < 0 || count >= sizeof (tmpfile))
-        {
-            sprintf (errmsg, "Overflow of tmpfile");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-
-        if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
-        {
-            sprintf (errmsg, "Writing the ENVI header file: %s.", tmpfile);
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
+    /* Append the solar/sensor angle bands to the XML file */
+    if (append_metadata (out_nbands, out_meta.band, xml_infile) != SUCCESS)
+    {
+        sprintf (errmsg, "Appending solar/sensor angle bands to the XML file.");
+        error_handler (true, FUNC_NAME, errmsg);
+        exit (ERROR);
     }
+
+    /* Free the input and output XML metadata */
+    free_metadata (&xml_metadata);
+    free_metadata (&out_meta);
 
     /* Free the pointers */
     free (xml_infile);
