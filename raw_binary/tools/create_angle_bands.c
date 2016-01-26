@@ -357,7 +357,6 @@ int main (int argc, char** argv)
         out_nbands = L45_NBANDS * NANGLE_BANDS;
 
     /* Allocate memory for the output bands */
-printf ("DEBUG: Allocating band metadata for %d output bands\n", out_nbands);
     if (allocate_band_metadata (&out_meta, out_nbands) != SUCCESS)
     {
         sprintf (errmsg, "Cannot allocate memory for the %d angle bands",

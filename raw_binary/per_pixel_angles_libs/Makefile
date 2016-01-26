@@ -14,7 +14,7 @@ include $(TOP)/make.config
 CC    = gcc
 RM    = rm
 AR    = ar rcsv
-EXTRA = -Wall $(EXTRA_OPTIONS)
+EXTRA = -Wall -g $(EXTRA_OPTIONS)
 
 # Define the include files
 INC = l8_angles.h
