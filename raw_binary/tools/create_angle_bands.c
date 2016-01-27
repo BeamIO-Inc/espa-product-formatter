@@ -248,13 +248,12 @@ int main (int argc, char** argv)
                                     "sensor zenith", "sensor azimuth"};
     char *cptr = NULL;           /* pointer to file extension */
     char *xml_infile = NULL;     /* input XML filename */
-    bool band_avg;               /* should the reflectance band average be
+    bool band_avg = false;       /* should the reflectance band average be
                                     processed? */
     bool process_l8 = false;     /* are we processing L8 vs. L4-7 */
     bool process_l7 = false;     /* are we processing L7 vs. L4-5 or L8 */
     bool process_l45 = false;    /* are we processing L4-5 vs. L7 or L8 */
     int i;                       /* looping variable for bands */
-    int ang;                     /* looping variable for solar/senor angle */
     int count;                   /* number of chars copied in snprintf */
     int curr_band;               /* current input band number */
     int curr_bndx;               /* index of current input band */
@@ -265,6 +264,7 @@ int main (int argc, char** argv)
     int avg_nlines;              /* number of lines for band average */
     int avg_nsamps;              /* number of samples for band average */
     int l7_bands[] = {1, 2, 3, 4, 5, 61, 62, 7, 8}; /* Landsat 7 band numbers */
+    Angle_band_t ang;            /* looping variable for solar/senor angle */
     ANGLES_FRAME frame[MAX_NBANDS];   /* image frame info for each band */
     short *solar_zenith[MAX_NBANDS];  /* array of pointers for the solar zenith
                                          angle array, one per band */
