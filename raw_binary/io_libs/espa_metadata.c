@@ -479,6 +479,7 @@ void free_metadata
         }
 
         free (internal_meta->band[i].class_values);
+        free (internal_meta->band[i].percent_cover);
     }
 
     /* Free the band pointer itself */
