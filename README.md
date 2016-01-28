@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.5.1 Release Notes
-Release Date: November 23, 2015
+## ESPA-PRODUCT_FORMATTER Version 1.6.0 Release Notes
+Release Date: March 23, 2016
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -10,7 +10,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.5.1]
+See git tag [version_1.6.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -88,5 +88,12 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Changes From Previous Version
-#### Updates on November 23, 2015 - USGS EROS
-  * Updated temporary degree and minutes variables to be integers instead of longs.  The key issue here is that abs() is being called with these variables.  labs should be used for long variables, but is not needed since they have been changed to integers. (per user feedback on Github)
+#### Updates on March 23, 2016 - USGS EROS
+  * The UTM zone in the MTL file is always positive.  When converting from LPGS to ESPA, if 3 or more of the corners have a negative latitude, then negate the UTM zone so that it reflects the scene in the southern hemisphere.  This will generate a negative UTM zone in the XML file as well as correctly identify the zone as South (vs. North) in the ENVI header files.
+  * Updated schema (v1.3) and supporting libraries for schema changes including adding support for cfmask cloud cover and other percentages at the band level and removal of the calibrated_nt.
+  * Updated Makefiles for ESPA environment and RPMs.
+  * Updated to support Albers products in addition to the current UTM and PS.
+  * Updated to support the new L1T file naming convention.
+  * Updated to support the band quality band (_BQA)
+  * Added library routines in level1_libs to clip the TM/ETM+ bands 1-7 and thermal bands to the same extent.  This also updates the band quality band to mark the new fill pixels.  The clip_band_misalignment tool resides under the raw_binary/tools directory and takes the XML file as input.
+  * Modified create_l8_angle_bands to be create_angle_bands.  This routine generates solar and sensor angle bands for any Landsat instrument (4-8) and adds them to the XML file.
