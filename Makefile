@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------
 # Makefile
 #
-# Project Name: cloud masking
+# Project Name: product formatter
 #-----------------------------------------------------------------------------
 .PHONY: check-environment all install clean all-raw-binary install-raw-binary clean-raw-binary
 
