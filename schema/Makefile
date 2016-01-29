@@ -15,7 +15,9 @@ all:
 
 install:
 	install -d $(schema_install_path)
-	install -m 755 $(SCHEMA) $(schema_install_path)
+	install -d $(schema_link_path)
+	install -m 644 $(SCHEMA) $(schema_install_path)
+	ln -sf $(schema_install_path)/$(SCHEMA) $(schema_link_path)/$(SCHEMA)
 
 clean:
 
