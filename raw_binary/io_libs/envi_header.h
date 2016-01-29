@@ -8,13 +8,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/12/2013   Gail Schmidt     Original development
-3/31/2014    Ron Dilley       Added fill value to the ENVI header structure
-4/17/2014    Gail Schmidt     Added support for additional projections
-
 NOTES:
 *****************************************************************************/
 

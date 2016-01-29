@@ -8,17 +8,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/13/2013   Gail Schmidt     Original development
-11/13/2014   Gail Schmidt     Updated to support the resample_method in the
-                              XML file and a version change of schema to v1.1
-3/30/2015    Gail Schmidt     Updated to support reflectance gain/bias, thermal
-                              constants, and earth sun distance and a version
-                              change of schema to v1.2
-12/23/2015   Gail Schmidt     Schema change to v1.3
-
 NOTES:
 *****************************************************************************/
 
@@ -36,11 +25,13 @@ NOTES:
 #include "meta_stack.h"
 #include "gctp_defines.h"
 
-/* Defines */
+/* Defines - Namespace only contains the major version number (i.e. 1 for 1.x),
+   but the schema version will contain the major and minor version number
+   (i.e. 1.2) */
 #define LIBXML_SCHEMAS_ENABLED
 #define ESPA_SCHEMA_VERSION "1.3"
-#define ESPA_NS "http://espa.cr.usgs.gov/v1.3"
-#define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v1.3"
+#define ESPA_NS "http://espa.cr.usgs.gov/v1"
+#define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v1"
 #define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_3.xsd"
 #define LOCAL_ESPA_SCHEMA "/usr/local/espa-common/schema/espa_internal_metadata_v1_3.xsd"
 
