@@ -9,11 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/12/2013   Gail Schmidt     Original development
-
 NOTES:
 *****************************************************************************/
 
@@ -38,11 +33,6 @@ Value        Description
 -----        -----------
 NULL         Error opening the specified file for read specified access
 non-NULL     FILE pointer to the opened file
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/12/2013   Gail Schmidt     Original development
 
 NOTES:
 *****************************************************************************/
@@ -81,11 +71,6 @@ PURPOSE: Close the raw binary file
 RETURN VALUE:
 Type = N/A
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/12/2013   Gail Schmidt     Original development
-
 NOTES:
 *****************************************************************************/
 void close_raw_binary
@@ -108,11 +93,6 @@ Value        Description
 -----        -----------
 ERROR        An error occurred writing data to the raw binary file
 SUCCESS      Writing was successful
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/12/2013   Gail Schmidt     Original development
 
 NOTES:
 *****************************************************************************/
@@ -155,11 +135,6 @@ Value        Description
 -----        -----------
 ERROR        An error occurred reading data from the raw binary file
 SUCCESS      Reading was successful
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/12/2013   Gail Schmidt     Original development
 
 NOTES:
 *****************************************************************************/

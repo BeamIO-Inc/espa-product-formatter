@@ -8,13 +8,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/12/2013   Gail Schmidt     Original development
-3/31/2014    Ron Dilley       Modified to support a data fill value in the
-                              ENVI header
-
 NOTES:
 *****************************************************************************/
 
@@ -32,14 +25,6 @@ Value           Description
 -----           -----------
 ERROR           An error occurred generating the header file
 SUCCESS         Header file was successful
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/12/2013   Gail Schmidt     Original development
-4/17/2014    Gail Schmidt     Modified to support additional projections
-4/23/2014    Gail Schmidt     Modified to support additional datums
-11/13/2014   Gail Schmidt     fill_value is now optional
 
 NOTES:
   1. Only supports GEO, UTM, ALBERS, PS, and SIN projections.
@@ -59,17 +44,17 @@ int write_envi_hdr
 )
 {
     char FUNC_NAME[] = "write_envi_hdr";   /* function name */
-    char errmsg[STR_SIZE];       /* error message */
-    char geogcs_str[STR_SIZE];   /* string for the GCS code */
-    char datum_str[STR_SIZE];    /* string for the datum code */
+    char errmsg[STR_SIZE];        /* error message */
+    char geogcs_str[STR_SIZE];    /* string for the GCS code */
+    char datum_str[STR_SIZE];     /* string for the datum code */
     char proj_datum_str[STR_SIZE];  /* string for the datum code in projection
                                        info section */
-    char spheroid_str[STR_SIZE]; /* string for the spheroid code */
-    int i;                       /* looping variable */
-    double semi_major_axis;      /* semi-major axis for the spheroid */
-    double semi_minor_axis;      /* semi-minor axis for the spheroid */
-    double inv_flattening;       /* inverse flattening for the spheroid */
-    FILE *hdr_fptr = NULL;       /* file pointer to the ENVI header file */
+    char spheroid_str[STR_SIZE];  /* string for the spheroid code */
+    int i;                        /* looping variable */
+    double semi_major_axis=-99.0; /* semi-major axis for the spheroid */
+    double semi_minor_axis=-99.0; /* semi-minor axis for the spheroid */
+    double inv_flattening=-99.0;  /* inverse flattening for the spheroid */
+    FILE *hdr_fptr = NULL;        /* file pointer to the ENVI header file */
 
     /* Open the header file */
     hdr_fptr = fopen (hdr_file, "w");
@@ -318,13 +303,6 @@ Value           Description
 -----           -----------
 ERROR           An error occurred generating the ENVI header structure
 SUCCESS         Header structure creation was successful
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/3/2014     Gail Schmidt     Original development
-4/17/2014    Gail Schmidt     Modified to support additional projections
-4/23/2014    Gail Schmidt     Modified to support additional datums
 
 NOTES:
   1. Only supports GEO, UTM, ALBERS, PS, SIN projections.

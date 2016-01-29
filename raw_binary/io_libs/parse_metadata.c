@@ -8,21 +8,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
-2/25/2014    Gail Schmidt     Added support for source and category attributes
-                              for the band metadata
-4/17/2014    Gail Schmidt     Added support for additional projections
-11/12/2014   Gail Schmidt     Added support for resample_method
-3/31/2015    Gail Schmidt     Added support for Earth-Sun Distance, reflectance
-                              gain/bias, and K1/K2 constants. Changed
-                              toa_gain/bias to rad_gain/bias to be consistent
-                              with refl_gain/bias.
-12/22/2015   Gail Schmidt     Added percent coverage. Removed calibrated_nt.
-
-
 NOTES:
   1. The XML metadata format parsed or written via this library follows the
      ESPA internal metadata format found in ESPA Raw Binary Format v1.0.doc.
@@ -45,11 +30,6 @@ Value           Description
 -----           -----------
 ERROR           Error parsing the projection_info elements
 SUCCESS         Successful parse of the projection_info values
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
 
 NOTES:
 ******************************************************************************/
@@ -221,11 +201,6 @@ Value           Description
 ERROR           Error parsing the projection_info elements
 SUCCESS         Successful parse of the projection_info values
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
-
 NOTES:
 ******************************************************************************/
 int add_global_metadata_proj_info_ps
@@ -355,11 +330,6 @@ Value           Description
 -----           -----------
 ERROR           Error parsing the projection_info elements
 SUCCESS         Successful parse of the projection_info values
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/17/2014    Gail Schmidt     Original development
 
 NOTES:
 ******************************************************************************/
@@ -492,11 +462,6 @@ Value           Description
 ERROR           Error parsing the projection_info elements
 SUCCESS         Successful parse of the projection_info values
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
-
 NOTES:
 ******************************************************************************/
 int add_global_metadata_proj_info_utm
@@ -565,13 +530,6 @@ Value           Description
 -----           -----------
 ERROR           Error parsing the projection_info elements
 SUCCESS         Successful parse of the projection_info values
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
-4/17/2014    Gail Schmidt     Added support for additional projections
-4/22/2014    Gail Schmidt     Added support for additional datums
 
 NOTES:
 ******************************************************************************/
@@ -810,11 +768,6 @@ Value           Description
 ERROR           Error parsing the bounding_coords elements
 SUCCESS         Successful parse of the bounding_coords values
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
-
 NOTES:
 ******************************************************************************/
 int add_global_metadata_bounding_coords
@@ -889,11 +842,6 @@ Value           Description
 -----           -----------
 ERROR           Error parsing the global_metadata elements
 SUCCESS         Successful parse of the global_metadata values
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
 
 NOTES:
 ******************************************************************************/
@@ -1178,6 +1126,28 @@ int add_global_metadata
             return (ERROR);
         }
     }
+    else if (xmlStrEqual (cur_node->name, (const xmlChar *) "scene_id"))
+    {
+        /* Expect the child node to be a text node containing the value of
+           this field */
+        if (child_node == NULL || child_node->type != XML_TEXT_NODE) 
+        {
+            sprintf (errmsg, "Processing global_metadata element: %s.",
+                cur_node->name);
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
+
+        /* Copy the content of the child node into the value for this field */
+        count = snprintf (gmeta->scene_id, sizeof (gmeta->scene_id), "%s",
+            (const char *) child_node->content);
+        if (count < 0 || count >= sizeof (gmeta->scene_id))
+        {
+            sprintf (errmsg, "Overflow of gmeta->scene_id string");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
+    }
     else if (xmlStrEqual (cur_node->name, (const xmlChar *) "corner"))
     {
         /* Handle the element attributes */
@@ -1293,11 +1263,6 @@ Value           Description
 ERROR           Error parsing the bit elements
 SUCCESS         Successful parse of the bit values
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/27/2013   Gail Schmidt     Original development
-
 NOTES:
 1. Memory is allocated in the band metadata for the number of bits in the
    bitmap description.
@@ -1390,11 +1355,6 @@ Value           Description
 -----           -----------
 ERROR           Error parsing the class elements
 SUCCESS         Successful parse of the class values
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/27/2013   Gail Schmidt     Original development
 
 NOTES:
 1. Memory is allocated in the band metadata for the number of classes in the
@@ -1506,11 +1466,6 @@ Value           Description
 -----           -----------
 ERROR           Error parsing the percent cover elements
 SUCCESS         Successful parse of the percent cover values
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/27/2013   Gail Schmidt     Original development
 
 NOTES:
 1. Memory is allocated in the band metadata for the number of cover types in
@@ -1626,13 +1581,6 @@ Value           Description
 -----           -----------
 ERROR           Error parsing the band metadata elements
 SUCCESS         Successful parse of the band metadata values
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/27/2013   Gail Schmidt     Original development
-2/25/2014    Gail Schmidt     Added support for source and category attributes
-11/13/2014   Gail Schmidt     Added support for resample_method
 
 NOTES:
 ******************************************************************************/
@@ -2146,11 +2094,6 @@ Value           Description
 ERROR           Error parsing the metadata elements
 SUCCESS         Successful parse of the metadata values
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
-
 NOTES:
 1. Uses a stack of character strings to keep track of the nodes that have
    been parsed.  The stack must be allocated before calling this routine.
@@ -2366,11 +2309,6 @@ Value           Description
 -----           -----------
 ERROR           Error parsing the metadata elements
 SUCCESS         Successful parse of the metadata values
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
 
 NOTES:
 1. Uses a stack of character strings to keep track of the nodes that have beend

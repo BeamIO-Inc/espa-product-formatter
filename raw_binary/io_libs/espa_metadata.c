@@ -9,11 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/13/2013   Gail Schmidt     Original development
-
 NOTES:
   1. The XML metadata format parsed or written via this library follows the
      ESPA internal metadata format found in ESPA Raw Binary Format v1.0.doc.
@@ -35,13 +30,6 @@ Value           Description
 -----           -----------
 ERROR           XML does not validate against the specified schema
 SUCCESS         XML validates
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/13/2013   Gail Schmidt     Original development
-8/5/2014     Gail Schmidt     Obtain the location of the ESPA schema file from
-                              an environment variable vs. the ESPA http site
 
 NOTES:
 ******************************************************************************/
@@ -148,13 +136,6 @@ assigned by the user.
 RETURN VALUE:
 Type = None
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/18/2013   Gail Schmidt     Original development
-5/7/2014     Gail Schmidt     Updated for modis tiles
-3/30/2015    Gail Schmidt     Updated for earth-sun distance
-
 NOTES:
 ******************************************************************************/
 void init_metadata_struct
@@ -188,6 +169,7 @@ void init_metadata_struct
     gmeta->htile = ESPA_INT_META_FILL;
     gmeta->vtile = ESPA_INT_META_FILL;
     strcpy (gmeta->lpgs_metadata_file, ESPA_STRING_META_FILL);
+    strcpy (gmeta->scene_id, ESPA_STRING_META_FILL);
     gmeta->ul_corner[0] = gmeta->ul_corner[1] = ESPA_FLOAT_META_FILL;
     gmeta->lr_corner[0] = gmeta->lr_corner[1] = ESPA_FLOAT_META_FILL;
     gmeta->bounding_coords[0] = ESPA_FLOAT_META_FILL;
@@ -211,18 +193,6 @@ Value           Description
 -----           -----------
 ERROR           Error allocating memory for the nbands
 SUCCESS         Successfully allocated memory
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/18/2013   Gail Schmidt     Original development
-2/25/2014    Gail Schmidt     Added support for source and category attributes
-                              for the band metadata
-3/30/2015    Gail Schmidt     Added support for Earth-Sun Distance, reflectance
-                              gain/bias, and K1/K2 constants. Changed
-                              toa_gain/bias to rad_gain/bias to be consistent
-                              with refl_gain/bias.
-
 
 NOTES:
   1. Initializes the bitmap_description and class_values for each band to NULL
@@ -312,11 +282,6 @@ Value           Description
 ERROR           Error allocating memory for nclasses
 SUCCESS         Successfully allocated memory
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/18/2013   Gail Schmidt     Original development
-
 NOTES:
 ******************************************************************************/
 int allocate_class_metadata
@@ -357,11 +322,6 @@ Value           Description
 ERROR           Error allocating memory for ncover types
 SUCCESS         Successfully allocated memory
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/22/2015   Gail Schmidt     Original development
-
 NOTES:
 ******************************************************************************/
 int allocate_percent_coverage_metadata
@@ -401,11 +361,6 @@ Value           Description
 -----           -----------
 ERROR           Error allocating memory for nbits
 SUCCESS         Successfully allocated memory
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/18/2013   Gail Schmidt     Original development
 
 NOTES:
 ******************************************************************************/
@@ -453,11 +408,6 @@ PURPOSE:  Frees memory in the ESPA internal metadata structure.
 
 RETURN VALUE: N/A
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/19/2013   Gail Schmidt     Original development
-
 NOTES:
 ******************************************************************************/
 void free_metadata
@@ -495,11 +445,6 @@ PURPOSE:  Print the information for the elements in the document tree,
 starting at the node provided.
 
 RETURN VALUE:  N/A
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/23/2013   Gail Schmidt     Original development
 
 NOTES:
   1. Prints to stdout.

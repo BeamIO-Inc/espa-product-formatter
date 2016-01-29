@@ -10,18 +10,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/10/2014    Gail Schmidt     Original development
-2/25/2014    Gail Schmidt     Added support for source and category attributes
-                              for the band metadata
-11/12/2014   Gail Schmidt     Added resample_method to be copied
-3/30/2015    Gail Schmidt     Added support for Earth-Sun Distance, reflectance
-                              gain/bias, and K1/K2 constants. Changed
-                              toa_gain/bias to rad_gain/bias to be consistent
-                              with refl_gain/bias.
-
 NOTES:
   1. The XML metadata format written via this library follows the ESPA internal
      metadata format found in ESPA Raw Binary Format v1.0.doc.  The schema for
@@ -43,14 +31,6 @@ Value           Description
 -----           -----------
 ERROR           Error subsetting the metadata structure
 SUCCESS         Successfully subset the metadata structure
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/10/2014    Gail Schmidt     Original development
-4/22/2014    Gail Schmidt     Updated for additional projection parameters and
-                              datums
-5/7/2014     Gail Schmidt     Updated for modis tiles
 
 NOTES:
   1. If no bands match the product type, then the global and projection
@@ -174,6 +154,15 @@ int subset_metadata_by_product
 
     outmeta->global.htile = inmeta->global.htile;
     outmeta->global.vtile = inmeta->global.vtile;
+
+    count = snprintf (outmeta->global.scene_id,
+        sizeof (outmeta->global.scene_id), "%s", inmeta->global.scene_id);
+    if (count < 0 || count >= sizeof (outmeta->global.scene_id))
+    {
+        sprintf (errmsg, "Overflow of outmeta->global.scene_id");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
 
     count = snprintf (outmeta->global.lpgs_metadata_file,
         sizeof (outmeta->global.lpgs_metadata_file), "%s",
@@ -529,14 +518,6 @@ Value           Description
 ERROR           Error subsetting the metadata structure
 SUCCESS         Successfully subset the metadata structure
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/10/2014    Gail Schmidt     Original development
-4/22/2014    Gail Schmidt     Updated for additional projection parameters and
-                              datums
-5/7/2014     Gail Schmidt     Updated for modis tiles
-
 NOTES:
   1. If nbands is 0, then the global and projection information will still
      be copied.
@@ -658,6 +639,15 @@ int subset_metadata_by_band
 
     outmeta->global.htile = inmeta->global.htile;
     outmeta->global.vtile = inmeta->global.vtile;
+
+    count = snprintf (outmeta->global.scene_id,
+        sizeof (outmeta->global.scene_id), "%s", inmeta->global.scene_id);
+    if (count < 0 || count >= sizeof (outmeta->global.scene_id))
+    {
+        sprintf (errmsg, "Overflow of outmeta->global.scene_id");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
 
     count = snprintf (outmeta->global.lpgs_metadata_file,
         sizeof (outmeta->global.lpgs_metadata_file), "%s",
@@ -1012,11 +1002,6 @@ Value           Description
 ERROR           Error subsetting the XML file
 SUCCESS         Successfully subset the XML file
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/10/2014    Gail Schmidt     Original development
-
 NOTES:
   1. If no bands match the product type, then the global and projection
      information will still be copied.
@@ -1096,11 +1081,6 @@ Value           Description
 -----           -----------
 ERROR           Error subsetting the XML file
 SUCCESS         Successfully subset the XML file
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/10/2014    Gail Schmidt     Original development
 
 NOTES:
   1. If nbands is 0, then the global and projection information will still

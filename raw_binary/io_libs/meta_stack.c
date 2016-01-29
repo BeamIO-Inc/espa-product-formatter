@@ -9,11 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/23/2013   Gail Schmidt     Original development
-
 NOTES:
 *****************************************************************************/
 
@@ -30,11 +25,6 @@ Value           Description
 -----           -----------
 ERROR           Can't allocate memory for the stack
 SUCCESS         Memory was allocated and stack initialized successfully
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/23/2013   Gail Schmidt     Original development
 
 NOTES:
   1. Uses the MAX_STACK_SIZE variable in meta_stack.h to specify the size
@@ -88,11 +78,6 @@ PURPOSE:  Frees memory for the stack of strings.
 RETURN VALUE:
 Type = None
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-3/11/2014    Gail Schmidt     Original development
-
 NOTES:
   1. Uses the MAX_STACK_SIZE variable in meta_stack.h to specify the size
      of the stack of strings.
@@ -127,11 +112,6 @@ Value           Description
 -----           -----------
 ERROR           Stack is already full
 SUCCESS         Successfully added the item to the stack
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/23/2013   Gail Schmidt     Original development
 
 NOTES:
 ******************************************************************************/
@@ -189,11 +169,6 @@ Value           Description
 -----           -----------
 ERROR           Stack is empty 
 SUCCESS         Successfully popped the item from the stack
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/23/2013   Gail Schmidt     Original development
 
 NOTES:
 ******************************************************************************/

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-targetNamespace="http://espa.cr.usgs.gov/v1.3"
-xmlns="http://espa.cr.usgs.gov/v1.3"
+targetNamespace="http://espa.cr.usgs.gov/v1"
+xmlns="http://espa.cr.usgs.gov/v1"
 elementFormDefault="qualified">
 
 <!-- definition of simple types -->
@@ -171,6 +171,7 @@ elementFormDefault="qualified">
 <xs:element name="scene_center_time" type="xs:time"/>
 <xs:element name="earth_sun_distance" type="xs:float"/>
 <xs:element name="level1_production_date" type="xs:dateTime"/>
+<xs:element name="scene_id" type="xs:string"/>
 <xs:element name="lpgs_metadata_file" type="xs:string"/>
 <xs:element name="east" type="longAngleType"/>
 <xs:element name="west" type="longAngleType"/>
@@ -462,6 +463,7 @@ elementFormDefault="qualified">
             <xs:element ref="earth_sun_distance" minOccurs="0"/>
             <xs:element ref="wrs" minOccurs="0"/>
             <xs:element ref="modis" minOccurs="0"/>
+            <xs:element ref="scene_id" minOccurs="0"/>
             <xs:element ref="lpgs_metadata_file" minOccurs="0"/>
             <xs:element ref="corner" minOccurs="1" maxOccurs="4"/>
             <xs:element ref="bounding_coordinates"/>

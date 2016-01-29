@@ -9,18 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
-2/25/2014    Gail Schmidt     Added support for source and category attributes
-                              for the band metadata
-3/30/2015    Gail Schmidt     Changed 'toa_reflectance' to 'radiance' for gain
-                              and bias since we are supporting both the
-                              radiance and reflectance gain and bias from the
-                              MTL. This is more consistent with their labeling.
-12/23/2015   Gail Schmidt     Support percent coverages, remove calibrated_nt
-
 NOTES:
   1. The XML metadata format written via this library follows the ESPA internal
      metadata format found in ESPA Raw Binary Format v1.2.doc.  The schema for
@@ -42,20 +30,6 @@ Value           Description
 -----           -----------
 ERROR           Error writing the metadata file
 SUCCESS         Successfully wrote the metadata file
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
-4/17/2014    Gail Schmidt     Modified to support additional projections
-4/22/2014    Gail Schmidt     Modified to support additional datums
-5/7/2014     Gail Schmidt     Updated to support modis tiles
-11/12/2014   Gail Schmidt     Updated to support resample_option
-3/30/2015    Gail Schmidt     Added support for Earth-Sun Distance, reflectance
-                              gain/bias, and K1/K2 constants. Changed
-                              toa_gain/bias to rad_gain/bias to be consistent
-                              with refl_gain/bias.
-
 
 NOTES:
   1. If the XML file specified already exists, it will be overwritten.
@@ -147,6 +121,10 @@ int write_metadata
         fprintf (fptr,
         "        <modis htile=\"%d\" vtile=\"%d\"/>\n",
         gmeta->htile, gmeta->vtile);
+
+    if (strcmp (gmeta->scene_id, ESPA_STRING_META_FILL))
+        fprintf (fptr,
+        "        <scene_id>%s</scene_id>\n", gmeta->scene_id);
 
     if (strcmp (gmeta->lpgs_metadata_file, ESPA_STRING_META_FILL))
         fprintf (fptr,
@@ -456,12 +434,6 @@ Value           Description
 ERROR           Error appending the metadata file
 SUCCESS         Successfully appended to the metadata file
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/30/2013   Gail Schmidt     Original development
-11/12/2014   Gail Schmidt     Updated to support resample_option
-
 NOTES:
   1. If the XML file specified already exists, it will be overwritten.
   2. Use this routine to append bands to and existing metadata file, use
@@ -716,13 +688,6 @@ PURPOSE: Print the metadata structure to stdout for debugging purposes.
 
 RETURN VALUE: N/A
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/26/2013   Gail Schmidt     Original development
-4/17/2014    Gail Schmidt     Modified to support additional projections
-5/7/2014     Gail Schmidt     Updated to support modis tiles
-
 NOTES:
 ******************************************************************************/
 void print_metadata_struct
@@ -755,6 +720,7 @@ void print_metadata_struct
     printf ("  wrs_row: %d\n", metadata->global.wrs_row);
     printf ("  htile: %d\n", metadata->global.htile);
     printf ("  vtile: %d\n", metadata->global.vtile);
+    printf ("  scene_id: %s\n", metadata->global.scene_id);
     printf ("  lpgs_metadata_file: %s\n",
         metadata->global.lpgs_metadata_file);
     printf ("  ul_corner (lat, long): %f %f\n",

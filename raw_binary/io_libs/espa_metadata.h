@@ -143,6 +143,7 @@ typedef struct
     int wrs_path;                 /* WRS path of this scene */
     int wrs_row;                  /* WRS row of this scene */
     char scene_center_time[STR_SIZE];  /* GMT time at scene center */
+    char scene_id[STR_SIZE];      /* scene ID */
     char lpgs_metadata_file[STR_SIZE]; /* name of LPGS metadata file */
     float orientation_angle;      /* orientation angle of the scene (degrees) */
     float solar_zenith;           /* solar zenith angle (degrees) */
