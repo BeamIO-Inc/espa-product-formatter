@@ -395,7 +395,7 @@ int subset_metadata_by_product
             }
         }
 
-        /* If there is are class descriptions, then allocate memory and copy
+        /* If there are class descriptions, then allocate memory and copy
            the information */
         outmeta->band[iband].nclass = inmeta->band[i].nclass;
         if (inmeta->band[i].nclass != 0)
@@ -425,7 +425,7 @@ int subset_metadata_by_product
             }
         }
 
-        /* If there is are cover type descriptions, then allocate memory and
+        /* If there are cover type descriptions, then allocate memory and
            copy the information */
         outmeta->band[iband].ncover = inmeta->band[i].ncover;
         if (inmeta->band[i].ncover != 0)
@@ -889,7 +889,7 @@ int subset_metadata_by_band
             }
         }
 
-        /* If there is are class descriptions, then allocate memory and copy
+        /* If there are class descriptions, then allocate memory and copy
            the information */
         outmeta->band[iband].nclass = inmeta->band[j].nclass;
         if (inmeta->band[j].nclass != 0)
@@ -919,7 +919,7 @@ int subset_metadata_by_band
             }
         }
 
-        /* If there is are cover type descriptions, then allocate memory and
+        /* If there are cover type descriptions, then allocate memory and
            copy the information */
         outmeta->band[iband].ncover = inmeta->band[j].ncover;
         if (inmeta->band[j].ncover != 0)
