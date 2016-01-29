@@ -10,12 +10,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/23/2014    Gail Schmidt     Original development, borrowed code from space.c
-                              in the LEDAPS application
-
 NOTES:
 1. Geodetic coordinates are the geodetic latitude and longitude of the point
    to be mapped. Geodetic cooridnates are in radians.
@@ -65,13 +59,6 @@ not-NULL   Successful completion
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
-
-HISTORY:
-Date          Programmer       Reason
-----------    ---------------  -------------------------------------
-1/23/2014     Gail Schmidt     Original Development (based on input routines
-                               from the LEDAPS lndsr application)
-4/25/2014     Gail Schmidt     Updated to support additional projections
 
 NOTES:
 1. Memory is allocated for the Geoloc_t pointer.  It is up to the calling
@@ -227,12 +214,6 @@ true       Successful mapping
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
 
-HISTORY:
-Date          Programmer       Reason
-----------    ---------------  -------------------------------------
-1/23/2014     Gail Schmidt     Original Development (based on input routines
-                               from the LEDAPS lndsr application)
-
 NOTES:
 1. Report image coordinates for the UL corner of the pixel.
 ******************************************************************************/
@@ -299,12 +280,6 @@ true       Successful mapping
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
 
-HISTORY:
-Date          Programmer       Reason
-----------    ---------------  -------------------------------------
-1/23/2014     Gail Schmidt     Original Development (based on input routines
-                               from the LEDAPS lndsr application)
-
 NOTES:
 1. Report image coordinates for the UL corner of the pixel.
 ******************************************************************************/
@@ -370,15 +345,6 @@ true       Successfully obtained geolocation information
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
-
-HISTORY:
-Date          Programmer       Reason
-----------    ---------------  -------------------------------------
-1/23/2014     Gail Schmidt     Original Development
-5/7/2014      Gail Schmidt     Modify to use the first band if band1 is not
-                               available
-7/22/2014     Gail Schmidt     Initialized orientation angle, since it wasn't
-                               being initialized correctly from the XML meta
 
 NOTES:
 1. Make sure UL corner pixel is UL corner of the pixel, since that's what
@@ -544,11 +510,6 @@ true       Successfully computed the image bounds
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
 
-HISTORY:
-Date          Programmer       Reason
-----------    ---------------  -------------------------------------
-1/23/2014     Gail Schmidt     Original Development (based on input routines
-                               from the LEDAPS lndsr application)
 NOTES:
 1. Memory is allocated for the Geoloc_t pointer.  It is up to the calling
    routine to free the memory for this pointer.
@@ -699,13 +660,6 @@ true       Successful conversion
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
 
-HISTORY:
-Date          Programmer       Reason
-----------    ---------------  -------------------------------------
-1/24/2014     Gail Schmidt     Original Development (based on input routines
-                               from LEDAPS)
-9/29/2015     Gail Schmidt     tdeg and tmin don't need to be long values
-
 NOTES:
 1. The input 'deg' variable can contain the angle in degrees (code=DEG),
    minutes (code=MIN), or seconds (code=SEC) when converting to DMS.
@@ -848,12 +802,6 @@ Type = none
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
 
-HISTORY:
-Date          Programmer       Reason
-----------    ---------------  -------------------------------------
-5/5/2014      Gail Schmidt     Original Development (based on input routines
-                               from MRT)
-
 NOTES:
 ******************************************************************************/
 void dmsdeg
@@ -909,12 +857,6 @@ deg        Degree portion of the input angle
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
 
-HISTORY:
-Date          Programmer       Reason
-----------    ---------------  -------------------------------------
-1/24/2014     Gail Schmidt     Original Development (based on input routines
-                               from LEDAPS)
-
 NOTES:
 ******************************************************************************/
 int find_deg
@@ -963,12 +905,6 @@ min        Minutes portion of the input angle
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
 
-HISTORY:
-Date          Programmer       Reason
-----------    ---------------  -------------------------------------
-1/24/2014     Gail Schmidt     Original Development (based on input routines
-                               from LEDAPS)
-
 NOTES:
 ******************************************************************************/
 int find_min
@@ -1009,12 +945,6 @@ sec        Seconds portion of the input angle
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
-
-HISTORY:
-Date          Programmer       Reason
-----------    ---------------  -------------------------------------
-1/24/2014     Gail Schmidt     Original Development (based on input routines
-                               from LEDAPS)
 
 NOTES:
 ******************************************************************************/

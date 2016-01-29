@@ -12,11 +12,6 @@ Value      Description
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
 
-HISTORY:
-Date         Programmer       Reason
----------    ---------------  -------------------------------------
-7/24/2014    Gail Schmidt     Original Development
-
 NOTES:
 ******************************************************************************/
 double deg_to_dms

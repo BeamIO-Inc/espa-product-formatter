@@ -25,20 +25,12 @@ the satellite viewing angle and/or solar angle values, for the specified
 list of bands.
 
 RETURN VALUE:
-    Type = int
-    Value           Description
-    -----           -----------
-    ERROR           An error occurred generating the per-pixel solar and/or
-                    view angles
-    SUCCESS         Angle band generation was successful
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-             Landsat team     Original development
-4/3/2015     Gail Schmidt     Modified to work in the ESPA environment
-5/5/2015     Gail Schmidt     Fixed a rounding bug that was incorrect for
-                              negative values
+Type = int
+Value           Description
+-----           -----------
+ERROR           An error occurred generating the per-pixel solar and/or
+                view angles
+SUCCESS         Angle band generation was successful
 
 NOTES:
   1. The band pointers for solar zenith/azimuth and satellite zenith/azimuth
@@ -422,17 +414,12 @@ list of bands.  The average of the reflective bands will be calculated, on a
 per-pixel basis, and returned.
 
 RETURN VALUE:
-    Type = int
-    Value           Description
-    -----           -----------
-    ERROR           An error occurred generating the per-pixel solar and/or
-                    view angles
-    SUCCESS         Angle band generation was successful
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-5/3/2015     Gail Schmidt     Original development
+Type = int
+Value           Description
+-----           -----------
+ERROR           An error occurred generating the per-pixel solar and/or
+                view angles
+SUCCESS         Angle band generation was successful
 
 NOTES:
   1. The band pointers for solar zenith/azimuth and satellite zenith/azimuth

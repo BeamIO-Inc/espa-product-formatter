@@ -9,11 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-8/25/2015    Gail Schmidt     Original development
-
 NOTES:
 *****************************************************************************/
 

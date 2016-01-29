@@ -9,11 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/17/2015     Gail Schmidt     Original development
-
 NOTES:
 *****************************************************************************/
 #include <getopt.h>
@@ -36,11 +31,6 @@ PURPOSE: Prints the usage information for this application.
 
 RETURN VALUE:
 Type = None
-
-HISTORY:
-Date         Programmer       Reason
----------    ---------------  -------------------------------------
-4/17/2015     Gail Schmidt     Original development
 
 NOTES:
 ******************************************************************************/
@@ -72,11 +62,6 @@ Value           Description
 ERROR           Error getting the command-line arguments or a command-line
                 argument and associated value were not specified
 SUCCESS         No errors encountered
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/17/2015     Gail Schmidt     Original development
 
 NOTES:
   1. Memory is allocated for the input and output files.  All of these should
@@ -166,13 +151,6 @@ Value           Description
 -----           -----------
 ERROR           Error creating the land/water mask
 SUCCESS         No errors encountered
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/17/2015     Gail Schmidt     Original development
-4/22/2015     Gail Schmidt     Make this band an intermediate_data product
-                               since it won't be delivered
 
 NOTES:
   1. The ESPA_LAND_MASS_POLYGON environment variable needs to be defined and

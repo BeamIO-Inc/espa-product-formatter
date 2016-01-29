@@ -9,11 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/22/2014    Gail Schmidt     Original development
-
 NOTES:
   1. The XML metadata format written via this library follows the ESPA internal
      metadata format found in ESPA Raw Binary Format v1.0.doc.  The schema for
@@ -36,11 +31,6 @@ Value           Description
 -----           -----------
 ERROR           Error converting from DOY to month and day
 SUCCESS         Successfully converted from the DOY to the month and day
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/30/2014    Gail Schmidt     Original development
 
 NOTES:
 ******************************************************************************/
@@ -150,11 +140,6 @@ PURPOSE:  Cleans up the filenames by replacing blank spaces in the filename
 RETURN VALUE:
 Type = None
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-5/8/2014    Gail Schmidt      Original development
-
 NOTES:
 ******************************************************************************/
 void cleanup_file_name
@@ -190,11 +175,6 @@ Value           Description
 -----           -----------
 ERROR           Final QA string exceeds str_size
 SUCCESS         Successfully processed the string
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-5/8/2014    Gail Schmidt      Original development
 
 NOTES:
 ******************************************************************************/
@@ -281,11 +261,6 @@ Value           Description
 -----           -----------
 ERROR           Error reading the SDS values
 SUCCESS         Successfully read the SDS value information
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/30/2014    Gail Schmidt     Original development (pulled some code from MRT)
 
 NOTES:
 ******************************************************************************/
@@ -623,11 +598,6 @@ Value           Description
 ERROR           Error reading the core metadata
 SUCCESS         Successfully read the core metadata
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-5/6/2014     Gail Schmidt     Original development
-
 NOTES:
 ******************************************************************************/
 int read_core_metadata
@@ -825,11 +795,6 @@ Value           Description
 -----           -----------
 ERROR           Error reading the archive metadata
 SUCCESS         Successfully read the archive metadata
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-5/6/2014     Gail Schmidt     Original development
 
 NOTES:
 ******************************************************************************/
@@ -1086,12 +1051,6 @@ Value           Description
 -----           -----------
 ERROR           Error reading the MODIS file
 SUCCESS         Successfully populated the ESPA metadata structure
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/22/2014    Gail Schmidt     Original development
-11/12/2014   Gail Schmidt     Added support for the resample_method
 
 NOTES:
 ******************************************************************************/
@@ -1836,11 +1795,6 @@ Value           Description
 ERROR           Error converting the MODIS SDS
 SUCCESS         Successfully converted MODIS SDS to raw binary
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/22/2014    Gail Schmidt     Original development
-
 NOTES:
 ******************************************************************************/
 int convert_hdf_to_img
@@ -2040,11 +1994,6 @@ Value           Description
 -----           -----------
 ERROR           Error converting the MODIS file
 SUCCESS         Successfully converted MODIS to ESPA format
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/22/2014    Gail Schmidt     Original development
 
 NOTES:
   1. The ESPA raw binary band files will be generated from the ESPA XML

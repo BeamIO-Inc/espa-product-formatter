@@ -9,11 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/7/2014     Gail Schmidt     Original development
-
 NOTES:
 *****************************************************************************/
 
@@ -61,16 +56,6 @@ SUCCESS    Successful completion
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
-
-HISTORY:
-Date        Programmer       Reason
---------    ---------------  -------------------------------------
-1/3/2012    Gail Schmidt     Original Development (based on input routines
-                             from the LEDAPS lndsr application)
-1/8/2013    Gail Schmidt     Modified to not add 0.5 to the floating point
-                             attribute values before writing to the HDF file.
-                             That is only appropriate when converting float to
-                             int and not float to float.
 
 NOTES:
 ******************************************************************************/
@@ -265,12 +250,6 @@ SUCCESS    Successful completion
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
-
-HISTORY:
-Date        Programmer       Reason
---------    ---------------  -------------------------------------
-1/3/2012    Gail Schmidt     Original Development (based on input routines
-                             from the LEDAPS lndsr application)
 
 NOTES:
 ******************************************************************************/

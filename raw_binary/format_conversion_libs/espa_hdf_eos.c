@@ -9,11 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/8/2014     Gail Schmidt     Original development
-
 NOTES:
 *****************************************************************************/
 
@@ -36,11 +31,6 @@ Value      Description
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
-
-HISTORY:
-Date         Programmer       Reason
----------    ---------------  -------------------------------------
-7/24/2014    Gail Schmidt     Original Development
 
 NOTES:
 ******************************************************************************/
@@ -97,12 +87,6 @@ true       Successful processing
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
 
-HISTORY:
-Date         Programmer       Reason
----------    ---------------  -------------------------------------
-1/7/2014     Gail Schmidt     Original Development (based on input routines
-                              from the LEDAPS lndsr application)
-
 NOTES:
 ******************************************************************************/
 bool append_meta
@@ -150,24 +134,6 @@ SUCCESS    Successful completion
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
 
-HISTORY:
-Date         Programmer       Reason
----------    ---------------  -------------------------------------
-1/7/2014     Gail Schmidt     Original Development (based on input routines
-                              from the LEDAPS lndsr application)
-4/22/2014    Gail Schmidt     Updated to support additional projections and
-                              datums
-4/24/2014    Gail Schmidt     Modified grid and dimension naming (in the case
-                              of multiple resolutions) for Geographic
-                              projections to not use the pixel size
-7/24/2014    Gail Schmidt     Modified the output Grid fields to utilize
-                              packed DMS for lat/long values
-7/24/2014    Gail Schmidt     Need to write the sphere code for correct
-                              handling of the HDF-EOS products.  We will leave
-                              the datum string as an attribute.
-9/11/2014    Gail Schmidt     Modified to make the lower right corner in meters
-                              represent the outer extent (i.e. LR of the LR)
-
 NOTES:
 ******************************************************************************/
 int write_hdf_eos_attr
@@ -191,7 +157,7 @@ int write_hdf_eos_attr
     double proj_parms[NPROJ_PARAM];  /* projection parameters */
     double dval;             /* temporary double value */
     int meta_indx;           /* index of current location in metadata buffer */
-    int sphere_code;         /* GCTP value for the associated spheroid */
+    int sphere_code = -99;   /* GCTP value for the associated spheroid */
     int i;                   /* looping variable */
     int count;               /* number of chars copied in snprintf */
     int mycount;             /* integer value to use in the name of the 2nd,

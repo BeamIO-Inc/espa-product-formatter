@@ -9,12 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/30/2013   Gail Schmidt     Original development
-6/17/2014    Gail Schmidt     Updated to support L8
-
 NOTES:
   1. The XML metadata format written via this library follows the ESPA internal
      metadata format found in ESPA Raw Binary Format v1.0.doc.  The schema for
@@ -37,24 +31,6 @@ Value           Description
 -----           -----------
 ERROR           Error reading the metadata file
 SUCCESS         Successfully populated the ESPA metadata structure
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/30/2013   Gail Schmidt     Original development
-2/28/2014    Gail Schmidt     Added support for the band category; band source
-                              will be left blank for the L1 LPGS data
-6/17/2014    Gail Schmidt     Updated for OLI_TIRS
-11/12/2014   Gail Schmidt     Added support for the resample_method
-11/17/2014   Gail Schmidt     Added support for OLI-only instrumentation
-                              vs. combined OLI/TIRS scenes.
-3/30/2015    Gail Schmidt     Added support for Earth-Sun Distance, reflectance
-                              gain/bias, and K1/K2 constants. Changed
-                              toa_gain/bias to rad_gain/bias to be consistent
-                              with refl_gain/bias.
-12/10/2015   Gail Schmidt     Negate the UTM zone if it's in the southern hemi
-1/4/2016     Gail Schmidt     Support ALBERS projection in Level-1 products
-1/14/2016    Gail Schmidt     Updated to support the QA band for all instruments
 
 NOTES:
 1. The new MTL files contain the gain and bias coefficients for the TOA
@@ -1377,13 +1353,6 @@ Value           Description
 ERROR           Error converting the GeoTIFF file
 SUCCESS         Successfully converterd GeoTIFF to raw binary
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/30/2013   Gail Schmidt     Original development
-2/12/2014    Gail Schmidt     Updated to support int16
-6/17/2014    Gail Schmidt     Updated to support uint16 for L8
-
 NOTES:
 1. TIFF read scanline only supports reading a single line at a time.  We will
    read a single line, stuff it into a large buffer, then write the entire
@@ -1593,13 +1562,6 @@ Value           Description
 ERROR           Error converting the GeoTIFF file
 SUCCESS         Successfully converted GeoTIFF to raw binary
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/30/2013   Gail Schmidt     Original development
-4/2/2014     Gail Schmidt     Added support for a flag to delete the source
-                              .tif files
-
 NOTES:
   1. The LPGS GeoTIFF band files will be deciphered from the LPGS MTL file.
   2. The ESPA raw binary band files will be generated from the ESPA XML
@@ -1615,10 +1577,12 @@ int convert_lpgs_to_espa
 {
     char FUNC_NAME[] = "convert_lpgs_to_espa";  /* function name */
     char errmsg[STR_SIZE];   /* error message */
+    char *cptr = NULL;       /* pointer to _MTL.txt in the MTL filename */
     Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
                                 populated by reading the MTL metadata file */
     int i;                   /* looping variable */
     int nlpgs_bands;         /* number of bands in the LPGS product */
+    int count;               /* number of chars copied in snprintf */
     char lpgs_bands[MAX_LPGS_BANDS][STR_SIZE];  /* array containing the file
                                 names of the LPGS bands */
 
@@ -1634,6 +1598,21 @@ int convert_lpgs_to_espa
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
+
+    /* Add the scene ID which is pulled from the MTL filename
+       ({scene_id}_MTL.txt) */
+    count = snprintf (xml_metadata.global.scene_id,
+        sizeof (xml_metadata.global.scene_id), "%s", lpgs_mtl_file);
+    if (count < 0 || count >= sizeof (xml_metadata.global.scene_id))
+    {
+        sprintf (errmsg, "Overflow of xml_metadata.global.scene_id string");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
+    /* Strip off the _MTL.txt filename extension to get the actual scene name */
+    cptr = strrchr (xml_metadata.global.scene_id, '_');
+    *cptr = '\0';
 
     /* Write the metadata from our internal metadata structure to the output
        XML filename */

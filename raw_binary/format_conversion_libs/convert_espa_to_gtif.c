@@ -9,11 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/9/2014     Gail Schmidt     Original development
-
 NOTES:
   1. The XML metadata format written via this library follows the ESPA internal
      metadata format found in ESPA Raw Binary Format v1.0.doc.  The schema for
@@ -34,17 +29,6 @@ Value           Description
 -----           -----------
 ERROR           Error converting to GeoTIFF
 SUCCESS         Successfully converted to GeoTIFF
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/9/2014     Gail Schmidt     Original development
-4/2/2014     Gail Schmidt     Added support for a flag to delete the source
-                              .img and .hdr files
-4/3/2014     Gail Schmidt     Remove the .xml file as well if source files are
-                              specified to be deleted
-4/30/2014    Gail Schmidt     Remove the .tif.aux.xml files that were created
-                              by GDAL in the conversion to GeoTIFF
 
 NOTES:
   1. The GDAL tools will be used for converting the raw binary (ENVI format)

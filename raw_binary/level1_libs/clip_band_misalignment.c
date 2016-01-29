@@ -9,11 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/15/2016    Gail Schmidt     Original development
-
 NOTES:
   1. The XML metadata format written via this library follows the ESPA internal
      metadata format found in ESPA Raw Binary Format v1.0.doc.  The schema for
@@ -38,11 +33,6 @@ Value           Description
 -----           -----------
 ERROR           Error clipping bands
 SUCCESS         Successfully clipped bands
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/15/2016    Gail Schmidt     Original development
 
 NOTES:
   1. Bands 1-7 and the thermal bands will be clipped so that the alignment of

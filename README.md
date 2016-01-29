@@ -1,5 +1,5 @@
 ## ESPA-PRODUCT_FORMATTER Version 1.6.0 Release Notes
-Release Date: March 23, 2016
+Release Date: March 2016
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -87,10 +87,10 @@ be needed for your application or other espa product formatter libraries may nee
 ### Product Guide
 
 
-## Changes From Previous Version
-#### Updates on March 23, 2016 - USGS EROS
+## Release Notes
   * The UTM zone in the MTL file is always positive.  When converting from LPGS to ESPA, if 3 or more of the corners have a negative latitude, then negate the UTM zone so that it reflects the scene in the southern hemisphere.  This will generate a negative UTM zone in the XML file as well as correctly identify the zone as South (vs. North) in the ENVI header files.
-  * Updated schema (v1.3) and supporting libraries for schema changes including adding support for cfmask cloud cover and other percentages at the band level and removal of the calibrated_nt.
+  * Updated schema (v1.3) and supporting libraries for schema changes including adding support for cfmask cloud cover and other percentages at the band level, adding support for the scene ID, and removal of the calibrated_nt.
+  * Modified to store only the major version number in the schema and XML namespace instead of the major and minor version number.  Any schema changes that require that are non-optional will require a change to the major version.  Minor version changes should allow previously generated XMLs for the same major version to be used within the ESPA applications.
   * Updated Makefiles for ESPA environment and RPMs.
   * Updated to support Albers products in addition to the current UTM and PS.
   * Updated to support the new L1T file naming convention.

@@ -9,12 +9,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/17/2015    Gail Schmidt     Original development, based on code provided
-                              by the Landsat 8 Development team
-
 NOTES:
 *****************************************************************************/
 
@@ -39,13 +33,6 @@ Value        Description
 -------      -----------
 ERROR        Error occurred opening or reading the file
 SUCCESS      Successful completion
-
-HISTORY:
-Date         Programmer       Reason
-----------   ---------------  -------------------------------------
-4/10/2015    Landsat 8 Team   Original code received from the Landsat 8 IAS
-4/14/2015    Gail Schmidt     Modified for use in ESPA   
-1/4/2015     Gail Schmidt     Support ALBERS
 
 NOTES:
 1. Memory for the land water mask will be allocated for the entire image

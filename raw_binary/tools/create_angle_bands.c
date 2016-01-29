@@ -10,18 +10,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/3/2015     Gail Schmidt     Original development
-5/5/2015     Gail Schmidt     Updated to support writing the average of the
-                              reflectance bands for each angle vs. all the
-                              bands
-1/4/2016     Gail Schmidt     Support ALBERS
-1/19/2016    Gail Schmidt     Updated to support all instruments
-1/26/2016    Gail Schmidt     Updated to write the solar/sensor angle bands to
-                              the XML file
-
 NOTES:
 *****************************************************************************/
 #include <getopt.h>
@@ -59,12 +47,6 @@ PURPOSE: Prints the usage information for this application.
 
 RETURN VALUE:
 Type = None
-
-HISTORY:
-Date         Programmer       Reason
----------    ---------------  -------------------------------------
-4/3/2015     Gail Schmidt     Original development
-1/19/2016    Gail Schmidt     Updated to use the input XML file
 
 NOTES:
 ******************************************************************************/
@@ -110,12 +92,6 @@ Value           Description
 ERROR           Error getting the command-line arguments or a command-line
                 argument and associated value were not specified
 SUCCESS         No errors encountered
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/3/2015     Gail Schmidt     Original development
-1/19/2016    Gail Schmidt     Updated to use the input XML file
 
 NOTES:
   1. Memory is allocated for the input and output files.  All of these should
@@ -215,15 +191,6 @@ Value           Description
 -----           -----------
 ERROR           Error creating the angle bands
 SUCCESS         No errors encountered
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-4/3/2015     Gail Schmidt     Original development
-1/19/2016    Gail Schmidt     Support all Landsat products, even though L4-7
-                              isn't fully supported at this time.
-                              Updated to use the input XML file
-1/26/2016    Gail Schmidt     Modified to write the angle bands to the XML file
 
 NOTES:
 1. Angles are written in degrees and scaled by 100.
@@ -544,6 +511,10 @@ int main (int argc, char** argv)
                     case (SENSOR_AZ):
                         curr_angle = &sat_azimuth[i][0];
                         break;
+                    default:
+                        sprintf (errmsg, "Invalid angle type %d", ang);
+                        error_handler (true, FUNC_NAME, errmsg);
+                        exit (ERROR);
                 }
 
                 /* Open the output file for this band */
@@ -744,6 +715,10 @@ int main (int argc, char** argv)
                 case (SENSOR_AZ):
                     curr_angle = avg_sat_azimuth;
                     break;
+                default:
+                    sprintf (errmsg, "Invalid angle type %d", ang);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    exit (ERROR);
             }
 
             /* Open the output file for this angle */

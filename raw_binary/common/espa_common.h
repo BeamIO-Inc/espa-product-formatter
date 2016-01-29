@@ -8,13 +8,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-12/24/2013   Gail Schmidt     Original development
-4/18/2015    Gail Schmidt     Added a version number
-4/20/2015    Gail Schmidt     Renamed common.h to espa_common.h
-
 NOTES:
 *****************************************************************************/
 

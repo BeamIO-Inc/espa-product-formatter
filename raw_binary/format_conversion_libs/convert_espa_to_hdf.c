@@ -10,11 +10,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/6/2014     Gail Schmidt     Original development
-
 NOTES:
   1. The XML metadata format written via this library follows the ESPA internal
      metadata format found in ESPA Raw Binary Format v1.0.doc.  The schema for
@@ -74,18 +69,6 @@ Value           Description
 -----           -----------
 ERROR           Error writing the global attributes
 SUCCESS         Successfully wrote the global attributes
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/6/2014     Gail Schmidt     Original development
-6/17/2014    Gail Schmidt     Updated to support L8
-11/17/2014   Gail Schmidt     Added support for OLI-only instrumentation
-                              vs. combined OLI/TIRS scenes.
-3/30/2015    Gail Schmidt     Added support for the earth sun distance.
-                              Removed the gain/bias attributes.  They are in
-                              the XML file and that's a good location for them
-                              to reside.
 
 NOTES:
 ******************************************************************************/
@@ -351,14 +334,6 @@ Value           Description
 ERROR           Error writing the SDS attributes
 SUCCESS         Successfully wrote the SDS attributes
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/6/2014     Gail Schmidt     Original development
-3/21/2014    Gail Schmidt     Added the application version for band attributes
-1/15/2015    Gail Schmidt     Check the fill value to see if it is META_FILL
-                              before writing
-
 NOTES:
 ******************************************************************************/
 int write_sds_attributes
@@ -599,21 +574,6 @@ Value           Description
 -----           -----------
 ERROR           Error creating the HDF file
 SUCCESS         Successfully created the HDF file
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/6/2014     Gail Schmidt     Original development
-3/5/2014     Gail Schmidt     Updated to correctly support the external raw
-                              binary files, which need to be in big endian
-                              vs. little endian (as is the case with Linux)
-3/21/2014    Gail Schmidt     Added the HDF and HDF-EOS version
-4/24/2014    Gail Schmidt     Modified grid and dimension naming (in the case
-                              of multiple resolutions) for Geographic
-                              projections to not use the pixel size
-12/8/2014    Gail Schmidt     Delete the source files immediately after the
-                              new big endian files are created
-
 
 NOTES:
   1. The ESPA products are 2D thus only 2D products are supported.
@@ -959,18 +919,6 @@ Value           Description
 -----           -----------
 ERROR           Error converting to HDF
 SUCCESS         Successfully converted to HDF
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-1/6/2014     Gail Schmidt     Original development
-4/2/2014     Gail Schmidt     Added support for a flag to delete the source
-                              .img and .hdr files
-4/3/2014     Gail Schmidt     Remove the .xml file as well if source files are
-                              specified to be deleted
-12/8/2014    Gail Schmidt     Delete the source files immediately after the
-                              new big endian files are created vs. doing the
-                              cleanup after all the bands have been converted
 
 NOTES:
   1. The ESPA raw binary band files will be used, as-is, and linked to as

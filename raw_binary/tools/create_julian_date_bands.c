@@ -8,11 +8,6 @@ at the USGS EROS
 
 LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-8/26/2015     Gail Schmidt     Original development
-
 NOTES:
 *****************************************************************************/
 #include <getopt.h>
@@ -35,11 +30,6 @@ PURPOSE: Prints the usage information for this application.
 
 RETURN VALUE:
 Type = None
-
-HISTORY:
-Date         Programmer       Reason
----------    ---------------  -------------------------------------
-4/17/2015     Gail Schmidt     Original development
 
 NOTES:
 ******************************************************************************/
@@ -78,11 +68,6 @@ Value           Description
 ERROR           Error getting the command-line arguments or a command-line
                 argument and associated value were not specified
 SUCCESS         No errors encountered
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-8/27/2015     Gail Schmidt     Original development
 
 NOTES:
   1. Memory is allocated for the input and output files.  All of these should
@@ -171,11 +156,6 @@ Value           Description
 -----           -----------
 ERROR           Error creating the Julian date bands
 SUCCESS         No errors encountered
-
-HISTORY:
-Date         Programmer       Reason
-----------   --------------   -------------------------------------
-8/25/2015     Gail Schmidt     Original development
 
 NOTES:
   1. The output Julian date/year filenames are the same as band 1 in the input
