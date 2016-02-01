@@ -30,6 +30,11 @@ NOTES:
 #define L45_NBANDS 7
 #define L7_NBANDS 8
 
+/* Define the fill value and the scaling factors (offsets the scale applied
+   in the  */
+#define ANGLE_BAND_FILL -9999
+#define ANGLE_BAND_SCALE_FACT 0.01
+
 /* Define the solar/sensor angle band indices */
 typedef enum
 {
@@ -292,6 +297,15 @@ int main (int argc, char** argv)
     else
         process_l45 = true;
 
+    /* Short-circuit the L4-7 processing for now. Remove when L4-7 is
+       supported. */
+    if (process_l7 || process_l45)
+    {
+        sprintf (errmsg, "Only Landsat 8 is currently supported");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
     /* Determine the angle coefficient filename and the output file basename */
     strcpy (ang_infile, xml_infile);
     cptr = strchr (ang_infile, '.');
@@ -359,20 +373,20 @@ int main (int argc, char** argv)
     if (!band_avg)
     {
         /* Create the Landsat angle bands for all bands.  Create a full
-           resolution product with a fill value of -9999 to match the Landsat
-           image data. */
+           resolution product with a fill value to match the Landsat image
+           data. */
         if (process_l8)
         {  /* Landsat 8 */
-            if (l8_per_pixel_angles (ang_infile, 1, -9999, "ALL", frame,
-                solar_zenith, solar_azimuth, sat_zenith, sat_azimuth, nlines,
-                nsamps) != SUCCESS)
+            if (l8_per_pixel_angles (ang_infile, 1, ANGLE_BAND_FILL, "ALL",
+                frame, solar_zenith, solar_azimuth, sat_zenith, sat_azimuth,
+                nlines, nsamps) != SUCCESS)
             {  /* Error messages already written */
                 exit (ERROR);
             }
         }
         else
         {  /* Landsat 4-7 */
-           /* GAIL HANDLE THIS */
+           /* TODO HANDLE THIS */
             sprintf (errmsg, "Only Landsat 8 is currently supported");
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
@@ -399,15 +413,8 @@ int main (int argc, char** argv)
             {
                 case (SOLAR_ZEN):  /* solar zenith */
                     /* Determine the output file for the solar zenith band */
-                    count = snprintf (tmpfile, sizeof (tmpfile),
+                    snprintf (tmpfile, sizeof (tmpfile),
                         "%s_B%d_solar_zenith.img", outfile, curr_band);
-                    if (count < 0 || count >= sizeof (tmpfile))
-                    {
-                        sprintf (errmsg, "Overflow of tmpfile");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                    strcpy (out_bmeta->file_name, tmpfile);
                     sprintf (out_bmeta->name, "solar_zenith_band%d", curr_band);
                     strncpy (tmpstr, bmeta->short_name, 3);
                     sprintf (out_bmeta->short_name, "%sSOLZEN", tmpstr);
@@ -417,15 +424,8 @@ int main (int argc, char** argv)
 
                 case (SOLAR_AZ):  /* solar azimuth */
                     /* Determine the output file for the solar azimuth band */
-                    count = snprintf (tmpfile, sizeof (tmpfile),
+                    snprintf (tmpfile, sizeof (tmpfile),
                         "%s_B%d_solar_azimuth.img", outfile, curr_band);
-                    if (count < 0 || count >= sizeof (tmpfile))
-                    {
-                        sprintf (errmsg, "Overflow of tmpfile");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                    strcpy (out_bmeta->file_name, tmpfile);
                     sprintf (out_bmeta->name, "solar_azimuth_band%d",
                         curr_band);
                     strncpy (tmpstr, bmeta->short_name, 3);
@@ -436,15 +436,8 @@ int main (int argc, char** argv)
 
                 case (SENSOR_ZEN):  /* sensor zenith */
                     /* Determine the output file for the sensor zenith band */
-                    count = snprintf (tmpfile, sizeof (tmpfile),
+                    snprintf (tmpfile, sizeof (tmpfile),
                         "%s_B%d_sensor_zenith.img", outfile, curr_band);
-                    if (count < 0 || count >= sizeof (tmpfile))
-                    {
-                        sprintf (errmsg, "Overflow of tmpfile");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                    strcpy (out_bmeta->file_name, tmpfile);
                     sprintf (out_bmeta->name, "sensor_zenith_band%d",
                         curr_band);
                     strncpy (tmpstr, bmeta->short_name, 3);
@@ -455,15 +448,8 @@ int main (int argc, char** argv)
 
                 case (SENSOR_AZ):  /* sensor azimuth */
                     /* Determine the output file for the sensor azimuth band */
-                    count = snprintf (tmpfile, sizeof (tmpfile),
+                    snprintf (tmpfile, sizeof (tmpfile),
                         "%s_B%d_sensor_azimuth.img", outfile, curr_band);
-                    if (count < 0 || count >= sizeof (tmpfile))
-                    {
-                        sprintf (errmsg, "Overflow of tmpfile");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                    strcpy (out_bmeta->file_name, tmpfile);
                     sprintf (out_bmeta->name, "sensor_azimuth_band%d",
                         curr_band);
                     strncpy (tmpstr, bmeta->short_name, 3);
@@ -473,9 +459,11 @@ int main (int argc, char** argv)
                     break;
             }
 
+            snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name),
+                tmpfile);
             out_bmeta->data_type = ESPA_INT16;
-            out_bmeta->fill_value = -9999;
-            out_bmeta->scale_factor = 0.01;
+            out_bmeta->fill_value = ANGLE_BAND_FILL;
+            out_bmeta->scale_factor = ANGLE_BAND_SCALE_FACT;
             strcpy (out_bmeta->data_units, "degrees");
             out_bmeta->nlines = nlines[curr_bndx];
             out_bmeta->nsamps = nsamps[curr_bndx];
@@ -519,8 +507,7 @@ int main (int argc, char** argv)
 
                 /* Open the output file for this band */
                 out_bmeta = &out_meta.band[i*NANGLE_BANDS + ang];
-                strcpy (tmpfile, out_bmeta->file_name);
-                fptr = open_raw_binary (tmpfile, "wb");
+                fptr = open_raw_binary (out_bmeta->file_name, "wb");
                 if (!fptr)
                 {
                     sprintf (errmsg, "Unable to open the %s file",
@@ -575,20 +562,21 @@ int main (int argc, char** argv)
     else
     {
         /* Create the average Landsat angle bands over the reflectance bands.
-           Create a full resolution product with a fill value of -9999 to match
-           the Landsat image data. */
+           Create a full resolution product with a fill value to match the
+           Landsat image data. */
         if (process_l8)
         {  /* Landsat 8 */
-            if (l8_per_pixel_avg_refl_angles (ang_infile, 1, -9999, &avg_frame,
-                &avg_solar_zenith, &avg_solar_azimuth, &avg_sat_zenith,
-                &avg_sat_azimuth, &avg_nlines, &avg_nsamps) != SUCCESS)
+            if (l8_per_pixel_avg_refl_angles (ang_infile, 1, ANGLE_BAND_FILL,
+                &avg_frame, &avg_solar_zenith, &avg_solar_azimuth,
+                &avg_sat_zenith, &avg_sat_azimuth, &avg_nlines, &avg_nsamps) !=
+                SUCCESS)
             {  /* Error messages already written */
                 exit (ERROR);
             }
         }
         else
         {  /* Landsat 4-7 */
-           /* GAIL HANDLE THIS */
+           /* TODO HANDLE THIS */
             sprintf (errmsg, "Only Landsat 8 is currently supported");
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
@@ -611,13 +599,6 @@ int main (int argc, char** argv)
                     /* Determine the output file for the solar zenith band */
                     count = snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_solar_zenith.img", outfile);
-                    if (count < 0 || count >= sizeof (tmpfile))
-                    {
-                        sprintf (errmsg, "Overflow of tmpfile");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                    strcpy (out_bmeta->file_name, tmpfile);
                     sprintf (out_bmeta->name, "avg_solar_zenith_band");
                     strncpy (tmpstr, bmeta->short_name, 3);
                     sprintf (out_bmeta->short_name, "%sSOLZEN", tmpstr);
@@ -629,13 +610,6 @@ int main (int argc, char** argv)
                     /* Determine the output file for the solar azimuth band */
                     count = snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_solar_azimuth.img", outfile);
-                    if (count < 0 || count >= sizeof (tmpfile))
-                    {
-                        sprintf (errmsg, "Overflow of tmpfile");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                    strcpy (out_bmeta->file_name, tmpfile);
                     sprintf (out_bmeta->name, "avg_solar_azimuth_band");
                     strncpy (tmpstr, bmeta->short_name, 3);
                     sprintf (out_bmeta->short_name, "%sSOLAZ", tmpstr);
@@ -647,13 +621,6 @@ int main (int argc, char** argv)
                     /* Determine the output file for the sensor zenith band */
                     count = snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_sensor_zenith.img", outfile);
-                    if (count < 0 || count >= sizeof (tmpfile))
-                    {
-                        sprintf (errmsg, "Overflow of tmpfile");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                    strcpy (out_bmeta->file_name, tmpfile);
                     sprintf (out_bmeta->name, "avg_sensor_zenith_band");
                     strncpy (tmpstr, bmeta->short_name, 3);
                     sprintf (out_bmeta->short_name, "%sSENZEN", tmpstr);
@@ -665,13 +632,6 @@ int main (int argc, char** argv)
                     /* Determine the output file for the sensor azimuth band */
                     count = snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_sensor_azimuth.img", outfile);
-                    if (count < 0 || count >= sizeof (tmpfile))
-                    {
-                        sprintf (errmsg, "Overflow of tmpfile");
-                        error_handler (true, FUNC_NAME, errmsg);
-                        return (ERROR);
-                    }
-                    strcpy (out_bmeta->file_name, tmpfile);
                     sprintf (out_bmeta->name, "avg_sensor_azimuth_band");
                     strncpy (tmpstr, bmeta->short_name, 3);
                     sprintf (out_bmeta->short_name, "%sSENAZ", tmpstr);
@@ -680,9 +640,11 @@ int main (int argc, char** argv)
                     break;
             }
 
+            snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name),
+                tmpfile);
             out_bmeta->data_type = ESPA_INT16;
-            out_bmeta->fill_value = -9999;
-            out_bmeta->scale_factor = 0.01;
+            out_bmeta->fill_value = ANGLE_BAND_FILL;
+            out_bmeta->scale_factor = ANGLE_BAND_SCALE_FACT;
             strcpy (out_bmeta->data_units, "degrees");
             out_bmeta->nlines = avg_nlines;
             out_bmeta->nsamps = avg_nsamps;
@@ -723,8 +685,7 @@ int main (int argc, char** argv)
 
             /* Open the output file for this angle */
             out_bmeta = &out_meta.band[ang];
-            strcpy (tmpfile, out_bmeta->file_name);
-            fptr = open_raw_binary (tmpfile, "wb");
+            fptr = open_raw_binary (out_bmeta->file_name, "wb");
             if (!fptr)
             {
                 sprintf (errmsg, "Unable to open the average %s file",

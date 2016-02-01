@@ -89,7 +89,10 @@ int l8_per_pixel_angles
     IAS_ANGLE_GEN_METADATA metadata;  /* Angle metadata structure */ 
     char root_filename[PATH_MAX];     /* Root filename */
     char *base_ptr;                   /* Basename pointer */
-    double r2d = 4500.0 / atan(1.0);  /* Conversion to hundredths of degrees */
+    double r2d = 4500.0 / atan(1.0);  /* Conversion to hundredths of degrees;
+                                         this includes the conversion of radians
+                                         to degrees in addition to scaling by
+                                         100.0 */
 
     /* Make sure there is something to process */
     if (solar_zenith == NULL && solar_azimuth == NULL &&
@@ -208,7 +211,7 @@ int l8_per_pixel_angles
 
         /* Get framing information for this band if return is not successful
            then band is not present in metadata so continue */
-/* GAIL -- do we need an array of frames vs. a single frame?? */
+/* TODO -- do we need an array of frames vs. a single frame?? */
         if (get_frame(&metadata, band_index, &frame[band_index]) != SUCCESS)
         {
             IAS_LOG_WARNING("Band not present in metadata for band number %d",
@@ -342,7 +345,7 @@ int l8_per_pixel_angles
             if (curr_tmp_percent > tmp_percent)
             {
                 tmp_percent = curr_tmp_percent;
-                if (tmp_percent % 10 == 0)
+                if (tmp_percent % 100 == 0)
                 {
                     printf ("%d%% ", tmp_percent);
                     fflush (stdout);
