@@ -274,7 +274,10 @@ class SceneDEM(object):
                 (param, value) = myline.split('=', 1)
                 param = param.strip()
                 value = value.strip()
-                f_value = float(value)
+                try:
+                    f_value = float(value)
+                except ValueError:
+                    pass
                 logger.debug('    DEBUG: param [{0}]'.format(param))
                 logger.debug('    DEBUG: value [{0}]'
                              .format(value.strip('\"')))
