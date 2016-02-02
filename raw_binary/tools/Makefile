@@ -45,7 +45,7 @@ OBJ8 = $(SRC8:.c=.o)
 SRC9 = convert_espa_to_bip.c
 OBJ9 = $(SRC9:.c=.o)
 
-SRC10 = create_julian_date_bands.c
+SRC10 = create_date_bands.c
 OBJ10 = $(SRC10:.c=.o)
 
 SRC11 = clip_band_misalignment.c
@@ -174,7 +174,7 @@ EXE6 = convert_modis_to_espa
 EXE7 = create_angle_bands
 EXE8 = create_land_water_mask
 EXE9 = convert_espa_to_bip
-EXE10 = create_julian_date_bands
+EXE10 = create_date_bands
 EXE11 = clip_band_misalignment
 ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11)
 

@@ -1,7 +1,7 @@
 /*****************************************************************************
-FILE: generate_julian_date_bands.c
+FILE: generate_date_bands.c
   
-PURPOSE: Contains defines and prototypes to generate a Julian date/year band.
+PURPOSE: Contains defines and prototypes to generate a date/year band.
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
@@ -15,32 +15,32 @@ NOTES:
      http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_0.xsd.
 *****************************************************************************/
 #include <unistd.h>
-#include "generate_julian_date_bands.h"
+#include "generate_date_bands.h"
 
 /******************************************************************************
-MODULE:  julian_doy
+MODULE:  generate_doy
 
-PURPOSE: Creates the Julian DOY given the year, month, and day.
+PURPOSE: Creates the DOY given the year, month, and day.
 
 Type = int
 Value           Description
 -----           -----------
--1              Error creating the Julian date
-1-366           Success createing the Julian date
+-1              Error creating the doy
+1-366           Success creating the doy
 
 NOTES:
   1. It is assumed the month and day values have been validated and are within
      1-12 for the month and 1-31 for the day.
 ******************************************************************************/
-int julian_doy
+int generate_doy
 (
-    int year,     /* I: Year of date to be converted to Julian */
-    int month,    /* I: Month to be converted to Julian (1-12) */
-    int day       /* I: Day to be converted to Julian (1-31) */
+    int year,     /* I: Year of date to be converted to DOY */
+    int month,    /* I: Month to be converted to DOY (1-12) */
+    int day       /* I: Day to be converted to DOY (1-31) */
 )
 {
     int i;               /* looping variable */
-    int doy = 0;         /* Julian DOY value */
+    int doy = 0;         /* DOY value */
     bool leap = false;   /* is this a leap year */
     const int month_len[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
@@ -63,36 +63,36 @@ int julian_doy
 
 
 /******************************************************************************
-MODULE:  generate_julian_date_bands
+MODULE:  generate_date_bands
 
-PURPOSE: Creates the Julian date bands for the current scene.  These include
-a DOY-year band, DOY band, and a year band.
+PURPOSE: Creates the date bands for the current scene.  These include a
+DOY-year band, DOY band, and a year band.
 
 RETURN VALUE:
 Type = int
 Value           Description
 -----           -----------
-ERROR           Error creating the Julian date bands
-SUCCESS         Successfully created the Julian date bands
+ERROR           Error creating the date bands
+SUCCESS         Successfully created the date bands
 
 NOTES:
-  1. The combined Julian date-year band will be an unsigned 32-bit integer in
-     the form of YYYYDOY (example 2015232 for Aug. 20, 2015).
-  2. The individual Julian date and year bands will be unsigned 16-bit integers.
+  1. The combined date-year band will be an unsigned 32-bit integer in the form
+     of YYYYDOY (example 2015232 for Aug. 20, 2015).
+  2. The individual date and year bands will be unsigned 16-bit integers.
   3. The number of lines and samples is pulled from band1 (LPGS level 1 product)     in the XML file.
 ******************************************************************************/
-int generate_julian_date_bands
+int generate_date_bands
 (
     Espa_internal_meta_t *xml_meta,  /* I: input XML metadata */
-    unsigned int **jdate_band,       /* O: pointer to Julian date buffer with
+    unsigned int **jdate_band,       /* O: pointer to date buffer with
                                            year*1000 + DOY */
-    unsigned short **doy_band,       /* O: pointer to Julian DOY buffer */
+    unsigned short **doy_band,       /* O: pointer to DOY buffer */
     unsigned short **year_band,      /* O: pointer to year buffer */
-    int *nlines,                     /* O: number of lines in Julian bands */
-    int *nsamps                      /* O: number of samples in Julian bands */
+    int *nlines,                     /* O: number of lines in date bands */
+    int *nsamps                      /* O: number of samples in date bands */
 )
 {
-    char FUNC_NAME[] = "generate_julian_date_bands";  /* function name */
+    char FUNC_NAME[] = "generate_date_bands";  /* function name */
     char errmsg[STR_SIZE];      /* error message */
     char year_str[5];           /* string for the year */
     char month_str[3];          /* string for the month */
@@ -100,7 +100,7 @@ int generate_julian_date_bands
     int i;                      /* looping variable */
     int year, month, day;       /* year, month, and day from the acquisition
                                    date */
-    int doy;                    /* Julian day of year */
+    int doy;                    /* day of year */
     int refl_indx = -9;         /* band index in XML file for the
                                    representative reflectance band */
     Espa_global_meta_t *gmeta = &xml_meta->global;
@@ -154,7 +154,7 @@ int generate_julian_date_bands
     }
 
     /* Determine the day of year */
-    doy = julian_doy (year, month, day);
+    doy = generate_doy (year, month, day);
     if (doy < 1 || doy > 366)
     {
         sprintf (errmsg, "Invalid DOY value from the acquisition date: %d. "
@@ -174,12 +174,11 @@ int generate_julian_date_bands
     *nlines = bmeta->nlines;
     *nsamps = bmeta->nsamps;
 
-    /* Allocate memory for the Julian date, DOY, and year bands */
+    /* Allocate memory for the date, DOY, and year bands */
     *jdate_band = calloc (*nlines * *nsamps, sizeof (unsigned int));
     if (*jdate_band == NULL)
     {
-        sprintf (errmsg, "Error allocating memory for the Julian date/year "
-            "band");
+        sprintf (errmsg, "Error allocating memory for the date/year band");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
@@ -187,7 +186,7 @@ int generate_julian_date_bands
     *doy_band = calloc (*nlines * *nsamps, sizeof (unsigned short));
     if (*doy_band == NULL)
     {
-        sprintf (errmsg, "Error allocating memory for the Julian date band");
+        sprintf (errmsg, "Error allocating memory for the DOY band");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
@@ -205,8 +204,8 @@ int generate_julian_date_bands
     printf ("INFO: year-month-day is %d-%d-%d\n", year, month, day);
     printf ("INFO: DOY is %d\n", doy);
 
-    /* Loop through each pixel and assign the Julian date information to all
-       of the pixels */
+    /* Loop through each pixel and assign the date information to all of the
+       pixels */
     for (i = 0; i < *nlines * *nsamps; i++)
     {
         (*jdate_band)[i] = (unsigned int) (year * 1000 + doy);

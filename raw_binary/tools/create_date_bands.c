@@ -1,7 +1,7 @@
 /*****************************************************************************
-FILE: create_julian_date_bands
+FILE: create_date_bands
   
-PURPOSE: Creates the Julian date/year bands.
+PURPOSE: Creates the date/year bands.
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
@@ -21,7 +21,7 @@ NOTES:
 #include "parse_metadata.h"
 #include "write_metadata.h"
 #include "raw_binary_io.h"
-#include "generate_julian_date_bands.h"
+#include "generate_date_bands.h"
 
 /******************************************************************************
 MODULE: usage
@@ -35,22 +35,20 @@ NOTES:
 ******************************************************************************/
 void usage ()
 {
-    printf ("create_julian_date_bands creates the Julian date and year bands "
-            "for the input scene, based the acquisition date/year in the XML "
-            "file. The combined Julian date band will be Year*1000 + DOY. The "
-            "DOY band will be the Julian DOY and the third band will be the "
-            "year band.\n"
-            "The output Julian date/year filenames are the same as band 1 in "
-            "the input XML file with the _B1.img replaced with "
-            "_julian_date.img, _julian_day.img, and _julian_year.img for "
-            "the combined Julian date/year, day of year, and year bands "
-            "respectively.\n\n");
-    printf ("usage: create_julian_date_bands --xml=input_metadata_filename\n");
+    printf ("create_date_bands creates the date and year bands for the input "
+            "scene, based the acquisition date/year in the XML file. The "
+            "combined date band will be Year*1000 + DOY. The DOY band will be "
+            "the DOY and the third band will be the year band.\n"
+            "The output date/year filenames are the same as band 1 in the "
+            "input XML file with the _B1.img replaced with _date.img, "
+            "_doy.img, and _year.img for the combined date/year, day of year, "
+            "and year bands respectively.\n\n");
+    printf ("usage: create_date_bands --xml=input_metadata_filename\n");
 
     printf ("\nwhere the following parameters are required:\n");
     printf ("    -xml: name of the input XML metadata file which follows "
             "the ESPA internal raw binary schema\n");
-    printf ("\nExample: create_julian_date_bands "
+    printf ("\nExample: create_date_bands "
             "--xml=LC80470272013287LGN00.xml\n");
 }
 
@@ -147,39 +145,38 @@ short get_args
 /******************************************************************************
 MODULE:  main
 
-PURPOSE: Creates the Julian date/year bands for the current scene. These bands
-are generated from the acquisition date/year in the XML file.
+PURPOSE: Creates the date/year bands for the current scene. These bands are
+generated from the acquisition date/year in the XML file.
 
 RETURN VALUE:
 Type = int
 Value           Description
 -----           -----------
-ERROR           Error creating the Julian date bands
+ERROR           Error creating the date bands
 SUCCESS         No errors encountered
 
 NOTES:
-  1. The output Julian date/year filenames are the same as band 1 in the input
-     XML file with the _B1.img replaced with _julian_date.img, _julian_day.img,
-     and _julian_year.img for the combined Julian date/year, Julian day of
-     year, and year bands respectively.
+  1. The output date/year filenames are the same as band 1 in the input XML
+     file with the _B1.img replaced with _date.img, _doy.img, and _year.img for
+     the combined date/year, day of year, and year bands respectively.
   2. It is expected this will be run on the XML file that contains the
      converted LPGS Level 1 bands.
 ******************************************************************************/
 int main (int argc, char** argv)
 {
-    char FUNC_NAME[] = "create_julian_date_bands";  /* function name */
+    char FUNC_NAME[] = "create_date_bands";  /* function name */
     char errmsg[STR_SIZE];       /* error message */
     char tmpstr[STR_SIZE];       /* temporary filename */
-    char jfile[STR_SIZE];        /* output Julian date filename */
+    char tmp_ext[STR_SIZE];      /* temporary filename extension */
+    char jfile[STR_SIZE];        /* output date filename */
     char production_date[MAX_DATE_LEN+1]; /* current date/year for production */
     char *espa_xml_file = NULL;  /* input ESPA XML metadata filename */
-    char *cptr = NULL;           /* character pointer for the '_' in filename */
     int i;                       /* looping variable */
-    int nlines;                  /* number of lines in Julian date bands */
-    int nsamps;                  /* number of samples in Julian date bands */
+    int nlines;                  /* number of lines in date bands */
+    int nsamps;                  /* number of samples in date bands */
     int refl_indx = -99;         /* index of band1 or first band */
-    unsigned int *jdate_buff = NULL;   /* Julian date buffer */
-    unsigned short *jdoy_buff = NULL;  /* Julian DOY buffer */
+    unsigned int *jdate_buff = NULL;   /* date buffer */
+    unsigned short *jdoy_buff = NULL;  /* DOY buffer */
     unsigned short *jyear_buff = NULL; /* year buffer */
     time_t tp;                   /* time structure */
     struct tm *tm = NULL;        /* time structure for UTC time */
@@ -187,8 +184,8 @@ int main (int argc, char** argv)
     Envi_header_t envi_hdr;      /* output ENVI header information */
     Espa_global_meta_t *gmeta = NULL; /* pointer to global metadata structure */
     Espa_band_meta_t *bmeta = NULL;   /* pointer to band metadata structure */
-    Espa_band_meta_t *out_bmeta = NULL;/* band metadata for julian bands */
-    Espa_internal_meta_t out_meta;     /* output metadata for julian bands */
+    Espa_band_meta_t *out_bmeta = NULL;/* band metadata for bands */
+    Espa_internal_meta_t out_meta;     /* output metadata for bands */
     Espa_internal_meta_t xml_metadata; /* XML metadata structure to be populated
                                           by reading the XML metadata file */
 
@@ -216,9 +213,9 @@ int main (int argc, char** argv)
     }
     gmeta = &xml_metadata.global;
 
-    /* Generate the Julian date bands for this scene. Memory is allocated for
-       the buffers in this function call. */
-    if (generate_julian_date_bands (&xml_metadata, &jdate_buff, &jdoy_buff,
+    /* Generate the date bands for this scene. Memory is allocated for the
+       buffers in this function call. */
+    if (generate_date_bands (&xml_metadata, &jdate_buff, &jdoy_buff,
         &jyear_buff, &nlines, &nsamps) != SUCCESS)
     {  /* Error messages already written */
         exit (ERROR);
@@ -244,14 +241,14 @@ int main (int argc, char** argv)
     }
 
     /* Make sure the band 1 number of lines and samples matches what was used
-       for creating the Julian date bands, otherwise we will have a mismatch
-       in the resolution and output XML information. */
+       for creating the date bands, otherwise we will have a mismatch in the
+       resolution and output XML information. */
     bmeta = &xml_metadata.band[refl_indx];
     if (nlines != bmeta->nlines || nsamps != bmeta->nsamps)
     {
         sprintf (errmsg, "Band 1 from this application does not match band 1 "
-            "from the generate_julian_date_bands function call.  Local nlines/"
-            "nsamps: %d, %d   Returned nlines/nsamps: %d, %d", bmeta->nlines,
+            "from the generate_date_bands function call.  Local nlines/nsamps: "
+            "%d, %d   Returned nlines/nsamps: %d, %d", bmeta->nlines,
             bmeta->nsamps, nlines, nsamps);
         error_handler (true, FUNC_NAME, errmsg);
         exit (ERROR);
@@ -264,7 +261,7 @@ int main (int argc, char** argv)
     /* Allocate memory for three output bands */
     if (allocate_band_metadata (&out_meta, 3) != SUCCESS)
     {
-        sprintf (errmsg, "Cannot allocate memory for the Julian date bands");
+        sprintf (errmsg, "Cannot allocate memory for the date bands");
         error_handler (true, FUNC_NAME, errmsg);
         exit (ERROR);
     }
@@ -295,63 +292,56 @@ int main (int argc, char** argv)
     /* Loop through the three bands and append them to the XML file */
     for (i = 0; i < 3; i++)
     {
-        /* Set up the band metadata for the Julian date bands */
+        /* Set up the band metadata for the date bands */
         out_bmeta = &out_meta.band[i];
         strcpy (out_bmeta->product, "intermediate_data");
         strcpy (out_bmeta->source, "level1");
 
-        /* Use the band1 filename to create the Julian date filename */
-        strcpy (out_bmeta->file_name, bmeta->file_name);
-        cptr = strrchr (out_bmeta->file_name, '_');
-        if (!cptr)
-        {
-            sprintf (errmsg, "Unable to find the _ in the band 1 filename for "
-                "creating the Julian date filename.");
-            error_handler (true, FUNC_NAME, errmsg);
-            exit (ERROR);
-        }
-
         /* Band-specific names */
         switch (i)
         {
-            case (0):  /* combined Julian date/year */
-                strcpy (out_bmeta->name, "julian_date");
+            case (0):  /* combined date/year */
+                strcpy (out_bmeta->name, "combined_date");
                 strcpy (out_bmeta->category, "image");
                 out_bmeta->data_type = ESPA_UINT32;
                 strncpy (tmpstr, bmeta->short_name, 3);
-                sprintf (out_bmeta->short_name, "%sJDATE", tmpstr);
+                sprintf (out_bmeta->short_name, "%sDATE", tmpstr);
                 strcpy (out_bmeta->long_name,
-                    "Julian day and year (YEAR * 1000 + DOY)");
-                sprintf (cptr, "_julian_date.img");
+                    "doy and year (YEAR * 1000 + DOY)");
+                sprintf (tmp_ext, "date.img");
                 strcpy (out_bmeta->data_units, "date");
                 break;
 
-            case (1):  /* Julian date */
-                strcpy (out_bmeta->name, "julian_day");
+            case (1):  /* date */
+                strcpy (out_bmeta->name, "doy");
                 strcpy (out_bmeta->category, "image");
                 out_bmeta->data_type = ESPA_UINT16;
                 strncpy (tmpstr, bmeta->short_name, 3);
-                sprintf (out_bmeta->short_name, "%sJDAY", tmpstr);
-                strcpy (out_bmeta->long_name, "Julian day");
-                sprintf (cptr, "_julian_day.img");
+                sprintf (out_bmeta->short_name, "%sDOY", tmpstr);
+                strcpy (out_bmeta->long_name, "day of year");
+                sprintf (tmp_ext, "doy.img");
                 out_bmeta->valid_range[0] = 1;
                 out_bmeta->valid_range[1] = 366;
-                strcpy (out_bmeta->data_units, "day of year");
+                strcpy (out_bmeta->data_units, "date");
                 break;
 
             case (2):  /* year */
-                strcpy (out_bmeta->name, "julian_year");
+                strcpy (out_bmeta->name, "year");
                 strcpy (out_bmeta->category, "image");
                 out_bmeta->data_type = ESPA_UINT16;
                 strncpy (tmpstr, bmeta->short_name, 3);
-                sprintf (out_bmeta->short_name, "%sJYEAR", tmpstr);
-                strcpy (out_bmeta->long_name, "Julian year");
-                sprintf (cptr, "_julian_year.img");
+                sprintf (out_bmeta->short_name, "%sYEAR", tmpstr);
+                strcpy (out_bmeta->long_name, "year");
+                sprintf (tmp_ext, "year.img");
                 out_bmeta->valid_range[0] = 1970;
                 out_bmeta->valid_range[1] = 9999;
-                strcpy (out_bmeta->data_units, "years");
+                strcpy (out_bmeta->data_units, "date");
                 break;
         }
+
+        /* Use the scene name to create the date filename */
+        snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name), "%s_%s",
+            tmp_ext, gmeta->scene_id);
 
         out_bmeta->resample_method = ESPA_NN;
         out_bmeta->nlines = nlines;
@@ -359,18 +349,18 @@ int main (int argc, char** argv)
         out_bmeta->pixel_size[0] = bmeta->pixel_size[0];
         out_bmeta->pixel_size[1] = bmeta->pixel_size[1];
         strcpy (out_bmeta->pixel_units, bmeta->pixel_units);
-        sprintf (out_bmeta->app_version, "create_julian_date_bands_%s",
+        sprintf (out_bmeta->app_version, "create_date_bands_%s",
             ESPA_COMMON_VERSION);
         strcpy (out_bmeta->production_date, production_date);
     }
 
-    /** Write the Julian date/year file **/
+    /** Write the date/year file **/
     out_bmeta = &out_meta.band[0];
     strcpy (jfile, out_bmeta->file_name);
     fptr = open_raw_binary (jfile, "wb");
     if (!fptr)
     {
-        sprintf (errmsg, "Unable to open the Julian date/year file: %s", jfile);
+        sprintf (errmsg, "Unable to open the date/year file: %s", jfile);
         error_handler (true, FUNC_NAME, errmsg);
         exit (ERROR);
     }
@@ -379,7 +369,7 @@ int main (int argc, char** argv)
     if (write_raw_binary (fptr, nlines, nsamps, sizeof (unsigned int),
         jdate_buff) != SUCCESS)
     {
-        sprintf (errmsg, "Unable to write to the Julian date/year file");
+        sprintf (errmsg, "Unable to write to the date/year file");
         error_handler (true, FUNC_NAME, errmsg);
         exit (ERROR);
     }
@@ -406,13 +396,13 @@ int main (int argc, char** argv)
         exit (ERROR);
     }
 
-    /** Write the Julian date file **/
+    /** Write the date file **/
     out_bmeta = &out_meta.band[1];
     strcpy (jfile, out_bmeta->file_name);
     fptr = open_raw_binary (jfile, "wb");
     if (!fptr)
     {
-        sprintf (errmsg, "Unable to open the Julian date file: %s", jfile);
+        sprintf (errmsg, "Unable to open the date file: %s", jfile);
         error_handler (true, FUNC_NAME, errmsg);
         exit (ERROR);
     }
@@ -421,7 +411,7 @@ int main (int argc, char** argv)
     if (write_raw_binary (fptr, nlines, nsamps, sizeof (unsigned short),
         jdoy_buff) != SUCCESS)
     {
-        sprintf (errmsg, "Unable to write to the Julian date file");
+        sprintf (errmsg, "Unable to write to the date file");
         error_handler (true, FUNC_NAME, errmsg);
         exit (ERROR);
     }
@@ -448,13 +438,13 @@ int main (int argc, char** argv)
         exit (ERROR);
     }
 
-    /** Write the Julian year file **/
+    /** Write the year file **/
     out_bmeta = &out_meta.band[2];
     strcpy (jfile, out_bmeta->file_name);
     fptr = open_raw_binary (jfile, "wb");
     if (!fptr)
     {
-        sprintf (errmsg, "Unable to open the Julian year file: %s", jfile);
+        sprintf (errmsg, "Unable to open the year file: %s", jfile);
         error_handler (true, FUNC_NAME, errmsg);
         exit (ERROR);
     }
@@ -463,7 +453,7 @@ int main (int argc, char** argv)
     if (write_raw_binary (fptr, nlines, nsamps, sizeof (unsigned short),
         jyear_buff) != SUCCESS)
     {
-        sprintf (errmsg, "Unable to write to the Julian year file");
+        sprintf (errmsg, "Unable to write to the year file");
         error_handler (true, FUNC_NAME, errmsg);
         exit (ERROR);
     }
@@ -490,10 +480,10 @@ int main (int argc, char** argv)
         exit (ERROR);
     }
 
-    /* Append the Julian date bands to the XML file */
+    /* Append the date bands to the XML file */
     if (append_metadata (3, out_meta.band, espa_xml_file) != SUCCESS)
     {
-        sprintf (errmsg, "Appending Julian date bands to the XML file.");
+        sprintf (errmsg, "Appending date bands to the XML file.");
         error_handler (true, FUNC_NAME, errmsg);
         exit (ERROR);
     }

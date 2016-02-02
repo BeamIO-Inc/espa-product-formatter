@@ -18,12 +18,12 @@ EXTRA = -Wall $(EXTRA_OPTIONS)
 
 
 # Define the include files
-INC = clip_band_misalignment.h generate_julian_date_bands.h
+INC = clip_band_misalignment.h generate_date_bands.h
 
 # Define the source code and object files
 SRC = \
       clip_band_misalignment.c  \
-      generate_julian_date_bands.c
+      generate_date_bands.c
 OBJ = $(SRC:.c=.o)
 
 # Define include paths

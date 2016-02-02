@@ -14,6 +14,7 @@
 #include "envi_header.h"
 
 #define L8_NBANDS 11
+#define ANGLE_SCALE 100
 
 typedef enum angle_type
 {
