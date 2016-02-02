@@ -991,7 +991,7 @@ int read_lpgs_mtl
     }
 
     count = snprintf (gmeta->proj_info.units, sizeof (gmeta->proj_info.units),
-        "meters");
+        "%s", "meters");
     if (count < 0 || count >= sizeof (gmeta->proj_info.units))
     {
         sprintf (errmsg, "Overflow of gmeta->proj_info.units string");
@@ -1055,8 +1055,8 @@ int read_lpgs_mtl
             return (ERROR);
         }
 
-        count = snprintf (bmeta[i].category, sizeof (bmeta[i].category),
-            "%s", category[i]);
+        count = snprintf (bmeta[i].category, sizeof (bmeta[i].category), "%s",
+            category[i]);
         if (count < 0 || count >= sizeof (bmeta[i].category))
         {
             sprintf (errmsg, "Overflow of bmeta[i].category string");
@@ -1111,7 +1111,7 @@ int read_lpgs_mtl
         }
 
         count = snprintf (bmeta[i].data_units, sizeof (bmeta[i].data_units),
-            "digital numbers");
+            "%s", "digital numbers");
         if (count < 0 || count >= sizeof (bmeta[i].data_units))
         {
             sprintf (errmsg, "Overflow of bmeta[i].data_units string");
@@ -1120,7 +1120,7 @@ int read_lpgs_mtl
         }
 
         count = snprintf (bmeta[i].pixel_units, sizeof (bmeta[i].pixel_units),
-            "meters");
+            "%s", "meters");
         if (count < 0 || count >= sizeof (bmeta[i].pixel_units))
         {
             sprintf (errmsg, "Overflow of bmeta[i].pixel_units string");
@@ -1173,9 +1173,8 @@ int read_lpgs_mtl
             sprintf (bmeta[i].name, "band%s", band_num[i]);
             sprintf (bmeta[i].long_name, "band %s digital numbers",
               band_num[i]);
-            count = snprintf (bmeta[i].file_name,
-                sizeof (bmeta[i].file_name), "%s_B%s.img", scene_id,
-                band_num[i]);
+            count = snprintf (bmeta[i].file_name, sizeof (bmeta[i].file_name),
+                "%s_B%s.img", scene_id, band_num[i]);
             if (count < 0 || count >= sizeof (bmeta[i].file_name))
             {
                 sprintf (errmsg, "Overflow of bmeta[i].file_name");
@@ -1232,7 +1231,7 @@ int read_lpgs_mtl
         if (!strcmp (band_num[i], "bqa"))
         {
             count = snprintf (bmeta[i].data_units, sizeof (bmeta[i].data_units),
-                "quality/feature classification");
+                "%s", "quality/feature classification");
             if (count < 0 || count >= sizeof (bmeta[i].data_units))
             {
                 sprintf (errmsg, "Overflow of bmeta[i].data_units string");

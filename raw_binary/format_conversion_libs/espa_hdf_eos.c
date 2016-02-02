@@ -184,7 +184,7 @@ int write_hdf_eos_attr
 
     /* Build the HDF-EOS header */
     meta_indx = 0;
-    count = snprintf (cbuf, sizeof (cbuf),
+    count = snprintf (cbuf, sizeof (cbuf), "%s",
         "\nGROUP=SwathStructure\n" 
         "END_GROUP=SwathStructure\n" 
         "GROUP=GridStructure\n" 
@@ -338,7 +338,7 @@ int write_hdf_eos_attr
     else if (gmeta->proj_info.proj_type != GCTP_GEO_PROJ)
     {  /* don't write projection parameters for Geographic */
         /* Write the projection parameters */
-        count = snprintf (cbuf, sizeof (cbuf), "\t\tProjParams=(");
+        count = snprintf (cbuf, sizeof (cbuf), "%s", "\t\tProjParams=(");
         if (count < 0 || count >= sizeof (cbuf))
         {
             sprintf (errmsg, "Overflow of cbuf string");
@@ -426,7 +426,7 @@ int write_hdf_eos_attr
             }
         }
 
-        count = snprintf (cbuf, sizeof (cbuf), "\n");
+        count = snprintf (cbuf, sizeof (cbuf), "%s", "\n");
         if (count < 0 || count >= sizeof (cbuf))
         {
             sprintf (errmsg, "Overflow of cbuf string");
@@ -772,7 +772,8 @@ int write_hdf_eos_attr
             else if (gmeta->proj_info.proj_type != GCTP_GEO_PROJ)
             {  /* don't write projection parameters for Geographic */
                 /* Write the projection parameters */
-                count = snprintf (cbuf, sizeof (cbuf), "\t\tProjParams=(");
+                count = snprintf (cbuf, sizeof (cbuf), "%s",
+                    "\t\tProjParams=(");
                 if (count < 0 || count >= sizeof (cbuf))
                 {
                     sprintf (errmsg, "Overflow of cbuf string");
@@ -868,7 +869,7 @@ int write_hdf_eos_attr
                     }
                 }
 
-                count = snprintf (cbuf, sizeof (cbuf), "\n");
+                count = snprintf (cbuf, sizeof (cbuf), "%s", "\n");
                 if (count < 0 || count >= sizeof (cbuf))
                 {
                     sprintf (errmsg, "Overflow of cbuf string");
@@ -949,7 +950,7 @@ int write_hdf_eos_attr
             }
   
             /* Put SDS group */
-            count = snprintf (cbuf, sizeof (cbuf),
+            count = snprintf (cbuf, sizeof (cbuf), "%s",
                 "\t\tGROUP=Dimension\n" 
                 "\t\tEND_GROUP=Dimension\n"
                 "\t\tGROUP=DataField\n");
@@ -1057,7 +1058,7 @@ int write_hdf_eos_attr
     }  /* end while !done */
 
     /* Put trailer */
-    count = snprintf (cbuf, sizeof (cbuf),
+    count = snprintf (cbuf, sizeof (cbuf), "%s",
         "END_GROUP=GridStructure\n"
         "GROUP=PointStructure\n"
         "END_GROUP=PointStructure\n"

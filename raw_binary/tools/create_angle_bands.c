@@ -459,7 +459,7 @@ int main (int argc, char** argv)
                     break;
             }
 
-            snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name),
+            snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name), "%s",
                 tmpfile);
             out_bmeta->data_type = ESPA_INT16;
             out_bmeta->fill_value = ANGLE_BAND_FILL;
@@ -640,7 +640,7 @@ int main (int argc, char** argv)
                     break;
             }
 
-            snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name),
+            snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name), "%s",
                 tmpfile);
             out_bmeta->data_type = ESPA_INT16;
             out_bmeta->fill_value = ANGLE_BAND_FILL;
