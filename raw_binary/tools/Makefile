@@ -129,6 +129,7 @@ LIB7   = \
     -L$(XML2LIB) -lxml2 \
     -l_espa_band_angles -l_espa_l8_ang \
     -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
 LIB8   = \
