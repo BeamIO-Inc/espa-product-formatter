@@ -76,12 +76,13 @@ rm -rf %{buildroot}
 /usr/local/include/*
 /usr/local/lib/*
 /usr/local/python/*
+/usr/local/schema/*
 /usr/local/%{name}
 
 
 # ----------------------------------------------------------------------------
 %changelog
-* Fri Dec 18 2015 Ronald D Dilley <rdilley@usgs.gov>
+* Tue Feb 09 2016 Ronald D Dilley <rdilley@usgs.gov>
 - Updated for Mar 2016 release.  Change the package name.
 
 * Wed Nov 18 2015 William D Howe <whowe@usgs.gov>
