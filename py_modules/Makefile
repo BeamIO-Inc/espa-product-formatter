@@ -16,7 +16,7 @@ all:
 install:
 	install -d $(python_link_path)
 	install -d $(python_lib_install_path)
-	install -m 755 $(PYTHON_MODULES) $(python_lib_install_path)
+	install -m 644 $(PYTHON_MODULES) $(python_lib_install_path)
 	@for module in $(PYTHON_MODULES); do \
         echo "ln -sf $(python_lib_link_path)/$$module $(python_link_path)/$$module"; \
         ln -sf $(python_lib_link_path)/$$module $(python_link_path)/$$module; \
