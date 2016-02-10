@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Mon Feb  1 08:13:50 2016 by generateDS.py version 2.12b.
+# Generated Wed Feb 10 11:30:53 2016 by generateDS.py version 2.12b.
 #
 # Generated with the ESPA modified version of generateDS.py
 # See espa google code project.
@@ -4494,7 +4494,7 @@ def validate_xml(rootObj, xmlns=None, xmlns_xsi=None, schema_uri=None):
         # Use the espa-common installation directory
         if schema_root == None:
             schema_name = schema_uri.split('/')[-1]
-            schema_path = '/usr/local/espa-common/schema/%s' \
+            schema_path = '/usr/local/schema/%s' \
                 % schema_name
             try:
                 schema_root = etree.parse(schema_path)
@@ -4537,7 +4537,7 @@ def validate_xml(rootObj, xmlns=None, xmlns_xsi=None, schema_uri=None):
 
 # ESPA - Added a module method to allow exporting from the module level with
 #        validation
-def export(outFile, rootObj, xmlns='http://espa.cr.usgs.gov/v1', xmlns_xsi='http://www.w3.org/2001/XMLSchema-instance', schema_uri='http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1.xsd'):
+def export(outFile, rootObj, xmlns='http://espa.cr.usgs.gov/v1', xmlns_xsi='http://www.w3.org/2001/XMLSchema-instance', schema_uri='http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_3.xsd'):
     ns_def = build_ns_def(xmlns, xmlns_xsi, schema_uri)
 
     rootObj.set_version('1.3.0')
