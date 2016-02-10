@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 Name:		espa-product-formatter
 Version:	1.6.0
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	ESPA Product Formatting Software
 
 Group:		ESPA
@@ -82,9 +82,11 @@ rm -rf %{buildroot}
 
 # ----------------------------------------------------------------------------
 %changelog
+* Wed Feb 10 2016 Ronald D Dilley <rdilley@usgs.gov>
+- Revisioned for a bug in the metadata_api.
+
 * Tue Feb 09 2016 Ronald D Dilley <rdilley@usgs.gov>
 - Updated for Mar 2016 release.  Change the package name.
-
 * Wed Nov 18 2015 William D Howe <whowe@usgs.gov>
 - New version release 1.5.1.
 * Fri Jun 26 2015 William D Howe <whowe@usgs.gov>
