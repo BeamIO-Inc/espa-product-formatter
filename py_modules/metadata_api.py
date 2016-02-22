@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Wed Apr 15 15:40:16 2015 by generateDS.py version 2.12b.
+# Generated Wed Feb 10 11:30:53 2016 by generateDS.py version 2.12b.
 #
 # Generated with the ESPA modified version of generateDS.py
 # See espa google code project.
@@ -3005,6 +3005,95 @@ class class_(GeneratedsSuper):
 # end class class_
 
 
+class cover(GeneratedsSuper):
+    subclass = None
+    superclass = None
+    def __init__(self, type_=None, valueOf_=None):
+        self.type_ = _cast(None, type_)
+        self.valueOf_ = valueOf_
+    def factory(*args_, **kwargs_):
+        if cover.subclass:
+            return cover.subclass(*args_, **kwargs_)
+        else:
+            return cover(*args_, **kwargs_)
+    factory = staticmethod(factory)
+    def get_type(self): return self.type_
+    def set_type(self, type_): self.type_ = type_
+    def get_valueOf_(self): return self.valueOf_
+    def set_valueOf_(self, valueOf_): self.valueOf_ = valueOf_
+    def hasContent_(self):
+        if (
+            self.valueOf_
+        ):
+            return True
+        else:
+            return False
+    def export(self, outfile, level, namespace_='', name_='cover', namespacedef_='', pretty_print=True):
+        # Check if we are at the root level and output the XML header
+        if level == 0:
+            outfile.write('<?xml version="1.0"?>\n')
+            outfile.write('\n')
+        if pretty_print:
+            eol_ = '\n'
+        else:
+            eol_ = ''
+        showIndent(outfile, level, pretty_print)
+        # Check if we are at the root level and output attributes first before namespacedef
+        if level == 0:
+            outfile.write('<%s%s' % (namespace_, name_))
+            already_processed = set()
+            self.exportAttributes(outfile, level, already_processed, namespace_, name_='cover')
+            outfile.write('%s' % (namespacedef_ and ' ' + namespacedef_ or ''))
+        else:
+            outfile.write('<%s%s%s' % (namespace_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
+            already_processed = set()
+            self.exportAttributes(outfile, level, already_processed, namespace_, name_='cover')
+        if self.hasContent_():
+            outfile.write('>')
+            outfile.write(str(self.valueOf_).encode(ExternalEncoding))
+            self.exportChildren(outfile, level + 1, namespace_='', name_='cover', pretty_print=pretty_print)
+            outfile.write('</%s%s>%s' % (namespace_, name_, eol_))
+        else:
+            outfile.write('/>%s' % (eol_, ))
+    def exportAttributes(self, outfile, level, already_processed, namespace_='', name_='cover'):
+        if self.type_ is not None and 'type_' not in already_processed:
+            already_processed.add('type_')
+            outfile.write(' type=%s' % (self.gds_format_string(quote_attrib(self.type_).encode(ExternalEncoding), input_name='type'), ))
+    def exportChildren(self, outfile, level, namespace_='', name_='cover', fromsubclass_=False, pretty_print=True):
+        pass
+    def exportLiteral(self, outfile, level, name_='cover'):
+        level += 1
+        already_processed = set()
+        self.exportLiteralAttributes(outfile, level, already_processed, name_)
+        if self.hasContent_():
+            self.exportLiteralChildren(outfile, level, name_)
+        showIndent(outfile, level)
+        outfile.write('valueOf_ = """%s""",\n' % (self.valueOf_,))
+    def exportLiteralAttributes(self, outfile, level, already_processed, name_):
+        if self.type_ is not None and 'type_' not in already_processed:
+            already_processed.add('type_')
+            showIndent(outfile, level)
+            outfile.write('type_="%s",\n' % (self.type_,))
+    def exportLiteralChildren(self, outfile, level, name_):
+        pass
+    def build(self, node):
+        already_processed = set()
+        self.buildAttributes(node, node.attrib, already_processed)
+        self.valueOf_ = get_all_text_(node)
+        for child in node:
+            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
+            self.buildChildren(child, node, nodeName_)
+        return self
+    def buildAttributes(self, node, attrs, already_processed):
+        value = find_attr_value_('type', node)
+        if value is not None and 'type' not in already_processed:
+            already_processed.add('type')
+            self.type_ = value
+    def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
+        pass
+# end class cover
+
+
 class class_values(GeneratedsSuper):
     subclass = None
     superclass = None
@@ -3104,10 +3193,109 @@ class class_values(GeneratedsSuper):
 # end class class_values
 
 
+class percent_coverage(GeneratedsSuper):
+    subclass = None
+    superclass = None
+    def __init__(self, cover=None):
+        if cover is None:
+            self.cover = []
+        else:
+            self.cover = cover
+    def factory(*args_, **kwargs_):
+        if percent_coverage.subclass:
+            return percent_coverage.subclass(*args_, **kwargs_)
+        else:
+            return percent_coverage(*args_, **kwargs_)
+    factory = staticmethod(factory)
+    def get_cover(self): return self.cover
+    def set_cover(self, cover): self.cover = cover
+    def add_cover(self, value): self.cover.append(value)
+    def insert_cover(self, index, value): self.cover[index] = value
+    def hasContent_(self):
+        if (
+            self.cover
+        ):
+            return True
+        else:
+            return False
+    def export(self, outfile, level, namespace_='', name_='percent_coverage', namespacedef_='', pretty_print=True):
+        # Check if we are at the root level and output the XML header
+        if level == 0:
+            outfile.write('<?xml version="1.0"?>\n')
+            outfile.write('\n')
+        if pretty_print:
+            eol_ = '\n'
+        else:
+            eol_ = ''
+        showIndent(outfile, level, pretty_print)
+        # Check if we are at the root level and output attributes first before namespacedef
+        if level == 0:
+            outfile.write('<%s%s' % (namespace_, name_))
+            already_processed = set()
+            self.exportAttributes(outfile, level, already_processed, namespace_, name_='percent_coverage')
+            outfile.write('%s' % (namespacedef_ and ' ' + namespacedef_ or ''))
+        else:
+            outfile.write('<%s%s%s' % (namespace_, name_, namespacedef_ and ' ' + namespacedef_ or '', ))
+            already_processed = set()
+            self.exportAttributes(outfile, level, already_processed, namespace_, name_='percent_coverage')
+        if self.hasContent_():
+            outfile.write('>%s' % (eol_, ))
+            self.exportChildren(outfile, level + 1, namespace_='', name_='percent_coverage', pretty_print=pretty_print)
+            showIndent(outfile, level, pretty_print)
+            outfile.write('</%s%s>%s' % (namespace_, name_, eol_))
+        else:
+            outfile.write('/>%s' % (eol_, ))
+    def exportAttributes(self, outfile, level, already_processed, namespace_='', name_='percent_coverage'):
+        pass
+    def exportChildren(self, outfile, level, namespace_='', name_='percent_coverage', fromsubclass_=False, pretty_print=True):
+        if pretty_print:
+            eol_ = '\n'
+        else:
+            eol_ = ''
+        for cover_ in self.cover:
+            cover_.export(outfile, level, namespace_, name_='cover', pretty_print=pretty_print)
+    def exportLiteral(self, outfile, level, name_='percent_coverage'):
+        level += 1
+        already_processed = set()
+        self.exportLiteralAttributes(outfile, level, already_processed, name_)
+        if self.hasContent_():
+            self.exportLiteralChildren(outfile, level, name_)
+    def exportLiteralAttributes(self, outfile, level, already_processed, name_):
+        pass
+    def exportLiteralChildren(self, outfile, level, name_):
+        showIndent(outfile, level)
+        outfile.write('cover=[\n')
+        level += 1
+        for cover_ in self.cover:
+            showIndent(outfile, level)
+            outfile.write('model_.cover(\n')
+            cover_.exportLiteral(outfile, level)
+            showIndent(outfile, level)
+            outfile.write('),\n')
+        level -= 1
+        showIndent(outfile, level)
+        outfile.write('],\n')
+    def build(self, node):
+        already_processed = set()
+        self.buildAttributes(node, node.attrib, already_processed)
+        for child in node:
+            nodeName_ = Tag_pattern_.match(child.tag).groups()[-1]
+            self.buildChildren(child, node, nodeName_)
+        return self
+    def buildAttributes(self, node, attrs, already_processed):
+        pass
+    def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
+        if nodeName_ == 'cover':
+            obj_ = cover.factory()
+            obj_.build(child_)
+            self.cover.append(obj_)
+# end class percent_coverage
+
+
 class band(GeneratedsSuper):
     subclass = None
     superclass = None
-    def __init__(self, product=None, source=None, name=None, category=None, data_type=None, nlines=None, nsamps=None, fill_value=None, saturate_value=None, scale_factor=None, add_offset=None, short_name=None, long_name=None, file_name=None, pixel_size=None, resample_method=None, data_units=None, valid_range=None, radiance=None, reflectance=None, thermal_const=None, bitmap_description=None, class_values=None, qa_description=None, calibrated_nt=None, app_version=None, production_date=None):
+    def __init__(self, product=None, source=None, name=None, category=None, data_type=None, nlines=None, nsamps=None, fill_value=None, saturate_value=None, scale_factor=None, add_offset=None, short_name=None, long_name=None, file_name=None, pixel_size=None, resample_method=None, data_units=None, valid_range=None, radiance=None, reflectance=None, thermal_const=None, bitmap_description=None, class_values=None, qa_description=None, percent_coverage=None, app_version=None, production_date=None):
         self.product = _cast(None, product)
         self.source = _cast(None, source)
         self.name = _cast(None, name)
@@ -3132,7 +3320,7 @@ class band(GeneratedsSuper):
         self.bitmap_description = bitmap_description
         self.class_values = class_values
         self.qa_description = qa_description
-        self.calibrated_nt = calibrated_nt
+        self.percent_coverage = percent_coverage
         self.app_version = app_version
         if isinstance(production_date, basestring):
             initvalue_ = datetime_.datetime.strptime(production_date, '%Y-%m-%dT%H:%M:%S')
@@ -3171,8 +3359,8 @@ class band(GeneratedsSuper):
     def set_class_values(self, class_values): self.class_values = class_values
     def get_qa_description(self): return self.qa_description
     def set_qa_description(self, qa_description): self.qa_description = qa_description
-    def get_calibrated_nt(self): return self.calibrated_nt
-    def set_calibrated_nt(self, calibrated_nt): self.calibrated_nt = calibrated_nt
+    def get_percent_coverage(self): return self.percent_coverage
+    def set_percent_coverage(self, percent_coverage): self.percent_coverage = percent_coverage
     def get_app_version(self): return self.app_version
     def set_app_version(self, app_version): self.app_version = app_version
     def get_production_date(self): return self.production_date
@@ -3223,7 +3411,7 @@ class band(GeneratedsSuper):
             self.bitmap_description is not None or
             self.class_values is not None or
             self.qa_description is not None or
-            self.calibrated_nt is not None or
+            self.percent_coverage is not None or
             self.app_version is not None or
             self.production_date is not None
         ):
@@ -3328,9 +3516,8 @@ class band(GeneratedsSuper):
         if self.qa_description is not None:
             showIndent(outfile, level, pretty_print)
             outfile.write('<%sqa_description>%s</%sqa_description>%s' % (namespace_, self.gds_format_string(quote_xml(self.qa_description).encode(ExternalEncoding), input_name='qa_description'), namespace_, eol_))
-        if self.calibrated_nt is not None:
-            showIndent(outfile, level, pretty_print)
-            outfile.write('<%scalibrated_nt>%s</%scalibrated_nt>%s' % (namespace_, self.gds_format_float(self.calibrated_nt, input_name='calibrated_nt'), namespace_, eol_))
+        if self.percent_coverage is not None:
+            self.percent_coverage.export(outfile, level, namespace_, name_='percent_coverage', pretty_print=pretty_print)
         if self.app_version is not None:
             showIndent(outfile, level, pretty_print)
             outfile.write('<%sapp_version>%s</%sapp_version>%s' % (namespace_, self.gds_format_string(quote_xml(self.app_version).encode(ExternalEncoding), input_name='app_version'), namespace_, eol_))
@@ -3449,9 +3636,12 @@ class band(GeneratedsSuper):
         if self.qa_description is not None:
             showIndent(outfile, level)
             outfile.write('qa_description=%s,\n' % quote_python(self.qa_description).encode(ExternalEncoding))
-        if self.calibrated_nt is not None:
+        if self.percent_coverage is not None:
             showIndent(outfile, level)
-            outfile.write('calibrated_nt=%f,\n' % self.calibrated_nt)
+            outfile.write('percent_coverage=model_.percent_coverage(\n')
+            self.percent_coverage.exportLiteral(outfile, level)
+            showIndent(outfile, level)
+            outfile.write('),\n')
         if self.app_version is not None:
             showIndent(outfile, level)
             outfile.write('app_version=%s,\n' % quote_python(self.app_version).encode(ExternalEncoding))
@@ -3584,14 +3774,10 @@ class band(GeneratedsSuper):
             qa_description_ = child_.text
             qa_description_ = self.gds_validate_string(qa_description_, node, 'qa_description')
             self.qa_description = qa_description_
-        elif nodeName_ == 'calibrated_nt':
-            sval_ = child_.text
-            try:
-                fval_ = float(sval_)
-            except (TypeError, ValueError), exp:
-                raise_parse_error(child_, 'requires float or double: %s' % exp)
-            fval_ = self.gds_validate_float(fval_, node, 'calibrated_nt')
-            self.calibrated_nt = fval_
+        elif nodeName_ == 'percent_coverage':
+            obj_ = percent_coverage.factory()
+            obj_.build(child_)
+            self.percent_coverage = obj_
         elif nodeName_ == 'app_version':
             app_version_ = child_.text
             app_version_ = self.gds_validate_string(app_version_, node, 'app_version')
@@ -3721,7 +3907,7 @@ class espa_metadata(GeneratedsSuper):
 class global_metadataType(GeneratedsSuper):
     subclass = None
     superclass = None
-    def __init__(self, data_provider=None, satellite=None, instrument=None, acquisition_date=None, scene_center_time=None, level1_production_date=None, solar_angles=None, earth_sun_distance=None, wrs=None, modis=None, lpgs_metadata_file=None, corner=None, bounding_coordinates=None, projection_information=None, orientation_angle=None):
+    def __init__(self, data_provider=None, satellite=None, instrument=None, acquisition_date=None, scene_center_time=None, level1_production_date=None, solar_angles=None, earth_sun_distance=None, wrs=None, modis=None, scene_id=None, lpgs_metadata_file=None, corner=None, bounding_coordinates=None, projection_information=None, orientation_angle=None):
         self.data_provider = data_provider
         self.satellite = satellite
         self.instrument = instrument
@@ -3744,6 +3930,7 @@ class global_metadataType(GeneratedsSuper):
         self.earth_sun_distance = earth_sun_distance
         self.wrs = wrs
         self.modis = modis
+        self.scene_id = scene_id
         self.lpgs_metadata_file = lpgs_metadata_file
         if corner is None:
             self.corner = []
@@ -3778,6 +3965,8 @@ class global_metadataType(GeneratedsSuper):
     def set_wrs(self, wrs): self.wrs = wrs
     def get_modis(self): return self.modis
     def set_modis(self, modis): self.modis = modis
+    def get_scene_id(self): return self.scene_id
+    def set_scene_id(self, scene_id): self.scene_id = scene_id
     def get_lpgs_metadata_file(self): return self.lpgs_metadata_file
     def set_lpgs_metadata_file(self, lpgs_metadata_file): self.lpgs_metadata_file = lpgs_metadata_file
     def get_corner(self): return self.corner
@@ -3802,6 +3991,7 @@ class global_metadataType(GeneratedsSuper):
             self.earth_sun_distance is not None or
             self.wrs is not None or
             self.modis is not None or
+            self.scene_id is not None or
             self.lpgs_metadata_file is not None or
             self.corner or
             self.bounding_coordinates is not None or
@@ -3872,6 +4062,9 @@ class global_metadataType(GeneratedsSuper):
             self.wrs.export(outfile, level, namespace_, name_='wrs', pretty_print=pretty_print)
         if self.modis is not None:
             self.modis.export(outfile, level, namespace_, name_='modis', pretty_print=pretty_print)
+        if self.scene_id is not None:
+            showIndent(outfile, level, pretty_print)
+            outfile.write('<%sscene_id>%s</%sscene_id>%s' % (namespace_, self.gds_format_string(quote_xml(self.scene_id).encode(ExternalEncoding), input_name='scene_id'), namespace_, eol_))
         if self.lpgs_metadata_file is not None:
             showIndent(outfile, level, pretty_print)
             outfile.write('<%slpgs_metadata_file>%s</%slpgs_metadata_file>%s' % (namespace_, self.gds_format_string(quote_xml(self.lpgs_metadata_file).encode(ExternalEncoding), input_name='lpgs_metadata_file'), namespace_, eol_))
@@ -3932,6 +4125,9 @@ class global_metadataType(GeneratedsSuper):
             self.modis.exportLiteral(outfile, level)
             showIndent(outfile, level)
             outfile.write('),\n')
+        if self.scene_id is not None:
+            showIndent(outfile, level)
+            outfile.write('scene_id=%s,\n' % quote_python(self.scene_id).encode(ExternalEncoding))
         if self.lpgs_metadata_file is not None:
             showIndent(outfile, level)
             outfile.write('lpgs_metadata_file=%s,\n' % quote_python(self.lpgs_metadata_file).encode(ExternalEncoding))
@@ -4016,6 +4212,10 @@ class global_metadataType(GeneratedsSuper):
             obj_ = modis.factory()
             obj_.build(child_)
             self.modis = obj_
+        elif nodeName_ == 'scene_id':
+            scene_id_ = child_.text
+            scene_id_ = self.gds_validate_string(scene_id_, node, 'scene_id')
+            self.scene_id = scene_id_
         elif nodeName_ == 'lpgs_metadata_file':
             lpgs_metadata_file_ = child_.text
             lpgs_metadata_file_ = self.gds_validate_string(lpgs_metadata_file_, node, 'lpgs_metadata_file')
@@ -4294,7 +4494,7 @@ def validate_xml(rootObj, xmlns=None, xmlns_xsi=None, schema_uri=None):
         # Use the espa-common installation directory
         if schema_root == None:
             schema_name = schema_uri.split('/')[-1]
-            schema_path = '/usr/local/espa-common/schema/%s' \
+            schema_path = '/usr/local/schema/%s' \
                 % schema_name
             try:
                 schema_root = etree.parse(schema_path)
@@ -4337,10 +4537,10 @@ def validate_xml(rootObj, xmlns=None, xmlns_xsi=None, schema_uri=None):
 
 # ESPA - Added a module method to allow exporting from the module level with
 #        validation
-def export(outFile, rootObj, xmlns='http://espa.cr.usgs.gov/v1.2', xmlns_xsi='http://www.w3.org/2001/XMLSchema-instance', schema_uri='http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_2.xsd'):
+def export(outFile, rootObj, xmlns='http://espa.cr.usgs.gov/v1', xmlns_xsi='http://www.w3.org/2001/XMLSchema-instance', schema_uri='http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_3.xsd'):
     ns_def = build_ns_def(xmlns, xmlns_xsi, schema_uri)
 
-    rootObj.set_version('1.2.0')
+    rootObj.set_version('1.3.0')
 
     xml_text = ''
     try:
@@ -4379,9 +4579,11 @@ __all__ = [
     "class_values",
     "corner",
     "corner_point",
+    "cover",
     "espa_metadata",
     "global_metadataType",
     "modis",
+    "percent_coverage",
     "pixel_size",
     "projection_information",
     "ps_proj_params",
