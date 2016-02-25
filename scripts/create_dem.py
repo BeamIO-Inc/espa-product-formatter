@@ -31,6 +31,11 @@ from espa_metadata_api import ESPAMetadataError, ESPAMetadata
 ESPA_DEM_DIR = 'ESPA_DEM_DIR'
 
 
+class GeoError(Exception):
+    """Exception to capture errors from the Geo class"""
+    pass
+
+
 class Geo(object):
     """Provides methods for interfacing with geographic projections"""
 
@@ -124,6 +129,85 @@ class Geo(object):
         # Do the actual replace here
         with open(hdr_file_path, 'w') as tmp_fd:
             tmp_fd.write(hdr_text.getvalue())
+
+    @staticmethod
+    def warp(resampling_method=None,
+             resolution_x=None,
+             resolution_y=None,
+             target_srs=None,
+             image_extents=None,
+             destination_no_data=None,
+             output_data_type=None,
+             output_format=None,
+             source_data=None,
+             output_filename=None):
+
+        logger = logging.getLogger(__name__)
+
+        # Base Command
+        cmd = ['gdalwarp', '-wm', '2048', '-multi', '-overwrite']
+
+        # Add resampling
+        if resampling_method is not None:
+            cmd.extend(['-r', resampling_method])
+
+        # Add resolution
+        if ((resolution_x is not None and resolution_y is None) or
+                (resolution_x is None and resolution_y is not None)):
+            raise GeoError('Must specify both X and Y resolution for warping')
+
+        if resolution_x is not None and resolution_y is not None:
+            cmd.extend(['-tr', str(resolution_x), str(resolution_y)])
+
+        # Add target projection
+        if target_srs is not None:
+            cmd.extend(['-t_srs', ''.join(['"', target_srs, '"'])])
+
+        # Add image extents
+        if image_extents is not None:
+            cmd.extend(['-te',
+                        str(image_extents['min_x']),
+                        str(image_extents['min_y']),
+                        str(image_extents['max_x']),
+                        str(image_extents['max_y'])])
+
+        # Add output data type
+        if destination_no_data is not None:
+            cmd.extend(['-dstnodata', str(destination_no_data)])
+
+        # Add output data type
+        if output_data_type is not None:
+            cmd.extend(['-ot', output_data_type])
+
+        # Add output format
+        if output_format is not None:
+            cmd.extend(['-of', output_format])
+
+        # Add the source data
+        if source_data is None:
+            raise GeoError('Must provide source data')
+
+        if type(source_data) is list:
+            cmd.extend(source_data)
+        else:
+            cmd.append(source_data)
+
+        # Add the output filename
+        if output_filename is None:
+            raise GeoError('Must provide the output filename')
+
+        cmd.append(output_filename)
+
+        # Convert to a string for the execution
+        cmd = ' '.join(cmd)
+
+        output = ''
+        try:
+            logger.info('EXECUTING WARP COMMAND [{0}]'.format(cmd))
+            output = execute_cmd(cmd)
+        finally:
+            if len(output) > 0:
+                print(output)
 
 
 class MathError(Exception):
@@ -257,12 +341,10 @@ class Base_DEM(object):
         # Padding to add to the max box
         self.maxbox_padding = 0.2
 
-        # Lat/lon coordinate limits
+        # Latitude coordinate limits
         self.north_latitude_limit = 90.0
         self.south_latitude_limit = -90.0
-        # TODO TODO TODO - I didn't use these,
-        # TODO TODO TODO - but Landsat does,
-        # TODO TODO TODO - verify if needed
+        # Longitude coordinate limits
         self.east_longitude_limit = 180.0
         self.west_longitude_limit = -180.0
 
@@ -272,6 +354,18 @@ class Base_DEM(object):
 
         # RAMP lat coordinate limits
         self.ramp_south_limit = -60.0
+
+        # WGS84 Information
+        self.wgs84_dir = 'geoid'
+        self.wgs84_header_name = 'geoid.hdr'
+        self.wgs84_image_name = 'geoid.dem'
+
+        self.wgs84_header_path = os.path.join(self.espa_dem_dir,
+                                              self.wgs84_dir,
+                                              self.wgs84_header_name.upper())
+        self.wgs84_image_path = os.path.join(self.espa_dem_dir,
+                                             self.wgs84_dir,
+                                             self.wgs84_image_name.upper())
 
         # RAMP Information
         self.ramp_dir = 'ramp'
@@ -326,9 +420,8 @@ class Base_DEM(object):
 
         self.target_srs = None
 
-        self.dem_header_filename = None
-        self.dem_image_filename = None
-        self.dem_image_geotiff_filename = None
+        self.dem_header_name = None
+        self.dem_image_name = None
 
     def parse_metadata(self):
         """Implement this to parse the metadata file"""
@@ -344,22 +437,11 @@ class Base_DEM(object):
         Set the no data value to 0 so we fill-in with sea-level,
         because missing tiles in GLS will be water(ocean)
         '''
-        cmd = ['gdalwarp', '-wm', '2048', '-multi',
-               '-of', self.dem_format,
-               '-ot', self.dem_type,
-               '-overwrite',
-               '-dstnodata', '0']
-        cmd.extend(tiles)
-        cmd.append(self.mosaic_image_name)
-
-        cmd = ' '.join(cmd)
-        output = ''
-        try:
-            logger.info('EXECUTING MOSAIC WARP COMMAND [{0}]'.format(cmd))
-            output = execute_cmd(cmd)
-        finally:
-            if len(output) > 0:
-                print(output)
+        Geo.warp(destination_no_data=0,
+                 output_data_type=self.dem_type,
+                 output_format=self.dem_format,
+                 source_data=tiles,
+                 output_filename=self.mosaic_image_name)
 
     def mosaic_cleanup(self):
         """Remove the MOSAIC files"""
@@ -372,29 +454,20 @@ class Base_DEM(object):
 
         logger = logging.getLogger(__name__)
 
-        # Now warp the source to the final DEM
-        cmd = ['gdalwarp', '-wm', '2048', '-multi',
-               '-tr', str(self.pixel_resolution_x),
-               str(self.pixel_resolution_y),
-               '-t_srs', ''.join(['"', self.target_srs, '"']),
-               '-r', self.dem_resampling_method,
-               '-of', self.dem_format,
-               '-ot', self.dem_type,
-               '-overwrite',
-               '-te',
-               str(self.min_x_extent), str(self.min_y_extent),
-               str(self.max_x_extent), str(self.max_y_extent)]
-        cmd.append(source_name)
-        cmd.append(self.dem_image_filename)
+        image_extents = {'min_x': self.min_x_extent,
+                         'min_y': self.min_y_extent,
+                         'max_x': self.max_x_extent,
+                         'max_y': self.max_y_extent}
 
-        cmd = ' '.join(cmd)
-        output = ''
-        try:
-            logger.info('EXECUTING WARP COMMAND [{0}]'.format(cmd))
-            output = execute_cmd(cmd)
-        finally:
-            if len(output) > 0:
-                print(output)
+        Geo.warp(resampling_method=self.dem_resampling_method,
+                 resolution_x=self.pixel_resolution_x,
+                 resolution_y=self.pixel_resolution_y,
+                 target_srs=self.target_srs,
+                 image_extents=image_extents,
+                 output_data_type=self.dem_type,
+                 output_format=self.dem_format,
+                 source_data=source_name,
+                 output_filename=self.dem_image_name)
 
     def _verify_ramp_overlap(self,
                              ramp_lines,
@@ -822,6 +895,63 @@ class Base_DEM(object):
         for file_name in prj_list:
             os.unlink(file_name)
 
+    def adjust_elevation_to_wgs84(self):
+        """Adjusts the warped DEM to the WGS84 GEOID"""
+
+        logger = logging.getLogger(__name__)
+
+        # Link the WGS84 GEOID data to the current directory
+        if not os.path.exists(self.wgs84_image_name):
+            # Should only need to test for one of them
+            os.symlink(self.wgs84_header_path, self.wgs84_header_name)
+            os.symlink(self.wgs84_image_path, self.wgs84_image_name)
+
+        # TODO TODO TODO - Warp the GEOID to the DEM/product projection
+        # TODO TODO TODO - Warp the GEOID to the DEM/product projection
+        # TODO TODO TODO - Warp the GEOID to the DEM/product projection
+        # TODO TODO TODO - Warp the GEOID to the DEM/product projection
+        # TODO TODO TODO - Warp the GEOID to the DEM/product projection
+
+        # Open the WGS84 and DEM datasets
+        wgs84_ds = gdal.Open(self.wgs84_image_name)
+        dem_ds = gdal.Open(self.dem_image_name)
+
+        # Get the WGS84 and DEM band data
+        wgs84_band = wgs84_ds.GetRasterBand(1)
+        dem_band = dem_ds.GetRasterBand(1)
+
+        wgs84_data = wgs84_band.ReadAsArray(0, 0, dem_band.XSize, dem_band.YSize)
+        dem_data = dem_band.ReadAsArray(0, 0, dem_band.XSize, dem_band.YSize)
+
+        # TODO TODO TODO - Use numpy math to add the datasets together
+        # TODO TODO TODO - Use numpy math to add the datasets together
+        # TODO TODO TODO - Use numpy math to add the datasets together
+        # TODO TODO TODO - Use numpy math to add the datasets together
+        # TODO TODO TODO - Use numpy math to add the datasets together
+
+        # TODO TODO TODO - Overrite the DEM band with the new data
+        # TODO TODO TODO - Overrite the DEM band with the new data
+        # TODO TODO TODO - Overrite the DEM band with the new data
+        # TODO TODO TODO - Overrite the DEM band with the new data
+        # TODO TODO TODO - Overrite the DEM band with the new data
+
+        # Cleanup memory
+        del dem_band
+        del dem_ds
+        del wgs84_band
+        del wgs84_ds
+
+        # TODO TODO TODO - Move this up
+        # Remove the symlink to the WGS84 GEOID
+        os.unlink(self.wgs84_header_name)
+        os.unlink(self.wgs84_image_name)
+
+        # TODO TODO TODO - Remove the warped GEOID data
+        # TODO TODO TODO - Remove the warped GEOID data
+        # TODO TODO TODO - Remove the warped GEOID data
+        # TODO TODO TODO - Remove the warped GEOID data
+        # TODO TODO TODO - Remove the warped GEOID data
+
     def generate(self):
         """Generates the DEM"""
 
@@ -849,10 +979,10 @@ class Base_DEM(object):
         logger.debug('pixel_resolution_y = {0}'
                      .format(self.pixel_resolution_y))
 
-        logger.debug('dem_header_filename = {0}'
-                     .format(self.dem_header_filename))
-        logger.debug('dem_image_filename = {0}'
-                     .format(self.dem_image_filename))
+        logger.debug('dem_header_name = {0}'
+                     .format(self.dem_header_name))
+        logger.debug('dem_image_name = {0}'
+                     .format(self.dem_image_name))
 
         logger.debug('espa_dem_dir = {0}'.format(self.espa_dem_dir))
 
@@ -867,13 +997,16 @@ class Base_DEM(object):
             try:
                 logger.info('Attempting to use RAMP DEM')
                 self.generate_using_ramp()
-                # TODO TODO TODO - Verify that the RAMP DEM does not need
-                # TODO TODO TODO - to be adjusted to WGS84
+                '''
+                According to Landsat the RAMP DEM does not need adjusting to
+                the WGS84 GEOID
+                '''
+                # TODO TODO TODO - Verify this during testing
             except RAMPCoverageError:
                 logger.exception('RAMP DEM failed to cover input data'
                                  ' defaulting to GTOPO30')
                 self.generate_using_gtopo30()
-                # TODO TODO TODO - Adjust DEM to WGS84
+                self.adjust_elevation_to_wgs84()
 
         elif ((self.bounding_north_latitude <= self.glsdem_south_limit and
                self.bounding_north_latitude > self.ramp_south_limit and
@@ -884,7 +1017,7 @@ class Base_DEM(object):
 
             logger.info('Using GTOPO30 DEM')
             self.generate_using_gtopo30()
-            # TODO TODO TODO - Adjust DEM to WGS84
+            self.adjust_elevation_to_wgs84()
 
         else:
             try:
@@ -894,7 +1027,7 @@ class Base_DEM(object):
                 logger.exception('GLS DEM over water defaulting to GTOPO30')
                 self.generate_using_gtopo30()
 
-            # TODO TODO TODO - Adjust DEM to WGS84
+            self.adjust_elevation_to_wgs84()
 
         # Cleanup the GDAL generated auxiliary files
         remove_list = glob.glob(self.gdal_aux_regexp)
@@ -902,7 +1035,7 @@ class Base_DEM(object):
             os.unlink(file_name)
 
         # Update the ENVI header
-        Geo.update_envi_header(self.dem_header_filename)
+        Geo.update_envi_header(self.dem_header_name)
 
         # TODO TODO TODO - Add the DEM to the MTL file
 
@@ -959,8 +1092,8 @@ class XML_DEM(Base_DEM):
         except:
             product_id = espa_metadata.xml_object.global_metadata.scene_id
 
-        self.dem_header_filename = self.dem_header_name_fmt.format(product_id)
-        self.dem_image_filename = self.dem_image_name_fmt.format(product_id)
+        self.dem_header_name = self.dem_header_name_fmt.format(product_id)
+        self.dem_image_name = self.dem_image_name_fmt.format(product_id)
 
         for band in espa_metadata.xml_object.bands.band:
             if (band.attrib['product'] in ['L1T', 'L1GT'] and
@@ -1126,8 +1259,8 @@ class MTL_DEM(Base_DEM):
             raise RuntimeError('Obtaining LANDSAT_SCENE_ID field from: [{0}]'
                                .format(self.mtl_filename))
 
-        self.dem_header_filename = self.dem_header_name_fmt.format(product_id)
-        self.dem_image_filename = self.dem_image_name_fmt.format(product_id)
+        self.dem_header_name = self.dem_header_name_fmt.format(product_id)
+        self.dem_image_name = self.dem_image_name_fmt.format(product_id)
 
         self.target_srs = Geo.get_proj4_projection_string(file_name_band_1)
 
