@@ -13,11 +13,11 @@ import sys
 import commands
 import logging
 import glob
+import math
 from cStringIO import StringIO
 from argparse import ArgumentParser
 
 
-import h5py
 import numpy as np
 from lxml import objectify as objectify
 from osgeo import gdal, osr
@@ -27,54 +27,8 @@ from espa_xml_interface import XMLError, XMLInterface
 from espa_metadata_api import ESPAMetadataError, ESPAMetadata
 
 
+# Environment variable for the locations of the DEMs
 ESPA_DEM_DIR = 'ESPA_DEM_DIR'
-
-# Lat/lon coordinate limits
-NORTH_LATITUDE_LIMIT = 90.0
-SOUTH_LATITUDE_LIMIT = -90.0
-EAST_LONGITUDE_LIMIT = 180.0
-WEST_LONGITUDE_LIMIT = -180.0
-
-# RAMP and GLSDEM threshold lat/lon coordinates
-GLSDEM_NORTH_LATITUDE = 83.0
-GLSDEM_SOUTH_LATITUDE = -53.0
-RAMP_SOUTH_LATITUDE = -60.0
-
-# RAMP name, location and EPSG code
-RAMP_NAME = 'RAMP_200_DEM.h5'
-RAMP_DIR = 'ramp'
-RAMP_EPSG = 3031
-RAMP_PROJ4 = ('+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0'
-              ' +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs')
-
-# GLS location
-GLS_DIR = 'gls'
-
-# GTOPT30 location
-GTOPO30_DIR = 'gtopo30'
-GTOPO30_DEMS = '[EW]???[NS]??.DEM'
-GTOPO30_FILES = '[EW]???[NS]??.*'
-GTOPO30_PADDING = 1.0  # Degrees, since we are in geographic
-
-# DEM format and naming
-#DEM_FORMAT = 'GTiff'
-DEM_FORMAT = 'ENVI'
-DEM_TYPE = 'Int16'
-DEM_HEADER_FILENAME = '{0}_dem.hdr'
-DEM_IMAGE_FILENAME = '{0}_dem.img'
-
-# GDAL AUX files to remove
-GDAL_AUX_REGEXP = '*.img.aux.xml'
-
-NO_DATA_VALUE = -9999
-
-# Padding to add to the max box
-MAXBOX_PADDING = 0.2
-
-# -- ENVI format projection values -- #
-ENVI_GEO_PROJ = 1
-ENVI_UTM_PROJ = 2
-ENVI_PS_PROJ = 31
 
 
 class Geo(object):
@@ -92,22 +46,6 @@ class Geo(object):
                  image_y * transform[5])
 
         return (map_x, map_y)
-
-    @staticmethod
-    def convert_mapXY_to_imageXY(map_x, map_y, transform):
-        """Translate map coordinates into image coordinates"""
-
-        # Convert the transform from image->map to map->image
-        (success, inv_transform) = gdal.InvGeoTransform(transform)
-
-        image_x = (inv_transform[0] +
-                   map_x * inv_transform[1] +
-                   map_y * inv_transform[2])
-        image_y = (inv_transform[3] +
-                   map_x * inv_transform[4] +
-                   map_y * inv_transform[5])
-
-        return (image_x, image_y)
 
     @staticmethod
     def get_proj4_projection_string(img_filename):
@@ -137,37 +75,6 @@ class Geo(object):
         del data_set
 
         return proj4
-
-    @staticmethod
-    def generate_raster_file(driver, filename, data, x_dim, y_dim,
-                             geo_transform, proj_wkt,
-                             no_data_value, data_type):
-        """Creates a raster file on disk for the data
-
-        Creates the raster using the specified driver.
-
-        Notes:
-            It is assumed that the driver supports setting of the no data
-            value.  It is the callers responsibility to fix it if it does not.
-
-            It is assumed that the caller specified the correct file
-            extension in the filename parameter for the specfied driver.
-        """
-
-        try:
-            raster = driver.Create(filename, x_dim, y_dim, 1, data_type)
-
-            raster.SetGeoTransform(geo_transform)
-            raster.SetProjection(proj_wkt)
-            raster.GetRasterBand(1).WriteArray(data)
-            raster.GetRasterBand(1).SetNoDataValue(no_data_value)
-            raster.FlushCache()
-
-            # Cleanup memory
-            del raster
-
-        except Exception:
-            raise
 
     @staticmethod
     def update_envi_header(hdr_file_path, no_data_value=None):
@@ -257,7 +164,7 @@ class Math(object):
         inside_polygon = False
 
         # Test each segment
-        for index in range(count - 1):
+        for index in xrange(count - 1):
             if (((x_v[index] > x_c) != (x_v[index + 1] > x_c)) and
                 (y_c < ((y_v[index + 1] - y_v[index]) *
                         (x_c - x_v[index]) /
@@ -267,6 +174,25 @@ class Math(object):
                 inside_polygon = not inside_polygon
 
         return inside_polygon
+
+    @staticmethod
+    def longitude_norm(longitude):
+        """Calculates the "canonical longitude" for the longitude value
+
+        Returns:
+            result (float): Equivalent longitude value in the range
+                            [-180.0, 180.0) degrees
+        """
+
+        result = longitude
+
+        while result < -180.0:
+            result += 360.0
+
+        while result >= 180.0:
+            result -= 360.0
+
+        return result
 
 
 def execute_cmd(cmd):
@@ -305,25 +231,6 @@ def execute_cmd(cmd):
     return output
 
 
-def longitude_norm(longitude):
-    """Calculates the "canonical longitude" for the specified longitude value.
-
-    Returns:
-        result (float): Equivalent longitude value in the range
-                        [-180.0, 180.0) degrees
-    """
-
-    result = longitude
-
-    while result < -180.0:
-        result += 360.0
-
-    while result >= 180.0:
-        result -= 360.0
-
-    return result
-
-
 class RAMPCoverageError(Exception):
     """Exception to capture RAMP data not covering the input data"""
     pass
@@ -341,82 +248,143 @@ class Base_DEM(object):
         """Class initialization"""
         super(Base_DEM, self).__init__()
 
-        bounding_north_latitude = -9999.0
-        bounding_south_latitude = 9999.0
-        bounding_east_longitude = -9999.0
-        bounding_west_longitude = 9999.0
-
-        min_x_extent = -500001.0
-        max_y_extent = -10000001.0
-        max_x_extent = -500001.0
-        min_y_extent = -10000001.0
-
-        pixel_resolution_x = -9999.0
-        pixel_resolution_y = -9999.0
-
-        wrs_path = -9999.0
-        wrs_row = -9999.0
-
-        product_id = None
-
-        map_projection = None
-        utm_zone = None
-        longitude_pole = None
-        latitude_true_scale = None
-        origin_latitude = None
-        central_meridian = None
-        standard_parallel_1 = None
-        standard_parallel_2 = None
-        false_easting = None
-        false_northing = None
-
-        target_srs = None
-
+        # Grab what we need from the environment first
         if ESPA_DEM_DIR not in os.environ:
             raise RuntimeError('{0} environement variable not defined'
                                .format(ESPA_DEM_DIR))
         self.espa_dem_dir = os.environ.get(ESPA_DEM_DIR)
 
-        dem_header_filename = None
-        dem_image_filename = None
-        dem_image_geotiff_filename = None
+        # Padding to add to the max box
+        self.maxbox_padding = 0.2
 
-        # Register all the gdal drivers and choose the GeoTiff for our
-        # temp output
-        gdal.AllRegister()
-        self.envi_driver = gdal.GetDriverByName('ENVI')
-        self.geotiff_driver = gdal.GetDriverByName('GTiff')
-        self.dem_buffered_name = 'espa_buffered_dem.tif'
+        # Lat/lon coordinate limits
+        self.north_latitude_limit = 90.0
+        self.south_latitude_limit = -90.0
+        # TODO TODO TODO - I didn't use these,
+        # TODO TODO TODO - but Landsat does,
+        # TODO TODO TODO - verify if needed
+        self.east_longitude_limit = 180.0
+        self.west_longitude_limit = -180.0
+
+        # GLS latitude coordinate limits
+        self.glsdem_north_limit = 83.0
+        self.glsdem_south_limit = -53.0
+
+        # RAMP lat coordinate limits
+        self.ramp_south_limit = -60.0
+
+        # RAMP Information
+        self.ramp_dir = 'ramp'
+        self.ramp_header_name = 'ramp200dem_wgs_v2.hdr'
+        self.ramp_image_name = 'ramp200dem_wgs_v2.img'
+
+        self.ramp_header_path = os.path.join(self.espa_dem_dir,
+                                             self.ramp_dir,
+                                             self.ramp_header_name)
+        self.ramp_image_path = os.path.join(self.espa_dem_dir,
+                                            self.ramp_dir,
+                                            self.ramp_image_name)
+
+        # GLS Information
+        self.gls_dir = 'gls'
+        self.gls_projection_template = 'gls_projection.prj'
+
+        # GTOPT30 Information
+        self.gtopo30_dir = 'gtopo30'
+        self.gtopo30_dems_regexp = '[EW]???[NS]??.DEM'
+        self.gtopo30_files_regexp = '[EW]???[NS]??.*'
+        self.gtopo30_padding = 1.0  # Degrees, since we are in geographic
+
+        # DEM format and naming
+        self.dem_format = 'ENVI'
+        self.dem_type = 'Int16'
+        self.dem_header_name_fmt = '{0}_dem.hdr'
+        self.dem_image_name_fmt = '{0}_dem.img'
+        # Landsat uses bi-linear for all DEM warping
+        self.dem_resampling_method = 'bilinear'
+
+        # MOSAIC Filenames
+        self.mosaic_header_name = 'espa-mosaic-dem.hdr'
+        self.mosaic_image_name = 'espa-mosaic-dem.img'
+
+        # GDAL AUX files to remove
+        self.gdal_aux_regexp = '*.img.aux.xml'
+
+        # Initialize the following to something bad
+        self.bounding_north_latitude = -9999.0
+        self.bounding_south_latitude = 9999.0
+        self.bounding_east_longitude = -9999.0
+        self.bounding_west_longitude = 9999.0
+
+        self.min_x_extent = None
+        self.max_y_extent = None
+        self.max_x_extent = None
+        self.min_y_extent = None
+
+        self.pixel_resolution_x = None
+        self.pixel_resolution_y = None
+
+        self.target_srs = None
+
+        self.dem_header_filename = None
+        self.dem_image_filename = None
+        self.dem_image_geotiff_filename = None
 
     def parse_metadata(self):
         """Implement this to parse the metadata file"""
         raise NotImplementedError('Please Implement Me In {0}'
                                   .format(str(type(self))))
 
-    def warp_to_final_dem(self, tiles):
+    def mosaic_tiles(self, tiles):
+        """MOSAIC the specified tiles into one file"""
+
+        logger = logging.getLogger(__name__)
+
+        '''
+        Set the no data value to 0 so we fill-in with sea-level,
+        because missing tiles in GLS will be water(ocean)
+        '''
+        cmd = ['gdalwarp', '-wm', '2048', '-multi',
+               '-of', self.dem_format,
+               '-ot', self.dem_type,
+               '-overwrite',
+               '-dstnodata', '0']
+        cmd.extend(tiles)
+        cmd.append(self.mosaic_image_name)
+
+        cmd = ' '.join(cmd)
+        output = ''
+        try:
+            logger.info('EXECUTING MOSAIC WARP COMMAND [{0}]'.format(cmd))
+            output = execute_cmd(cmd)
+        finally:
+            if len(output) > 0:
+                print(output)
+
+    def mosaic_cleanup(self):
+        """Remove the MOSAIC files"""
+
+        os.unlink(self.mosaic_header_name)
+        os.unlink(self.mosaic_image_name)
+
+    def warp_to_final_dem(self, source_name):
         """Warp the tiles into the final DEM"""
 
         logger = logging.getLogger(__name__)
 
-        # TODO TODO TODO
-        # TODO TODO TODO
-        # Should we be using bi-linear?????????????????
-        # TODO TODO TODO
-        # TODO TODO TODO
+        # Now warp the source to the final DEM
         cmd = ['gdalwarp', '-wm', '2048', '-multi',
                '-tr', str(self.pixel_resolution_x),
                str(self.pixel_resolution_y),
-               # '-s_srs', ''.join(["'", something , "'"]),
                '-t_srs', ''.join(['"', self.target_srs, '"']),
-               '-of', DEM_FORMAT,
-               '-wt', DEM_TYPE,
+               '-r', self.dem_resampling_method,
+               '-of', self.dem_format,
+               '-ot', self.dem_type,
                '-overwrite',
                '-te',
                str(self.min_x_extent), str(self.min_y_extent),
-               str(self.max_x_extent), str(self.max_y_extent),
-               '-srcnodata', str(NO_DATA_VALUE),
-               '-dstnodata', str(NO_DATA_VALUE)]
-        cmd.extend(tiles)
+               str(self.max_x_extent), str(self.max_y_extent)]
+        cmd.append(source_name)
         cmd.append(self.dem_image_filename)
 
         cmd = ' '.join(cmd)
@@ -427,49 +395,6 @@ class Base_DEM(object):
         finally:
             if len(output) > 0:
                 print(output)
-
-    def _get_ramp_transform(self):
-
-        logger = logging.getLogger(__name__)
-
-        # Open the RAMP DEM
-        ramp_h5fd = h5py.File(RAMP_NAME, 'r')
-        logger.debug('Band Metadata: {0}'
-                     .format(ramp_h5fd['Band Metadata'][0]))
-
-        # Band Number, Band Name,
-        # Upper Left Y, Upper Left X,
-        # Upper Right Y, Upper Right X,
-        # Lower Left Y, Lower Left X
-        # Lower Right Y, Lower Right X,
-        # Projection Distance X, Projection Distance Y
-        # Maximum Pixel Value
-        # Minimum Pixel Value
-        # Pixel Range Valid
-        # Maximum Radiance
-        # Minimum Radiance
-        # Spectral Radiance Scaling Offset
-        # Spectral Radiance Scaling Gain
-        # Radiance Valid
-        # Reflectance Scaling Offset
-        # Reflectance Scaling Gain
-        # Reflectance Valid
-        # Instrument Source
-        ramp_UL_X = ramp_h5fd['Band Metadata'][0][3]
-        ramp_UL_Y = ramp_h5fd['Band Metadata'][0][2]
-        ramp_resolution_x = ramp_h5fd['Band Metadata'][0][10]
-        ramp_resolution_y = ramp_h5fd['Band Metadata'][0][11]
-
-        # Create the transform array
-        ramp_transform = [ramp_UL_X, ramp_resolution_x, 0.0,
-                          ramp_UL_Y, 0.0, -ramp_resolution_y]
-        logger.debug('Ramp Transform: {0}'.format(str(ramp_transform)))
-
-        # No longer needed
-        del ramp_h5fd
-        ramp_h5fd = None
-
-        return ramp_transform
 
     def _verify_ramp_overlap(self,
                              ramp_lines,
@@ -515,10 +440,9 @@ class Base_DEM(object):
 
         # No longer needed
         del ramp_transform
-        ramp_transform = None
 
-        # Determine how many points are within the RAMP DEM
-        # and error accordingly
+        # Determine how many points are within the RAMP DEM and error
+        # accordingly
         points_in_polygon = 0
         if Math.point_in_polygon(vertices, map_ul_x, map_ul_y):
             points_in_polygon += 1
@@ -546,20 +470,21 @@ class Base_DEM(object):
 
         logger = logging.getLogger(__name__)
 
-        ramp_filename = os.path.join(self.espa_dem_dir, RAMP_DIR, RAMP_NAME)
+        # Link the RAMP data to the current directory
+        if not os.path.exists(self.ramp_image_name):
+            # Should only need to test for one of them
+            os.symlink(self.ramp_header_path, self.ramp_header_name)
+            os.symlink(self.ramp_image_name, self.ramp_image_name)
 
-        if not os.path.exists(RAMP_NAME):
-            os.symlink(ramp_filename, RAMP_NAME)
+        # Open the RAMP dataset
+        ramp_ds = gdal.Open(self.ramp_image_name)
 
-        # Get the dataset
-        ramp_ds = gdal.Open(RAMP_NAME)
-
-        # SRS for the RAMP data
+        # Create the RAMP SRS
         ramp_srs = osr.SpatialReference()
-        ramp_srs.ImportFromEPSG(RAMP_EPSG)
-        ramp_srs.ImportFromProj4(RAMP_PROJ4)
+        ramp_srs.ImportFromWkt(ramp_ds.GetProjection())
+        logger.debug('RAMP WKT: {0}'.format(ramp_ds.GetProjection()))
 
-        # SRS for Geographic
+        # Create the Geographic SRS
         latlon_srs = ramp_srs.CloneGeogCS()
 
         # Create the coordinate transformation
@@ -572,13 +497,6 @@ class Base_DEM(object):
                              self.bounding_west_longitude) / 2.0)
 
         # Find the max box and center in map coordinates
-        (test_x, test_y, height) = ll_to_ramp.TransformPoint(72.414150,
-                                                             -76.624820)
-        logger.debug('test_x, test_y: {0}, {1}'.format(test_x, test_y))
-        (test_x, test_y, height) = ll_to_ramp.TransformPoint(-80.944270,
-                                                             -79.537600)
-        logger.debug('test_x, test_y: {0}, {1}'.format(test_x, test_y))
-
         (map_ul_x, map_ul_y, height) = (
             ll_to_ramp.TransformPoint(self.bounding_west_longitude,
                                       self.bounding_north_latitude))
@@ -604,98 +522,37 @@ class Base_DEM(object):
         logger.debug('map_center_x, map_center_y: {0}, {1}'
                      .format(map_center_x, map_center_y))
 
-        # Get the ramp transform
-        ramp_transform = self._get_ramp_transform()
+        # Get the RAMP transform
+        ramp_transform = ramp_ds.GetGeoTransform()
 
         # Get the lines and samples from the RAMP band data
         ramp_band = ramp_ds.GetRasterBand(1)
-        ramp_lines = ramp_band.YSize
-        ramp_samples = ramp_band.XSize
         logger.debug('Lines, Samples: {0}, {1}'
-                     .format(ramp_lines, ramp_samples))
+                     .format(ramp_band.YSize, ramp_band.XSize))
 
         # This causes an exception if they do not overlap
-        self._verify_ramp_overlap(ramp_lines, ramp_samples, ramp_transform,
+        self._verify_ramp_overlap(ramp_band.YSize, ramp_band.XSize,
+                                  ramp_transform,
                                   map_ul_x, map_ul_y,
                                   map_ur_x, map_ur_y,
                                   map_lr_x, map_lr_y,
                                   map_ll_x, map_ll_y,
                                   map_center_x, map_center_y)
 
-        # Determine image UL and LR coordinates
-        (ul_x, ul_y) = Geo.convert_mapXY_to_imageXY(map_ul_x, map_ul_y,
-                                                    ramp_transform)
-        (ur_x, ur_y) = Geo.convert_mapXY_to_imageXY(map_ur_x, map_ur_y,
-                                                    ramp_transform)
-        (lr_x, lr_y) = Geo.convert_mapXY_to_imageXY(map_lr_x, map_lr_y,
-                                                    ramp_transform)
-        (ll_x, ll_y) = Geo.convert_mapXY_to_imageXY(map_ll_x, map_ll_y,
-                                                    ramp_transform)
-
-        # Convert to integers
-        ul_x = int(round(ul_x))
-        ul_y = int(round(ul_y))
-        ur_x = int(round(ur_x))
-        ur_y = int(round(ur_y))
-        lr_x = int(round(lr_x))
-        lr_y = int(round(lr_y))
-        ll_x = int(round(ll_x))
-        ll_y = int(round(ll_y))
-        logger.info('ul_x, ul_y: {0}, {1}'.format(ul_x, ul_y))
-        logger.info('ur_x, ur_y: {0}, {1}'.format(ur_x, ur_y))
-        logger.info('lr_x, lr_y: {0}, {1}'.format(lr_x, lr_y))
-        logger.info('ll_x, ll_y: {0}, {1}'.format(ll_x, ll_y))
-
-        # Determine min and max x and y values for data extraction
-        min_x = min(ul_x, ur_x, lr_x, ll_x)
-        max_x = max(ul_x, ur_x, lr_x, ll_x)
-        min_y = min(ul_y, ur_y, lr_y, ll_y)
-        max_y = max(ul_y, ur_y, lr_y, ll_y)
-        logger.info('min_x, max_x: {0}, {1}'.format(min_x, max_x))
-        logger.info('min_y, max_y: {0}, {1}'.format(min_y, max_y))
-
-        # No longer needed
+        # Cleanup memory before warping
         del ll_to_ramp
-        ll_to_ramp = None
         del latlon_srs
-        latlon_srs = None
-
-        # Open the RAMP DEM and get the band data
-        dem_data = ramp_band.ReadAsArray(min_x, min_y,
-                                         max_x - min_x + 1,
-                                         max_y - min_y + 1)
-
-        # Create the DEM transform
-        dem_transform = ramp_transform
-        dem_transform[0] = min(map_ul_x, map_ur_x, map_lr_x, map_ll_x)
-        dem_transform[3] = max(map_ul_y, map_ur_y, map_lr_y, map_ll_y)
-        logger.debug('DEM Transform: {0}'.format(str(ramp_transform)))
-
-        # Write the new temporary file out probably as geotiff
-        Geo.generate_raster_file(self.geotiff_driver, self.dem_buffered_name,
-                                 dem_data,
-                                 max_x - min_x + 1,
-                                 max_y - min_y + 1,
-                                 dem_transform, ramp_srs.ExportToWkt(),
-                                 NO_DATA_VALUE, gdal.GDT_Int16)
-
-        # No longer needed
         del ramp_transform
-        ramp_transform = None
         del ramp_band
-        ramp_band = None
         del ramp_srs
-        ramp_srs = None
         del ramp_ds
-        ramp_ds = None
 
         # Warp to the final DEM
-        self.warp_to_final_dem([self.dem_buffered_name])
+        self.warp_to_final_dem(self.ramp_image_name)
 
         # Remove the symlink to the RAMP DEM
-        os.unlink(RAMP_NAME)
-        # Remove the temp dem
-        os.unlink(self.dem_buffered_name)
+        os.unlink(self.ramp_header_name)
+        os.unlink(self.ramp_image_name)
 
     def get_gtopo30_tile_list(self):
         """Generate the list of GTOPO30 DEM tiles"""
@@ -724,8 +581,10 @@ class Base_DEM(object):
         Note: this does not seem to cause problems on the North and South
         borders, so we will no worry about them.
         '''
-        ul_lon = longitude_norm(self.bounding_west_longitude - GTOPO30_PADDING)
-        lr_lon = longitude_norm(self.bounding_east_longitude + GTOPO30_PADDING)
+        ul_lon = Math.longitude_norm(self.bounding_west_longitude -
+                                     self.gtopo30_padding)
+        lr_lon = Math.longitude_norm(self.bounding_east_longitude +
+                                     self.gtopo30_padding)
         logger.debug('ul_lon = {0}'.format(ul_lon))
         logger.debug('lr_lon = {0}'.format(lr_lon))
 
@@ -741,10 +600,10 @@ class Base_DEM(object):
         the East and West directions, but was already addressed when adding
         one to the longitudes above.
         '''
-        ul_lat = min((self.bounding_north_latitude + GTOPO30_PADDING),
-                     NORTH_LATITUDE_LIMIT)
-        lr_lat = max((self.bounding_south_latitude - GTOPO30_PADDING),
-                     SOUTH_LATITUDE_LIMIT)
+        ul_lat = min((self.bounding_north_latitude + self.gtopo30_padding),
+                     self.north_latitude_limit)
+        lr_lat = max((self.bounding_south_latitude - self.gtopo30_padding),
+                     self.south_latitude_limit)
         logger.debug('ul_lat = {0}'.format(ul_lat))
         logger.debug('lr_lat = {0}'.format(lr_lat))
 
@@ -792,15 +651,16 @@ class Base_DEM(object):
 
         return tile_list
 
-    def generate_using_gtopo30(self):
-        """Generate the DEM using GTOPO30 data"""
+    def get_gtopo30_dems(self):
+        """Retrieves the GTOPO30 DEM archives and extracts them"""
 
         logger = logging.getLogger(__name__)
 
-        dem_dir = os.path.join(self.espa_dem_dir, GTOPO30_DIR)
+        dem_dir = os.path.join(self.espa_dem_dir, self.gtopo30_dir)
 
+        # Determine the GTOPO30 tiles
         tile_list = self.get_gtopo30_tile_list()
-        print('GTOPO30 Tile Names: {0}'.format(', '.join(tile_list)))
+        logger.info('GTOPO30 Tile Names: {0}'.format(', '.join(tile_list)))
 
         for tile in tile_list:
             tile_arch = '{0}.tar.gz'.format(tile)
@@ -824,36 +684,152 @@ class Base_DEM(object):
 
             os.unlink(tile_arch)
 
-        # Grab the tile filenames from the extracted archives
-        tile_dem_list = glob.glob(GTOPO30_DEMS)
+        # Grab the tile DEM filenames from the extracted archives
+        tile_dem_list = glob.glob(self.gtopo30_dems_regexp)
         logger.info('GTOPO30 DEM Files: {0}'.format(', '.join(tile_dem_list)))
 
-        # Warp to the final DEM
-        self.warp_to_final_dem(tile_dem_list)
+        return tile_dem_list
 
-        # Cleanup intermediate GTOPO30 data
-        remove_list = glob.glob(GTOPO30_FILES)
+    def generate_using_gtopo30(self):
+        """Generate the DEM using GTOPO30 data"""
+
+        logger = logging.getLogger(__name__)
+
+        # Retireve the GTOPO30 tiles
+        tile_dem_list = self.get_gtopo30_dems()
+
+        # MOSAIC the tiles together
+        self.mosaic_tiles(tile_dem_list)
+
+        # Warp to the final DEM
+        self.warp_to_final_dem(self.mosaic_image_name)
+
+        # Cleanup intermediate data
+        self.mosaic_cleanup()
+
+        remove_list = glob.glob(self.gtopo30_files_regexp)
         for file_name in remove_list:
             os.unlink(file_name)
 
-    def get_gls_data(self):
+    def generate_using_gls(self):
         """Retrieve the GLS DEM data"""
 
-        dem_dir = os.path.join(self.espa_dem_dir, GLS_DIR)
+        logger = logging.getLogger(__name__)
 
-        # TODO TODO TODO
-        # TODO TODO TODO
-        # TODO TODO TODO
-        # TODO TODO TODO
-        raise GLSOverWaterError('GLS DEM is over water')
+        dem_dir = os.path.join(self.espa_dem_dir, self.gls_dir)
+
+        '''
+        GLS tiles are named with a format like n47w118 where the lat/long
+        in the file name are the lower-left corner of the tile.  Each tile
+        covers a 1-degree by 1-degree area. */
+        '''
+        start_latitude = int(math.floor(self.bounding_north_latitude))
+        end_latitude = int(math.floor(self.bounding_south_latitude))
+        start_longitude = int(math.floor(self.bounding_west_longitude))
+        end_longitude = int(math.floor(self.bounding_east_longitude))
+        logger.debug('Start Latitude: {0}'.format(start_latitude))
+        logger.debug('End Latitude: {0}'.format(end_latitude))
+        logger.debug('Start Longitude: {0}'.format(start_longitude))
+        logger.debug('End Longitude: {0}'.format(end_longitude))
+
+        tile_list = list()
+        for lat in xrange(end_latitude, start_latitude + 1):
+            logger.debug('Latitude: {0}'.format(lat))
+            n_s = 'n'
+            if lat < 0:
+                n_s = 's'
+
+            for lon in xrange(start_longitude, end_longitude + 1):
+                logger.debug('Longitude: {0}'.format(lon))
+
+                e_w = 'e'
+                if lon < 0:
+                    e_w = 'w'
+
+                tile_list.append('{0}{1:02}{2}{3:03}'
+                                 .format(n_s, int(lat), e_w, int(lon)))
+
+        tile_count = len(tile_list)
+        if tile_count == 0:
+            raise RuntimeError('Unable to determine tiles while retrieving'
+                               ' required GLS DEM tile list')
+
+        '''
+        Generate lists of the BIL, HDR, and PRJ filenames as well as
+        determining any missing tiles
+        '''
+        missing_count = 0
+        bil_list = list()
+        hdr_list = list()
+        prj_list = list()
+        prj_path = os.path.join(dem_dir, self.gls_projection_template)
+        logger.debug('PRJ Path: {0}'.format(prj_path))
+        for tile in tile_list:
+            bil_name = '{0}.bil'.format(tile)
+            hdr_name = '{0}.hdr'.format(tile)
+            prj_name = '{0}.prj'.format(tile)
+
+            bil_path = os.path.join(dem_dir, bil_name)
+            hdr_path = os.path.join(dem_dir, hdr_name)
+            logger.debug('BIL Path: {0}'.format(bil_path))
+            logger.debug('HDR Path: {0}'.format(hdr_path))
+
+            if (os.path.isfile(bil_path) and
+                    os.path.isfile(hdr_path)):
+
+                # Link them to the current directory
+                os.symlink(bil_path, bil_name)
+                os.symlink(hdr_path, hdr_name)
+                os.symlink(prj_path, prj_name)
+
+                bil_list.append(bil_name)
+                hdr_list.append(hdr_name)
+                prj_list.append(prj_name)
+
+            else:
+                logger.debug('Missing Tile: {0}'.format(bil_name))
+                missing_count += 1
+
+        logger.debug('Expected Tile Count: {0}'.format(tile_count))
+        logger.debug('Missing Tile Count: {0}'.format(missing_count))
+
+        # Check if we are missing all the tiles, which indicates over water
+        if missing_count >= tile_count:
+            # Cleanup the tile links
+            for file_name in bil_list:
+                os.unlink(file_name)
+            for file_name in hdr_list:
+                os.unlink(file_name)
+            for file_name in prj_list:
+                os.unlink(file_name)
+            raise GLSOverWaterError('GLS DEM is over water')
+
+        logger.info('GLS DEM Files: {0}'.format(', '.join(bil_list)))
+
+        # MOSAIC the tiles together
+        self.mosaic_tiles(bil_list)
+
+        # Warp to the final DEM
+        self.warp_to_final_dem(self.mosaic_image_name)
+
+        # Cleanup intermediate data
+        self.mosaic_cleanup()
+
+        for file_name in bil_list:
+            os.unlink(file_name)
+        for file_name in hdr_list:
+            os.unlink(file_name)
+        for file_name in prj_list:
+            os.unlink(file_name)
 
     def generate(self):
         """Generates the DEM"""
 
-        self.parse_metadata()
-
         logger = logging.getLogger(__name__)
 
+        self.parse_metadata()
+
+        # Just a bunch of debug reporting follows
         logger.debug('bounding_north_latitude = {0}'
                      .format(self.bounding_north_latitude))
         logger.debug('bounding_south_latitude = {0}'
@@ -873,87 +849,62 @@ class Base_DEM(object):
         logger.debug('pixel_resolution_y = {0}'
                      .format(self.pixel_resolution_y))
 
-        logger.debug('wrs_path = {0}'.format(self.wrs_path))
-        logger.debug('wrs_row = {0}'.format(self.wrs_row))
-
-        logger.debug('product_id = {0}'.format(self.product_id))
-
-        logger.debug('map_projection = {0}'.format(self.map_projection))
-
-        if self.map_projection == 'UTM':
-            logger.debug('utm_zone = {0}'.format(self.utm_zone))
-
-        if self.map_projection == 'PS':
-            logger.debug('longitude_pole = {0}'.format(self.longitude_pole))
-            logger.debug('latitude_true_scale = {0}'
-                         .format(self.latitude_true_scale))
-
-        if self.map_projection == 'ALBERS':
-            logger.debug('origin_latitude = {0}'.format(self.origin_latitude))
-            logger.debug('central_meridian = {0}'
-                         .format(self.central_meridian))
-            logger.debug('standard_parallel_1 = {0}'
-                         .format(self.standard_parallel_1))
-            logger.debug('standard_parallel_2 = {0}'
-                         .format(self.standard_parallel_2))
-
-        if self.map_projection in ['PS', 'ALBERS']:
-            logger.debug('false_easting = {0}'.format(self.false_easting))
-            logger.debug('false_northing = {0}'.format(self.false_northing))
+        logger.debug('dem_header_filename = {0}'
+                     .format(self.dem_header_filename))
+        logger.debug('dem_image_filename = {0}'
+                     .format(self.dem_image_filename))
 
         logger.debug('espa_dem_dir = {0}'.format(self.espa_dem_dir))
 
         # Pad the max box coordinate values
-        self.bounding_north_latitude += MAXBOX_PADDING
-        self.bounding_south_latitude -= MAXBOX_PADDING
-        self.bounding_east_longitude += MAXBOX_PADDING
-        self.bounding_west_longitude -= MAXBOX_PADDING
+        self.bounding_north_latitude += self.maxbox_padding
+        self.bounding_south_latitude -= self.maxbox_padding
+        self.bounding_east_longitude += self.maxbox_padding
+        self.bounding_west_longitude -= self.maxbox_padding
 
         # Retrieve the tiles, mosaic, and warp to the source data
-        if self.bounding_north_latitude <= RAMP_SOUTH_LATITUDE:
+        if self.bounding_north_latitude <= self.ramp_south_limit:
             try:
                 logger.info('Attempting to use RAMP DEM')
                 self.generate_using_ramp()
+                # TODO TODO TODO - Verify that the RAMP DEM does not need
+                # TODO TODO TODO - to be adjusted to WGS84
             except RAMPCoverageError:
                 logger.exception('RAMP DEM failed to cover input data'
                                  ' defaulting to GTOPO30')
                 self.generate_using_gtopo30()
+                # TODO TODO TODO - Adjust DEM to WGS84
 
-        elif ((self.bounding_north_latitude <= GLSDEM_SOUTH_LATITUDE and
-               self.bounding_north_latitude > RAMP_SOUTH_LATITUDE and
-               self.bounding_south_latitude <= GLSDEM_SOUTH_LATITUDE and
-               self.bounding_south_latitude > RAMP_SOUTH_LATITUDE) or
-              (self.bounding_north_latitude >= GLSDEM_NORTH_LATITUDE and
-               self.bounding_south_latitude >= GLSDEM_NORTH_LATITUDE)):
+        elif ((self.bounding_north_latitude <= self.glsdem_south_limit and
+               self.bounding_north_latitude > self.ramp_south_limit and
+               self.bounding_south_latitude <= self.glsdem_south_limit and
+               self.bounding_south_latitude > self.ramp_south_limit) or
+              (self.bounding_north_latitude >= self.glsdem_north_limit and
+               self.bounding_south_latitude >= self.glsdem_north_limit)):
 
             logger.info('Using GTOPO30 DEM')
             self.generate_using_gtopo30()
+            # TODO TODO TODO - Adjust DEM to WGS84
 
         else:
             try:
                 logger.info('Attempting to use GLS DEM')
-                self.get_gls_data()
+                self.generate_using_gls()
             except GLSOverWaterError:
                 logger.exception('GLS DEM over water defaulting to GTOPO30')
                 self.generate_using_gtopo30()
 
-        # TODO TODO TODO
-        # if gtopo30 or GLS
-        #     find_minmax_elevation ??????? why
-        #     write the elevation to disk
-
-        # TODO TODO TODO - Warp the temp_dem.tif to the final DEM
-        # TODO TODO TODO
-        # TODO TODO TODO
-        # TODO TODO TODO
+            # TODO TODO TODO - Adjust DEM to WGS84
 
         # Cleanup the GDAL generated auxiliary files
-        remove_list = glob.glob(GDAL_AUX_REGEXP)
+        remove_list = glob.glob(self.gdal_aux_regexp)
         for file_name in remove_list:
             os.unlink(file_name)
 
-        # Update the ENVI header because of GDAL
-        Geo.update_envi_header(self.dem_header_filename, NO_DATA_VALUE)
+        # Update the ENVI header
+        Geo.update_envi_header(self.dem_header_filename)
+
+        # TODO TODO TODO - Add the DEM to the MTL file
 
 
 class XML_DEM(Base_DEM):
@@ -1002,81 +953,14 @@ class XML_DEM(Base_DEM):
                 self.max_x_extent = float(corner_point.attrib['x'])
                 self.min_y_extent = float(corner_point.attrib['y'])
 
-        self.wrs_path = int(espa_metadata.xml_object
-                            .global_metadata.wrs.attrib['path'])
-        self.wrs_row = int(espa_metadata.xml_object
-                           .global_metadata.wrs.attrib['row'])
-
+        product_id = None
         try:
-            self.product_id = (espa_metadata.xml_object
-                               .global_metadata.product_id)
+            product_id = espa_metadata.xml_object.global_metadata.product_id
         except:
-            self.product_id = (espa_metadata.xml_object
-                               .global_metadata.scene_id)
+            product_id = espa_metadata.xml_object.global_metadata.scene_id
 
-        self.dem_header_filename = DEM_HEADER_FILENAME.format(self.product_id)
-        self.dem_image_filename = DEM_IMAGE_FILENAME.format(self.product_id)
-
-        self.map_projection = (espa_metadata.xml_object
-                               .global_metadata
-                               .projection_information.attrib['projection'])
-
-        if self.map_projection not in ['UTM', 'PS', 'ALBERS']:
-            raise NotImplementedError('Unsupported Map Projection {0}'
-                                      .format(self.map_projection))
-
-        if self.map_projection == 'UTM':
-            self.utm_zone = int(espa_metadata.xml_object
-                                .global_metadata
-                                .projection_information
-                                .utm_proj_params.zone_code)
-
-        if self.map_projection == 'PS':
-            self.longitude_pole = float(espa_metadata.xml_object
-                                        .global_metadata
-                                        .projection_information
-                                        .ps_proj_params.longitude_pole)
-            self.latitude_true_scale = float(espa_metadata.xml_object
-                                             .global_metadata
-                                             .projection_information
-                                             .ps_proj_params
-                                             .latitude_true_scale)
-            self.false_easting = float(espa_metadata.xml_object
-                                       .global_metadata
-                                       .projection_information
-                                       .ps_proj_params.false_easting)
-            self.false_northing = float(espa_metadata.xml_object
-                                        .global_metadata
-                                        .projection_information
-                                        .ps_proj_params.false_northing)
-
-        if self.map_projection == 'ALBERS':
-            self.origin_latitude = float(espa_metadata.xml_object
-                                         .global_metadata
-                                         .projection_information
-                                         .albers_proj_params.origin_latitude)
-            self.central_meridian = float(espa_metadata.xml_object
-                                          .global_metadata
-                                          .projection_information
-                                          .albers_proj_params.central_meridian)
-            self.standard_parallel_1 = float(espa_metadata.xml_object
-                                             .global_metadata
-                                             .projection_information
-                                             .albers_proj_params
-                                             .standard_parallel1)
-            self.standard_parallel_2 = float(espa_metadata.xml_object
-                                             .global_metadata
-                                             .projection_information
-                                             .albers_proj_params
-                                             .standard_parallel2)
-            self.false_easting = float(espa_metadata.xml_object
-                                       .global_metadata
-                                       .projection_information
-                                       .albers_proj_params.false_easting)
-            self.false_northing = float(espa_metadata.xml_object
-                                        .global_metadata
-                                        .projection_information
-                                        .albers_proj_params.false_northing)
+        self.dem_header_filename = self.dem_header_name_fmt.format(product_id)
+        self.dem_image_filename = self.dem_image_name_fmt.format(product_id)
 
         for band in espa_metadata.xml_object.bands.band:
             if (band.attrib['product'] in ['L1T', 'L1GT'] and
@@ -1125,6 +1009,9 @@ class MTL_DEM(Base_DEM):
         # Get the logger
         logger = logging.getLogger(__name__)
 
+        file_name_band_1 = None
+        product_id = None
+
         # open the metadata file for reading
         with open(self.mtl_filename, 'r') as mtl_fd:
 
@@ -1133,7 +1020,7 @@ class MTL_DEM(Base_DEM):
             # end of line and leading/trailing white space
             for line in mtl_fd:
                 myline = line.rstrip('\r\n').strip()
-                logger.debug('DEBUG: [{0}]'.format(myline))
+                # logger.debug('DEBUG: [{0}]'.format(myline))
                 # break out if at the end of the metadata in the metadata file
                 if myline == 'END':
                     break
@@ -1147,9 +1034,9 @@ class MTL_DEM(Base_DEM):
                     f_value = float(value)
                 except ValueError:
                     pass
-                logger.debug('    DEBUG: param [{0}]'.format(param))
-                logger.debug('    DEBUG: value [{0}]'
-                             .format(value.strip('\"')))
+                # logger.debug('    DEBUG: param [{0}]'.format(param))
+                # logger.debug('    DEBUG: value [{0}]'
+                #              .format(value.strip('\"')))
                 if param == 'CORNER_UL_LAT_PRODUCT':
                     if f_value > self.bounding_north_latitude:
                         self.bounding_north_latitude = f_value
@@ -1162,18 +1049,18 @@ class MTL_DEM(Base_DEM):
                 elif param == 'CORNER_LR_LAT_PRODUCT':
                     if f_value < self.bounding_south_latitude:
                         self.bounding_south_latitude = f_value
-                elif param == 'CORNER_UR_LON_PRODUCT':
-                    if f_value > self.bounding_east_longitude:
-                        self.bounding_east_longitude = f_value
-                elif param == 'CORNER_LR_LON_PRODUCT':
-                    if f_value > self.bounding_east_longitude:
-                        self.bounding_east_longitude = f_value
                 elif param == 'CORNER_UL_LON_PRODUCT':
                     if f_value < self.bounding_west_longitude:
                         self.bounding_west_longitude = f_value
+                elif param == 'CORNER_UR_LON_PRODUCT':
+                    if f_value > self.bounding_east_longitude:
+                        self.bounding_east_longitude = f_value
                 elif param == 'CORNER_LL_LON_PRODUCT':
                     if f_value < self.bounding_west_longitude:
                         self.bounding_west_longitude = f_value
+                elif param == 'CORNER_LR_LON_PRODUCT':
+                    if f_value > self.bounding_east_longitude:
+                        self.bounding_east_longitude = f_value
                 elif param == 'CORNER_UL_PROJECTION_X_PRODUCT':
                     self.min_x_extent = f_value
                 elif param == 'CORNER_UL_PROJECTION_Y_PRODUCT':
@@ -1185,34 +1072,10 @@ class MTL_DEM(Base_DEM):
                 elif param == 'GRID_CELL_SIZE_REFLECTIVE':
                     self.pixel_resolution_x = f_value
                     self.pixel_resolution_y = f_value
-                elif param == 'WRS_PATH':
-                    self.wrs_path = int(value)
-                elif param == 'WRS_ROW':
-                    self.wrs_row = int(value)
                 elif param == 'LANDSAT_SCENE_ID':
-                    self.product_id = value.strip('\"')
-                elif param == 'MAP_PROJECTION':
-                    self.map_projection = value.strip('\"')
-                    if self.map_projection == 'AEA':
-                        self.map_projection = 'ALBERS'
-                elif param == 'UTM_ZONE':
-                    self.utm_zone = int(value)
-                elif param == 'VERTICAL_LON_FROM_POLE':
-                    self.longitude_pole = f_value
-                elif param == 'TRUE_SCALE_LAT':
-                    self.latitude_true_scale = f_value
-                elif param == 'ORIGIN_LATITUDE':
-                    self.origin_latitude = f_value
-                elif param == 'CENTRAL_MERIDIAN':
-                    self.central_meridian = f_value
-                elif param == 'STANDARD_PARALLEL_1':
-                    self.standard_parallel_1 = f_value
-                elif param == 'STANDARD_PARALLEL_2':
-                    self.standard_parallel_2 = f_value
-                elif param == 'FALSE_EASTING':
-                    self.false_easting = f_value
-                elif param == 'FALSE_NORTHING':
-                    self.false_northing = f_value
+                    product_id = value.strip('\"')
+                elif param == 'FILE_NAME_BAND_1':
+                    file_name_band_1 = value.strip('\"')
 
         # validate retrieval of parameters
         if self.bounding_north_latitude == -9999.0:
@@ -1255,308 +1118,38 @@ class MTL_DEM(Base_DEM):
             raise RuntimeError('Obtaining reflective grid cell size field'
                                ' from: [{0}]'.format(self.mtl_filename))
 
-        if self.wrs_path is None:
-            raise RuntimeError('Obtaining path metadata field from: [{0}]'
+        if file_name_band_1 is None:
+            raise RuntimeError('Obtaining FILE_NAME_BAND_1 field from: [{0}]'
                                .format(self.mtl_filename))
 
-        if self.wrs_row is None:
-            raise RuntimeError('Obtaining row metadata field from: [{0}]'
+        if product_id is None:
+            raise RuntimeError('Obtaining LANDSAT_SCENE_ID field from: [{0}]'
                                .format(self.mtl_filename))
 
-        if self.map_projection not in ['UTM', 'PS', 'ALBERS']:
-            raise NotImplementedError('Unsupported Map Projection {0}'
-                                      .format(self.map_projection))
+        self.dem_header_filename = self.dem_header_name_fmt.format(product_id)
+        self.dem_image_filename = self.dem_image_name_fmt.format(product_id)
 
-        if self.map_projection == 'UTM' and self.utm_zone is None:
-            raise RuntimeError('Obtaining UTM zone metadata field from:'
-                               ' [{0}]'.format(self.mtl_filename))
+        self.target_srs = Geo.get_proj4_projection_string(file_name_band_1)
 
-        if self.map_projection == 'PS':
-            if self.longitude_pole is None:
-                raise RuntimeError('Obtaining VERTICAL_LON_FROM_POLE metadata'
-                                   ' field from: [{0}]'
-                                   .format(self.mtl_filename))
-
-            if self.latitude_true_scale is None:
-                raise RuntimeError('Obtaining TRUE_SCALE_LAT metadata field'
-                                   ' from: [{0}]'.format(self.mtl_filename))
-
-        if self.map_projection == 'ALBERS':
-            if self.origin_latitude is None:
-                raise RuntimeError('Obtaining ORIGIN_LATITUDE metadata field'
-                                   ' from: [{0}]'.format(self.mtl_filename))
-
-            if self.central_meridian is None:
-                raise RuntimeError('Obtaining CENTRAL_MERIDIAN metadata field'
-                                   ' from: [{0}]'.format(self.mtl_filename))
-
-            if self.standard_parallel_1 is None:
-                raise RuntimeError('Obtaining STANDARD_PARALLEL_1 metadata'
-                                   ' field from: [{0}]'
-                                   .format(self.mtl_filename))
-
-            if self.standard_parallel_2 is None:
-                raise RuntimeError('Obtaining STANDARD_PARALLEL_2 metadata'
-                                   ' field from: [{0}]'
-                                   .format(self.mtl_filename))
-
-        if self.map_projection in ['PS', 'ALBERS']:
-            if self.false_easting is None:
-                raise RuntimeError('Obtaining FALSE_EASTING metadata field'
-                                   ' from: [{0}]'.format(self.mtl_filename))
-
-            if self.false_northing is None:
-                raise RuntimeError('Obtaining FALSE_NORTHING metadata field'
-                                   ' from: [{0}]'.format(self.mtl_filename))
-
-    """
-    # ------------------------------------------------------------------------
-    def generate(self):
-    """
-    '''
-        Description:
-          Use the parameter passed for the LPGS metadata file (*_MTL.txt) to
-          parse the necessary fields to create the OMF and ODL files needed
-          for running retrieve_elevation, makegeomgrid, and geomresample in
-          order to generate a scene-based DEM.
-
-        Inputs:
-          mtl_filename - name of the Landsat metadata file to be processed
-          dem_filename - name of the DEM file to create
-          usebin - this specifies if the DEM exes reside in the $BIN directory;
-                   if None then the exes are expected to be in the PATH
-          keep_intermediate - keep the intermediate files
-
-        Returns:
-          ERROR - error running the DEM applications
-          SUCCESS - successful processing
-
-        Notes:
-          The script obtains the path of the metadata file and changes
-          directory to that path for running the DEM code.  If the mtl_filename
-          directory is not writable, then this script exits with an error.
-    '''
-    """
-
-        # Get the logger
-        logger = logging.getLogger(__name__)
-
-        mtl_filename=None
-        dem_filename=None,
-        usebin=False
-        keep_intermediate=False
-
-        # if no parameters were passed then get the info from the command line
-        if mtl_filename is None:
-            # get the command line argument for the metadata file
-            description = 'Create a DEM using LPGS DEM creation executables'
-            parser = ArgumentParser(description=description)
-
-            parser.add_argument('--mtl', '--mtl_filename',
-                                action='store',
-                                dest='mtl_filename',
-                                help='name of Landsat LPGS MTL file',
-                                metavar='FILE')
-
-            parser.add_argument('--dem', '--dem_filename',
-                                action='store',
-                                dest='dem_filename',
-                                help='name of the DEM file to create',
-                                metavar='FILE')
-
-            parser.add_argument('--usebin',
-                                action='store_true',
-                                dest='usebin',
-                                default=False,
-                                help=('use BIN environment variable as the'
-                                      ' location of DEM apps'))
-
-            parser.add_argument('--keep_intermediate',
-                                action='store_true',
-                                dest='keep_intermediate',
-                                default=False,
-                                help='keep the intermediate files')
-
-            args = parser.parse_args()
-
-            # validate the command-line options
-            mtl_filename = args.mtl_filename  # name of the metadata file
-            if dem_filename is None:
-                dem_filename = args.dem_filename  # name of the DEM file
-            usebin = args.usebin  # should $BIN directory be used
-            keep_intermediate = args.keep_intermediate  # keep them
-
-            if mtl_filename is None:
-                parser.error('missing mtl_filename command-line argument')
-                return ERROR
-
-        if dem_filename is not None:
-            self.dem_filename_provided = True
-            self.set_dem_envi_names(self, dem_filename=dem_filename)
-
-        # open the log file if it exists and the log handler wasn't already
-        # specified as a parameter; use line buffering for the output; if the
-        # log handler was passed as a parameter, then don't close the log
-        # handler.  that will be up to the calling routine.
-        logger.info('Processing scene-based DEMs for Landsat metadata file:'
-                    ' [{0}]'.format(mtl_filename))
-
-        # should we expect the DEM applications to be in the PATH or in the
-        # BIN directory?
-        if usebin:
-            # get the BIN dir environment variable
-            bin_dir = os.environ.get('BIN')
-            bin_dir = bin_dir + '/'
-            msg = 'BIN environment variable: [{0}]'.format(bin_dir)
-            logger.info(msg)
-        else:
-            # don't use a path to the DEM applications, they are expected
-            # to be in the PATH
-            bin_dir = ''
-            msg = 'DEM executables expected to be in the PATH'
-            logger.info(msg)
-
-        # make sure the metadata file exists
-        if not os.path.isfile(mtl_filename):
-            logger.critical('Error: metadata file does not exist or is not'
-                            ' accessible: [{0}]'.format(mtl_filename))
-            return ERROR
-
-        # use the base metadata filename and not the full path.
-        base_mtl_filename = os.path.basename(mtl_filename)
-        logger.info('Processing metadata file: [{0}]'
-                    .format(base_mtl_filename))
-
-        # get the path of the MTL file and change directory to that location
-        # for running this script.  save the current working directory for
-        # return to upon error or when processing is complete.  Note: use
-        # abspath to handle the case when the filepath is just the filename
-        # and doesn't really include a file path (i.e. the current working
-        # directory).
-        mydir = os.getcwd()
-        metadir = os.path.dirname(os.path.abspath(mtl_filename))
-        if not os.access(metadir, os.W_OK):
-            logger.info('Path of metadata file is not writable: [{0}].'
-                        '  DEM apps need  write access to the metadata'
-                        ' directory.'.format(metadir))
-            return ERROR
-
-        logger.info('Changing directories for DEM processing: [{0}]'
-                    .format(metadir))
-        os.chdir(metadir)
-
-        # parse the metadata file to get the necessary parameters
-        return_value = self.parse_metadata()
-        if return_value != SUCCESS:
-            msg = 'Error parsing the metadata. Processing will terminate.'
-            logger.info(msg)
-            os.chdir(mydir)
-            return ERROR
-
-        # create the OMF and ODL files
-        self.write_parameters(base_mtl_filename)
-
-        # ------
-        # Retrieve the DEM data from the static source
-        cmd = ' '.join(['{0}retrieve_elevation'.format(bin_dir),
-                        self.retrieve_elev_odl])
-        output = ''
-        try:
-            logger.info('Executing: [{0}]'.format(cmd))
-            output = execute_cmd(cmd)
-        except Exception:
-            logger.exception('Error running retrieve_elevation.'
-                             '  Processing will terminate.')
-            os.chdir(mydir)
-            return ERROR
-        finally:
-            if len(output) > 0:
-                logger.info(output)
-
-        # ------
-        # Create a grid for the data to be extracted from the source DEM
-        cmd = ' '.join(['{0}makegeomgrid'.format(bin_dir),
-                        self.makegeomgrid_odl])
-        output = ''
-        try:
-            logger.info('Executing: [{0}]'.format(cmd))
-            output = execute_cmd(cmd)
-        except Exception:
-            logger.exception('Error running makegeomgrid.'
-                             '  Processing will terminate.')
-            os.chdir(mydir)
-            return ERROR
-        finally:
-            if len(output) > 0:
-                logger.info(output)
-
-        # ------
-        # Extract and resample the DEM data to match the scene
-        cmd = ' '.join(['{0}geomresample'.format(bin_dir),
-                        self.geomresample_odl])
-        output = ''
-        try:
-            logger.info('Executing: [{0}]'.format(cmd))
-            output = execute_cmd(cmd)
-        except Exception:
-            logger.exception('Error running geomresample.'
-                             '  Processing will terminate.')
-            os.chdir(mydir)
-            return ERROR
-        finally:
-            if len(output) > 0:
-                logger.info(output)
-
-        # ------
-        # Convert the HDF5 DEM to ENVI format
-        cmd = ' '.join(['gdal_translate',
-                        '-of', 'ENVI',
-                        'HDF5:\"{0}\"://B01'.format(self.scene_dem),
-                        self.dem_envi_img])
-        output = ''
-        try:
-            logger.info('Executing: [{0}]'.format(cmd))
-            output = execute_cmd(cmd)
-        except Exception:
-            logger.exception('Error running gdal_translate, which is'
-                             ' expected to be in your PATH.'
-                             '  Processing will terminate.')
-            os.chdir(mydir)
-            return ERROR
-        finally:
-            if len(output) > 0:
-                logger.info(output)
-
-        # modify the gdal output header since it doesn't contain the correct
-        # projection information; instead it just flags the image as being
-        # in the Geographic projection
-        logger.debug('DEBUG: Updating the GDAL header file')
-        self.fix_gdal_hdr(self.dem_envi_hdr)
-
-        # remove intermediate files
-        if not keep_intermediate:
-            os.remove(self.retrieve_elev_odl)
-            os.remove(self.makegeomgrid_odl)
-            os.remove(self.geomresample_odl)
-            os.remove(self.lsrd_omf)
-            os.remove(self.source_dem)
-            os.remove(self.scene_dem)
-            os.remove(self.geomgrid)
-            os.remove(self.dem_gdal_aux)
-
-        # successful completion.  return to the original directory.
-        os.chdir(mydir)
-        logger.info('Completion of scene based DEM generation.')
-
-        return SUCCESS
-    """
+        # Adjust the coordinates for image extents becuse they are in
+        # center of pixel, and we need to supply the warping with actual
+        # extents
+        self.min_x_extent = (self.min_x_extent -
+                             self.pixel_resolution_x * 0.5)
+        self.max_x_extent = (self.max_x_extent +
+                             self.pixel_resolution_x * 0.5)
+        self.min_y_extent = (self.min_y_extent -
+                             self.pixel_resolution_y * 0.5)
+        self.max_y_extent = (self.max_y_extent +
+                             self.pixel_resolution_y * 0.5)
 
 
 def main():
     """Provides the main processing for the script"""
 
     # get the command line argument for the metadata file
-    description = 'Create a DEM using either MTL or XML as information source'
+    description = ('Create a DEM using either the MTL or XML metadata as the'
+                   ' information source')
     parser = ArgumentParser(description=description)
 
     parser.add_argument('--mtl', '--mtl_filename',
