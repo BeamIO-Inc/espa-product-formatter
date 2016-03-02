@@ -123,7 +123,8 @@ Geoloc_t *setup_mapping
         return (NULL);
     }
   
-    /* Copy the space definition fields */
+    /* Copy the space definition fields. If the UTM zone is negative, then
+       GCTP doesn't play nicely. Use the absolute value for GCTP. */
     this->def.pixel_size[0] = space_def->pixel_size[0];
     this->def.pixel_size[1] = space_def->pixel_size[1];
     this->def.ul_corner.x = space_def->ul_corner.x;
@@ -131,7 +132,7 @@ Geoloc_t *setup_mapping
     this->def.img_size.l = space_def->img_size.l;
     this->def.img_size.s = space_def->img_size.s;
     this->def.proj_num = space_def->proj_num;
-    this->def.zone = space_def->zone;
+    this->def.zone = abs (space_def->zone);
     this->def.spheroid = space_def->spheroid;
     this->def.orientation_angle = space_def->orientation_angle;
     for (i = 0; i < NPROJ_PARAM; i++) 
