@@ -5,7 +5,7 @@ License:
     NASA Open Source Agreement 1.3
 
 Usage:
-    create_dem.py --help prints the help message
+    build_elevation_band.py --help prints the help message
 """
 
 import os
@@ -27,8 +27,10 @@ from espa_xml_interface import XMLError, XMLInterface
 from espa_metadata_api import ESPAMetadataError, ESPAMetadata
 
 
-# Environment variable for the locations of the DEMs
-ESPA_DEM_DIR = 'ESPA_DEM_DIR'
+SOFTWARE_VERSION = 'ELEVATION_2.0.0'
+
+# Environment variable for the location of the elevation sources
+ESPA_ELEVATION_DIR = 'ESPA_ELEVATION_DIR'
 
 
 class GeoError(Exception):
@@ -117,7 +119,7 @@ class Geo(object):
                     if not line.strip().endswith('}'):
                         find_ending_bracket(tmp_fd)
                     hdr_text.write('band names ='
-                                   ' {band 1 - DEM values}\n')
+                                   ' {band 1 - elevation values}\n')
                 elif line.startswith('data type'):
                     if data_type is not None:
                         hdr_text.write('data type = {0}\n'
@@ -127,6 +129,10 @@ class Geo(object):
                     if no_data_value is not None:
                         hdr_text.write('data ignore value ='
                                        ' {0}\n'.format(no_data_value))
+                elif (line.startswith('data ignore value') and
+                      no_data_value is None):
+                    # This implementation code requires it to be empty
+                    pass
                 else:
                     hdr_text.write(line)
 
@@ -329,18 +335,18 @@ class GLSOverWaterError(Exception):
     pass
 
 
-class Base_DEM(object):
-    """Defines the base class object for DEM generation/processing"""
+class BaseElevation(object):
+    """Defines the base class object for elevation generation/processing"""
 
     def __init__(self):
         """Class initialization"""
-        super(Base_DEM, self).__init__()
+        super(BaseElevation, self).__init__()
 
         # Grab what we need from the environment first
-        if ESPA_DEM_DIR not in os.environ:
+        if ESPA_ELEVATION_DIR not in os.environ:
             raise RuntimeError('{0} environement variable not defined'
-                               .format(ESPA_DEM_DIR))
-        self.espa_dem_dir = os.environ.get(ESPA_DEM_DIR)
+                               .format(ESPA_ELEVATION_DIR))
+        self.espa_elevation_dir = os.environ.get(ESPA_ELEVATION_DIR)
 
         # Padding to add to the max box
         self.maxbox_padding = 0.2
@@ -365,13 +371,13 @@ class Base_DEM(object):
         self.wgs84_image_name = 'geoid.dem'
         self.wgs84_projection_name = 'geoid.prj'
 
-        self.wgs84_header_path = os.path.join(self.espa_dem_dir,
+        self.wgs84_header_path = os.path.join(self.espa_elevation_dir,
                                               self.wgs84_dir,
                                               self.wgs84_header_name.upper())
-        self.wgs84_image_path = os.path.join(self.espa_dem_dir,
+        self.wgs84_image_path = os.path.join(self.espa_elevation_dir,
                                              self.wgs84_dir,
                                              self.wgs84_image_name.upper())
-        self.wgs84_projection_path = os.path.join(self.espa_dem_dir,
+        self.wgs84_projection_path = os.path.join(self.espa_elevation_dir,
                                                   self.wgs84_dir,
                                                   self.wgs84_projection_name
                                                   .upper())
@@ -381,10 +387,10 @@ class Base_DEM(object):
         self.ramp_header_name = 'ramp200dem_wgs_v2.hdr'
         self.ramp_image_name = 'ramp200dem_wgs_v2.img'
 
-        self.ramp_header_path = os.path.join(self.espa_dem_dir,
+        self.ramp_header_path = os.path.join(self.espa_elevation_dir,
                                              self.ramp_dir,
                                              self.ramp_header_name)
-        self.ramp_image_path = os.path.join(self.espa_dem_dir,
+        self.ramp_image_path = os.path.join(self.espa_elevation_dir,
                                             self.ramp_dir,
                                             self.ramp_image_name)
 
@@ -398,18 +404,18 @@ class Base_DEM(object):
         self.gtopo30_files_regexp = '[EW]???[NS]??.*'
         self.gtopo30_padding = 1.0  # Degrees, since we are in geographic
 
-        # DEM format and naming
-        self.dem_format = 'ENVI'
-        self.dem_type_float32 = 'Float32'
-        self.dem_type_int16 = 'Int16'
-        self.dem_header_name_fmt = '{0}_dem.hdr'
-        self.dem_image_name_fmt = '{0}_dem.img'
-        # Landsat uses bi-linear for all DEM warping
-        self.dem_resampling_method = 'bilinear'
+        # Elevation format and naming
+        self.elevation_format = 'ENVI'
+        self.elevation_type_float32 = 'Float32'
+        self.elevation_type_int16 = 'Int16'
+        self.elevation_header_name_fmt = '{0}_elevation.hdr'
+        self.elevation_image_name_fmt = '{0}_elevation.img'
+        # Landsat uses bi-linear for all elevation warping
+        self.elevation_resampling_method = 'bilinear'
 
         # MOSAIC Filenames
-        self.mosaic_header_name = 'espa-mosaic-dem.hdr'
-        self.mosaic_image_name = 'espa-mosaic-dem.img'
+        self.mosaic_header_name = 'espa-mosaic-elevation.hdr'
+        self.mosaic_image_name = 'espa-mosaic-elevation.img'
 
         # GDAL AUX files to remove
         self.gdal_aux_regexp = '*.img.aux.xml'
@@ -430,8 +436,8 @@ class Base_DEM(object):
 
         self.target_srs = None
 
-        self.dem_header_name = None
-        self.dem_image_name = None
+        self.elevation_header_name = None
+        self.elevation_image_name = None
 
     def parse_metadata(self):
         """Implement this to parse the metadata file"""
@@ -446,10 +452,13 @@ class Base_DEM(object):
         '''
         Set the no data value to 0 so we fill-in with sea-level,
         because missing tiles in GLS will be water(ocean)
+        NOTE - This is abusing GDAL, which does not correctly
+               output ENVI headers.  But the header fix-in code,
+               should be taking care of it.
         '''
         Geo.warp(destination_no_data=0,
-                 output_data_type=self.dem_type_int16,
-                 output_format=self.dem_format,
+                 output_data_type=self.elevation_type_int16,
+                 output_format=self.elevation_format,
                  source_data=tiles,
                  output_filename=self.mosaic_image_name)
 
@@ -469,15 +478,15 @@ class Base_DEM(object):
                          'max_x': self.max_x_extent,
                          'max_y': self.max_y_extent}
 
-        Geo.warp(resampling_method=self.dem_resampling_method,
+        Geo.warp(resampling_method=self.elevation_resampling_method,
                  resolution_x=self.pixel_resolution_x,
                  resolution_y=self.pixel_resolution_y,
                  target_srs=self.target_srs,
                  image_extents=image_extents,
-                 output_data_type=self.dem_type_int16,
-                 output_format=self.dem_format,
+                 output_data_type=self.elevation_type_int16,
+                 output_format=self.elevation_format,
                  source_data=source_name,
-                 output_filename=self.dem_image_name)
+                 output_filename=self.elevation_image_name)
 
     def _verify_ramp_overlap(self,
                              ramp_lines,
@@ -739,7 +748,7 @@ class Base_DEM(object):
 
         logger = logging.getLogger(__name__)
 
-        dem_dir = os.path.join(self.espa_dem_dir, self.gtopo30_dir)
+        elevation_dir = os.path.join(self.espa_elevation_dir, self.gtopo30_dir)
 
         # Determine the GTOPO30 tiles
         tile_list = self.get_gtopo30_tile_list()
@@ -747,7 +756,7 @@ class Base_DEM(object):
 
         for tile in tile_list:
             tile_arch = '{0}.tar.gz'.format(tile)
-            tile_path = os.path.join(dem_dir, tile_arch)
+            tile_path = os.path.join(elevation_dir, tile_arch)
 
             output = ''
             try:
@@ -768,10 +777,11 @@ class Base_DEM(object):
             os.unlink(tile_arch)
 
         # Grab the tile DEM filenames from the extracted archives
-        tile_dem_list = glob.glob(self.gtopo30_dems_regexp)
-        logger.info('GTOPO30 DEM Files: {0}'.format(', '.join(tile_dem_list)))
+        tile_elevation_list = glob.glob(self.gtopo30_dems_regexp)
+        logger.info('GTOPO30 DEM Files: {0}'
+                    .format(', '.join(tile_elevation_list)))
 
-        return tile_dem_list
+        return tile_elevation_list
 
     def generate_using_gtopo30(self):
         """Generate the DEM using GTOPO30 data"""
@@ -779,10 +789,10 @@ class Base_DEM(object):
         logger = logging.getLogger(__name__)
 
         # Retireve the GTOPO30 tiles
-        tile_dem_list = self.get_gtopo30_dems()
+        tile_elevation_list = self.get_gtopo30_dems()
 
         # MOSAIC the tiles together
-        self.mosaic_tiles(tile_dem_list)
+        self.mosaic_tiles(tile_elevation_list)
 
         # Warp to the source data
         self.warp_to_source_data(self.mosaic_image_name)
@@ -799,7 +809,7 @@ class Base_DEM(object):
 
         logger = logging.getLogger(__name__)
 
-        dem_dir = os.path.join(self.espa_dem_dir, self.gls_dir)
+        elevation_dir = os.path.join(self.espa_elevation_dir, self.gls_dir)
 
         '''
         GLS tiles are named with a format like n47w118 where the lat/long
@@ -845,15 +855,15 @@ class Base_DEM(object):
         bil_list = list()
         hdr_list = list()
         prj_list = list()
-        prj_path = os.path.join(dem_dir, self.gls_projection_template)
+        prj_path = os.path.join(elevation_dir, self.gls_projection_template)
         logger.debug('PRJ Path: {0}'.format(prj_path))
         for tile in tile_list:
             bil_name = '{0}.bil'.format(tile)
             hdr_name = '{0}.hdr'.format(tile)
             prj_name = '{0}.prj'.format(tile)
 
-            bil_path = os.path.join(dem_dir, bil_name)
-            hdr_path = os.path.join(dem_dir, hdr_name)
+            bil_path = os.path.join(elevation_dir, bil_name)
+            hdr_path = os.path.join(elevation_dir, hdr_name)
             logger.debug('BIL Path: {0}'.format(bil_path))
             logger.debug('HDR Path: {0}'.format(hdr_path))
 
@@ -906,7 +916,7 @@ class Base_DEM(object):
             os.unlink(file_name)
 
     def adjust_elevation_to_wgs84(self):
-        """Adjusts the warped DEM to the WGS84 GEOID"""
+        """Adjusts the warped elevation to the WGS84 GEOID"""
 
         logger = logging.getLogger(__name__)
 
@@ -925,14 +935,14 @@ class Base_DEM(object):
                          'max_x': self.max_x_extent,
                          'max_y': self.max_y_extent}
 
-        # Warp the GEOID to the DEM/product projection
-        Geo.warp(resampling_method=self.dem_resampling_method,
+        # Warp the GEOID to the elevation/product projection
+        Geo.warp(resampling_method=self.elevation_resampling_method,
                  resolution_x=self.pixel_resolution_x,
                  resolution_y=self.pixel_resolution_y,
                  target_srs=self.target_srs,
                  image_extents=image_extents,
-                 output_data_type=self.dem_type_int16,
-                 output_format=self.dem_format,
+                 output_data_type=self.elevation_type_int16,
+                 output_format=self.elevation_format,
                  source_data=self.wgs84_image_name,
                  output_filename=geoid_image_name)
 
@@ -941,39 +951,40 @@ class Base_DEM(object):
         os.unlink(self.wgs84_image_name)
         os.unlink(self.wgs84_projection_name)
 
-        # Open the WGS84 and DEM datasets
+        # Open the WGS84 and elevation datasets
         geoid_ds = gdal.Open(geoid_image_name)
-        dem_ds = gdal.Open(self.dem_image_name)
+        elevation_ds = gdal.Open(self.elevation_image_name)
 
-        # Get the WGS84 and DEM band information
+        # Get the WGS84 and elevation band information
         geoid_band = geoid_ds.GetRasterBand(1)
-        dem_band = dem_ds.GetRasterBand(1)
+        elevation_band = elevation_ds.GetRasterBand(1)
 
         # Verify they are the same size, otherwise something broke
-        if (geoid_band.XSize != dem_band.XSize or
-                geoid_band.YSize != dem_band.YSize):
-            raise Exception('The size of the GEOID and DEM do not match')
+        if (geoid_band.XSize != elevation_band.XSize or
+                geoid_band.YSize != elevation_band.YSize):
+            raise Exception('The size of the GEOID and elevation do not match')
 
         # Read the data from both into memory
         geoid_data = geoid_band.ReadAsArray(0, 0,
                                             geoid_band.XSize,
                                             geoid_band.YSize).astype(np.int16)
-        dem_data = dem_band.ReadAsArray(0, 0,
-                                        dem_band.XSize,
-                                        dem_band.YSize).astype(np.int16)
+        elevation_data = (elevation_band
+                          .ReadAsArray(0, 0,
+                                       elevation_band.XSize,
+                                       elevation_band.YSize).astype(np.int16))
 
         # Use numpy math to add the datasets together
-#        new_data = (dem_data + geoid_data).astype(np.int16)
+        new_data = (elevation_data + geoid_data).astype(np.int16)
 
-        # Write the updated data to the DEM filename
-#        with open(self.dem_image_name, 'wb') as img_fd:
-#            new_data.tofile(img_fd)
+        # Write the updated data to the elevation filename
+        with open(self.elevation_image_name, 'wb') as img_fd:
+            new_data.tofile(img_fd)
 
         # Cleanup memory
-#        del new_data
-        del dem_data
-        del dem_band
-        del dem_ds
+        del new_data
+        del elevation_data
+        del elevation_band
+        del elevation_ds
         del geoid_data
         del geoid_band
         del geoid_ds
@@ -983,7 +994,7 @@ class Base_DEM(object):
         os.unlink(geoid_image_name)
 
     def generate(self):
-        """Generates the DEM"""
+        """Generates the elevation"""
 
         logger = logging.getLogger(__name__)
 
@@ -1009,12 +1020,13 @@ class Base_DEM(object):
         logger.debug('pixel_resolution_y = {0}'
                      .format(self.pixel_resolution_y))
 
-        logger.debug('dem_header_name = {0}'
-                     .format(self.dem_header_name))
-        logger.debug('dem_image_name = {0}'
-                     .format(self.dem_image_name))
+        logger.debug('elevation_header_name = {0}'
+                     .format(self.elevation_header_name))
+        logger.debug('elevation_image_name = {0}'
+                     .format(self.elevation_image_name))
 
-        logger.debug('espa_dem_dir = {0}'.format(self.espa_dem_dir))
+        logger.debug('espa_elevation_dir = {0}'
+                     .format(self.espa_elevation_dir))
 
         # Pad the max box coordinate values
         self.bounding_north_latitude += self.maxbox_padding
@@ -1022,6 +1034,9 @@ class Base_DEM(object):
         self.bounding_east_longitude += self.maxbox_padding
         self.bounding_west_longitude -= self.maxbox_padding
 
+        # TODO TODO TODO - Fix this in the schema
+        elevation_source = 'gtopo30'
+        elevation_source = 'level1'
         # Retrieve the tiles, mosaic, and warp to the source data
         if self.bounding_north_latitude <= self.ramp_south_limit:
             try:
@@ -1031,7 +1046,9 @@ class Base_DEM(object):
                 According to Landsat the RAMP DEM does not need adjusting to
                 the WGS84 GEOID
                 '''
-                # TODO TODO TODO - Verify this during testing
+                # TODO TODO TODO - Fix this in the schema
+                elevation_source = 'ramp'
+                elevation_source = 'level1'
             except RAMPCoverageError:
                 logger.exception('RAMP DEM failed to cover input data'
                                  ' defaulting to GTOPO30')
@@ -1053,6 +1070,9 @@ class Base_DEM(object):
             try:
                 logger.info('Attempting to use GLS DEM')
                 self.generate_using_gls()
+                # TODO TODO TODO - Fix this in the schema
+                elevation_source = 'gls'
+                elevation_source = 'level1'
             except GLSOverWaterError:
                 logger.exception('GLS DEM over water defaulting to GTOPO30')
                 self.generate_using_gtopo30()
@@ -1067,20 +1087,78 @@ class Base_DEM(object):
         # Update the ENVI header
         # Specify the data type, because we were using Float32, but the final
         # was written as Int16.
-        Geo.update_envi_header(self.dem_header_name, data_type=2)
+        Geo.update_envi_header(self.elevation_header_name, data_type=2)
 
-        # TODO TODO TODO - Add the DEM to the MTL file
-        # TODO TODO TODO - Add the DEM to the MTL file
-        # TODO TODO TODO - Add the DEM to the MTL file
-        # TODO TODO TODO - Add the DEM to the MTL file
+        try:
+            getattr(self, 'xml_filename')
+        except AttributeError:
+            pass
+        else:
+            espa_metadata = ESPAMetadata()
+            espa_metadata.parse(xml_filename=self.xml_filename)
+
+            # Create an element maker
+            em = objectify.ElementMaker(annotate=False,
+                                        namespace=None,
+                                        nsmap=None)
+
+            # Create a band element
+            band = em.band()
+
+            # Set attributes for the band element
+            band.set('product', 'elevation')
+            band.set('source', elevation_source)
+            band.set('name', 'elevation')
+            band.set('category', 'image')
+            band.set('data_type', 'INT16')
+            band.set('nlines', str(self.number_of_lines))
+            band.set('nsamps', str(self.number_of_samples))
+            band.set('fill_value', '-9999')
+
+            # Add elements to the band object
+            band.short_name = em.element('ELEVATION')
+            band.long_name = em.element('elevation_band')
+            band.file_name = em.element(self.elevation_image_name)
+
+            # Create a pixel size element
+            band.pixel_size = em.element()
+            # Add attrbutes to the pixel size object
+            band.pixel_size.set('x', str(self.pixel_resolution_x))
+            band.pixel_size.set('y', str(self.pixel_resolution_x))
+            band.pixel_size.set('units', self.pixel_units)
+
+            band.resample_method = em.element('bilinear')
+            band.data_units = em.element('meters')
+
+            # Create a valid range element
+            band.valid_range = em.element()
+            # Add attrbutes to the valid range object
+            band.valid_range.set('min', '-32767')
+            band.valid_range.set('max', '32768')
+
+            band.app_version = em.element(SOFTWARE_VERSION)
+            # TODO TODO TODO - Fix this date
+            band.production_date = em.element('2014-10-23T21:56:29Z')
+
+            # Append the band to the XML
+            espa_metadata.xml_object.bands.append(band)
+
+            # Validate the XML
+            espa_metadata.validate()
+
+            # Write it to the XML file
+            espa_metadata.write(xml_filename=self.xml_filename)
+
+            # Memory cleanup
+            del espa_metadata
 
 
-class XML_DEM(Base_DEM):
-    """Defines the class object for XML based DEM generation/processing"""
+class XMLElevation(BaseElevation):
+    """Defines the class object for XML based elevation generation"""
 
     def __init__(self, xml_filename):
         """Class initialization"""
-        super(XML_DEM, self).__init__()
+        super(XMLElevation, self).__init__()
 
         self.xml_filename = xml_filename
 
@@ -1127,8 +1205,10 @@ class XML_DEM(Base_DEM):
         except:
             product_id = espa_metadata.xml_object.global_metadata.scene_id
 
-        self.dem_header_name = self.dem_header_name_fmt.format(product_id)
-        self.dem_image_name = self.dem_image_name_fmt.format(product_id)
+        self.elevation_header_name = (self.elevation_header_name_fmt
+                                      .format(product_id))
+        self.elevation_image_name = (self.elevation_image_name_fmt
+                                     .format(product_id))
 
         for band in espa_metadata.xml_object.bands.band:
             if (band.attrib['product'] in ['L1T', 'L1GT'] and
@@ -1137,6 +1217,9 @@ class XML_DEM(Base_DEM):
                     Geo.get_proj4_projection_string(str(band.file_name)))
                 self.pixel_resolution_x = float(band.pixel_size.attrib['x'])
                 self.pixel_resolution_y = float(band.pixel_size.attrib['y'])
+                self.pixel_units = band.pixel_size.attrib['units']
+                self.number_of_lines = band.attrib['nlines']
+                self.number_of_samples = band.attrib['nsamps']
                 break
 
         # Adjust the coordinates for image extents becuse they are in
@@ -1154,12 +1237,12 @@ class XML_DEM(Base_DEM):
         del espa_metadata
 
 
-class MTL_DEM(Base_DEM):
-    """Defines the class object for MTL based DEM generation/processing"""
+class MTLElevation(BaseElevation):
+    """Defines the class object for MTL based elevation generation"""
 
     def __init__(self, mtl_filename):
         """Class initialization"""
-        super(MTL_DEM, self).__init__()
+        super(MTLElevation, self).__init__()
 
         self.mtl_filename = mtl_filename
 
@@ -1294,8 +1377,10 @@ class MTL_DEM(Base_DEM):
             raise RuntimeError('Obtaining LANDSAT_SCENE_ID field from: [{0}]'
                                .format(self.mtl_filename))
 
-        self.dem_header_name = self.dem_header_name_fmt.format(product_id)
-        self.dem_image_name = self.dem_image_name_fmt.format(product_id)
+        self.elevation_header_name = (self.elevation_header_name_fmt
+                                      .format(product_id))
+        self.elevation_image_name = (self.elevation_image_name_fmt
+                                     .format(product_id))
 
         self.target_srs = Geo.get_proj4_projection_string(file_name_band_1)
 
@@ -1316,8 +1401,8 @@ def main():
     """Provides the main processing for the script"""
 
     # get the command line argument for the metadata file
-    description = ('Create a DEM using either the MTL or XML metadata as the'
-                   ' information source')
+    description = ('Create the elevation band using either the MTL or XML'
+                   ' metadata as the information source')
     parser = ArgumentParser(description=description)
 
     parser.add_argument('--mtl', '--mtl_filename',
@@ -1364,18 +1449,18 @@ def main():
 
     logger = logging.getLogger(__name__)
 
-    if ESPA_DEM_DIR not in os.environ:
-        print('Invalid environment: Missing ESPA_DEM_DIR\n')
+    if ESPA_ELEVATION_DIR not in os.environ:
+        print('Invalid environment: Missing ESPA_ELEVATION_DIR\n')
         sys.exit(1)  # EXIT_FAILURE
 
-    dem = None
+    elevation = None
     # Call the core processing
     if args.mtl_filename is not None:
         print(args.mtl_filename)
-        dem = MTL_DEM(args.mtl_filename)
+        elevation = MTLElevation(args.mtl_filename)
     elif args.xml_filename is not None:
         print(args.xml_filename)
-        dem = XML_DEM(args.xml_filename)
+        elevation = XMLElevation(args.xml_filename)
     else:
         print('Must specify either an MTL or ESPA XML input file\n')
         parser.print_help()
@@ -1383,9 +1468,9 @@ def main():
         sys.exit(1)  # EXIT_FAILURE
 
     try:
-        dem.generate()
+        elevation.generate()
     except:
-        logger.exception('DEM generation failed')
+        logger.exception('Elevation generation failed')
         sys.exit(1)  # EXIT_FAILURE
 
     sys.exit(0)  # EXIT_SUCCESS
