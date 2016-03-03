@@ -82,7 +82,7 @@ class Geo(object):
         return proj4
 
     @staticmethod
-    def update_envi_header(hdr_file_path, no_data_value=None):
+    def update_envi_header(hdr_file_path, data_type=None, no_data_value=None):
         """Updates the specified ENVI header
 
         Especially the no data value, since it is not supported by the
@@ -118,11 +118,15 @@ class Geo(object):
                         find_ending_bracket(tmp_fd)
                     hdr_text.write('band names ='
                                    ' {band 1 - DEM values}\n')
-                elif (line.startswith('data type') and
-                      (no_data_value is not None)):
-                    hdr_text.write(line)
-                    hdr_text.write('data ignore value ='
-                                   ' {0}\n'.format(no_data_value))
+                elif line.startswith('data type'):
+                    if data_type is not None:
+                        hdr_text.write('data type = {0}\n'
+                                       .format(data_type))
+                    else:
+                        hdr_text.write(line)
+                    if no_data_value is not None:
+                        hdr_text.write('data ignore value ='
+                                       ' {0}\n'.format(no_data_value))
                 else:
                     hdr_text.write(line)
 
@@ -359,6 +363,7 @@ class Base_DEM(object):
         self.wgs84_dir = 'geoid'
         self.wgs84_header_name = 'geoid.hdr'
         self.wgs84_image_name = 'geoid.dem'
+        self.wgs84_projection_name = 'geoid.prj'
 
         self.wgs84_header_path = os.path.join(self.espa_dem_dir,
                                               self.wgs84_dir,
@@ -366,6 +371,10 @@ class Base_DEM(object):
         self.wgs84_image_path = os.path.join(self.espa_dem_dir,
                                              self.wgs84_dir,
                                              self.wgs84_image_name.upper())
+        self.wgs84_projection_path = os.path.join(self.espa_dem_dir,
+                                                  self.wgs84_dir,
+                                                  self.wgs84_projection_name
+                                                  .upper())
 
         # RAMP Information
         self.ramp_dir = 'ramp'
@@ -391,7 +400,8 @@ class Base_DEM(object):
 
         # DEM format and naming
         self.dem_format = 'ENVI'
-        self.dem_type = 'Int16'
+        self.dem_type_float32 = 'Float32'
+        self.dem_type_int16 = 'Int16'
         self.dem_header_name_fmt = '{0}_dem.hdr'
         self.dem_image_name_fmt = '{0}_dem.img'
         # Landsat uses bi-linear for all DEM warping
@@ -438,7 +448,7 @@ class Base_DEM(object):
         because missing tiles in GLS will be water(ocean)
         '''
         Geo.warp(destination_no_data=0,
-                 output_data_type=self.dem_type,
+                 output_data_type=self.dem_type_int16,
                  output_format=self.dem_format,
                  source_data=tiles,
                  output_filename=self.mosaic_image_name)
@@ -449,8 +459,8 @@ class Base_DEM(object):
         os.unlink(self.mosaic_header_name)
         os.unlink(self.mosaic_image_name)
 
-    def warp_to_final_dem(self, source_name):
-        """Warp the tiles into the final DEM"""
+    def warp_to_source_data(self, source_name):
+        """Warp to the source data"""
 
         logger = logging.getLogger(__name__)
 
@@ -464,7 +474,7 @@ class Base_DEM(object):
                  resolution_y=self.pixel_resolution_y,
                  target_srs=self.target_srs,
                  image_extents=image_extents,
-                 output_data_type=self.dem_type,
+                 output_data_type=self.dem_type_int16,
                  output_format=self.dem_format,
                  source_data=source_name,
                  output_filename=self.dem_image_name)
@@ -547,7 +557,7 @@ class Base_DEM(object):
         if not os.path.exists(self.ramp_image_name):
             # Should only need to test for one of them
             os.symlink(self.ramp_header_path, self.ramp_header_name)
-            os.symlink(self.ramp_image_name, self.ramp_image_name)
+            os.symlink(self.ramp_image_path, self.ramp_image_name)
 
         # Open the RAMP dataset
         ramp_ds = gdal.Open(self.ramp_image_name)
@@ -620,8 +630,8 @@ class Base_DEM(object):
         del ramp_srs
         del ramp_ds
 
-        # Warp to the final DEM
-        self.warp_to_final_dem(self.ramp_image_name)
+        # Warp to the source data
+        self.warp_to_source_data(self.ramp_image_name)
 
         # Remove the symlink to the RAMP DEM
         os.unlink(self.ramp_header_name)
@@ -774,8 +784,8 @@ class Base_DEM(object):
         # MOSAIC the tiles together
         self.mosaic_tiles(tile_dem_list)
 
-        # Warp to the final DEM
-        self.warp_to_final_dem(self.mosaic_image_name)
+        # Warp to the source data
+        self.warp_to_source_data(self.mosaic_image_name)
 
         # Cleanup intermediate data
         self.mosaic_cleanup()
@@ -882,8 +892,8 @@ class Base_DEM(object):
         # MOSAIC the tiles together
         self.mosaic_tiles(bil_list)
 
-        # Warp to the final DEM
-        self.warp_to_final_dem(self.mosaic_image_name)
+        # Warp to the source data
+        self.warp_to_source_data(self.mosaic_image_name)
 
         # Cleanup intermediate data
         self.mosaic_cleanup()
@@ -900,57 +910,77 @@ class Base_DEM(object):
 
         logger = logging.getLogger(__name__)
 
+        geoid_header_name = 'espa-geoid.hdr'
+        geoid_image_name = 'espa-geoid.img'
+
         # Link the WGS84 GEOID data to the current directory
         if not os.path.exists(self.wgs84_image_name):
             # Should only need to test for one of them
             os.symlink(self.wgs84_header_path, self.wgs84_header_name)
             os.symlink(self.wgs84_image_path, self.wgs84_image_name)
+            os.symlink(self.wgs84_projection_path, self.wgs84_projection_name)
 
-        # TODO TODO TODO - Warp the GEOID to the DEM/product projection
-        # TODO TODO TODO - Warp the GEOID to the DEM/product projection
-        # TODO TODO TODO - Warp the GEOID to the DEM/product projection
-        # TODO TODO TODO - Warp the GEOID to the DEM/product projection
-        # TODO TODO TODO - Warp the GEOID to the DEM/product projection
+        image_extents = {'min_x': self.min_x_extent,
+                         'min_y': self.min_y_extent,
+                         'max_x': self.max_x_extent,
+                         'max_y': self.max_y_extent}
 
-        # Open the WGS84 and DEM datasets
-        wgs84_ds = gdal.Open(self.wgs84_image_name)
-        dem_ds = gdal.Open(self.dem_image_name)
+        # Warp the GEOID to the DEM/product projection
+        Geo.warp(resampling_method=self.dem_resampling_method,
+                 resolution_x=self.pixel_resolution_x,
+                 resolution_y=self.pixel_resolution_y,
+                 target_srs=self.target_srs,
+                 image_extents=image_extents,
+                 output_data_type=self.dem_type_int16,
+                 output_format=self.dem_format,
+                 source_data=self.wgs84_image_name,
+                 output_filename=geoid_image_name)
 
-        # Get the WGS84 and DEM band data
-        wgs84_band = wgs84_ds.GetRasterBand(1)
-        dem_band = dem_ds.GetRasterBand(1)
-
-        wgs84_data = wgs84_band.ReadAsArray(0, 0, dem_band.XSize, dem_band.YSize)
-        dem_data = dem_band.ReadAsArray(0, 0, dem_band.XSize, dem_band.YSize)
-
-        # TODO TODO TODO - Use numpy math to add the datasets together
-        # TODO TODO TODO - Use numpy math to add the datasets together
-        # TODO TODO TODO - Use numpy math to add the datasets together
-        # TODO TODO TODO - Use numpy math to add the datasets together
-        # TODO TODO TODO - Use numpy math to add the datasets together
-
-        # TODO TODO TODO - Overrite the DEM band with the new data
-        # TODO TODO TODO - Overrite the DEM band with the new data
-        # TODO TODO TODO - Overrite the DEM band with the new data
-        # TODO TODO TODO - Overrite the DEM band with the new data
-        # TODO TODO TODO - Overrite the DEM band with the new data
-
-        # Cleanup memory
-        del dem_band
-        del dem_ds
-        del wgs84_band
-        del wgs84_ds
-
-        # TODO TODO TODO - Move this up
         # Remove the symlink to the WGS84 GEOID
         os.unlink(self.wgs84_header_name)
         os.unlink(self.wgs84_image_name)
+        os.unlink(self.wgs84_projection_name)
 
-        # TODO TODO TODO - Remove the warped GEOID data
-        # TODO TODO TODO - Remove the warped GEOID data
-        # TODO TODO TODO - Remove the warped GEOID data
-        # TODO TODO TODO - Remove the warped GEOID data
-        # TODO TODO TODO - Remove the warped GEOID data
+        # Open the WGS84 and DEM datasets
+        geoid_ds = gdal.Open(geoid_image_name)
+        dem_ds = gdal.Open(self.dem_image_name)
+
+        # Get the WGS84 and DEM band information
+        geoid_band = geoid_ds.GetRasterBand(1)
+        dem_band = dem_ds.GetRasterBand(1)
+
+        # Verify they are the same size, otherwise something broke
+        if (geoid_band.XSize != dem_band.XSize or
+                geoid_band.YSize != dem_band.YSize):
+            raise Exception('The size of the GEOID and DEM do not match')
+
+        # Read the data from both into memory
+        geoid_data = geoid_band.ReadAsArray(0, 0,
+                                            geoid_band.XSize,
+                                            geoid_band.YSize).astype(np.int16)
+        dem_data = dem_band.ReadAsArray(0, 0,
+                                        dem_band.XSize,
+                                        dem_band.YSize).astype(np.int16)
+
+        # Use numpy math to add the datasets together
+#        new_data = (dem_data + geoid_data).astype(np.int16)
+
+        # Write the updated data to the DEM filename
+#        with open(self.dem_image_name, 'wb') as img_fd:
+#            new_data.tofile(img_fd)
+
+        # Cleanup memory
+#        del new_data
+        del dem_data
+        del dem_band
+        del dem_ds
+        del geoid_data
+        del geoid_band
+        del geoid_ds
+
+        # Remove the warped GEOID data
+        os.unlink(geoid_header_name)
+        os.unlink(geoid_image_name)
 
     def generate(self):
         """Generates the DEM"""
@@ -1035,8 +1065,13 @@ class Base_DEM(object):
             os.unlink(file_name)
 
         # Update the ENVI header
-        Geo.update_envi_header(self.dem_header_name)
+        # Specify the data type, because we were using Float32, but the final
+        # was written as Int16.
+        Geo.update_envi_header(self.dem_header_name, data_type=2)
 
+        # TODO TODO TODO - Add the DEM to the MTL file
+        # TODO TODO TODO - Add the DEM to the MTL file
+        # TODO TODO TODO - Add the DEM to the MTL file
         # TODO TODO TODO - Add the DEM to the MTL file
 
 
