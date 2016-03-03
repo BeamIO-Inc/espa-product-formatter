@@ -341,7 +341,7 @@ int main (int argc, char** argv)
 
         /* Use the scene name to create the date filename */
         snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name), "%s_%s",
-            tmp_ext, gmeta->scene_id);
+            gmeta->scene_id, tmp_ext);
 
         out_bmeta->resample_method = ESPA_NN;
         out_bmeta->nlines = nlines;

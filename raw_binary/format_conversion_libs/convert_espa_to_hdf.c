@@ -1010,7 +1010,7 @@ int convert_espa_to_hdf
         /* Update a few of the parameters in the header file since this is
            a multiband product */
         envi_hdr.nbands = xml_metadata.nbands;
-        count = snprintf (envi_hdr.file_type, sizeof (envi_hdr.file_type),
+        count = snprintf (envi_hdr.file_type, sizeof (envi_hdr.file_type), "%s",
             "HDF scientific data");
         if (count < 0 || count >= sizeof (envi_hdr.file_type))
         {
