@@ -14,6 +14,7 @@ import commands
 import logging
 import glob
 import math
+import datetime
 from cStringIO import StringIO
 from argparse import ArgumentParser
 
@@ -453,8 +454,8 @@ class BaseElevation(object):
         Set the no data value to 0 so we fill-in with sea-level,
         because missing tiles in GLS will be water(ocean)
         NOTE - This is abusing GDAL, which does not correctly
-               output ENVI headers.  But the header fix-in code,
-               should be taking care of it.
+               output ENVI headers.  The header fixing code, should
+               be taking care of it.
         '''
         Geo.warp(destination_no_data=0,
                  output_data_type=self.elevation_type_int16,
@@ -1113,6 +1114,7 @@ class BaseElevation(object):
             band.set('data_type', 'INT16')
             band.set('nlines', str(self.number_of_lines))
             band.set('nsamps', str(self.number_of_samples))
+            # See below (valid_range comments) for why -9999 is specified
             band.set('fill_value', '-9999')
 
             # Add elements to the band object
@@ -1133,12 +1135,25 @@ class BaseElevation(object):
             # Create a valid range element
             band.valid_range = em.element()
             # Add attrbutes to the valid range object
-            band.valid_range.set('min', '-32767')
-            band.valid_range.set('max', '32768')
+            # WGS84 GEOID source has 0 for no data value
+            # GTOPO30 source has -9999 for no data value
+            # GLS source has -32767 for no data value
+            # (Because it is not specified GDAL uses that a a default,
+            #  however, the GLS specification says 0, which is also what it
+            #  uses for sea-level)
+            # RAMP source has -9999 for no data value
+            # We are conforming to our -9999 standard for INT16 products
+            band.valid_range.set('min', '-9998')
+            band.valid_range.set('max', '32767')
 
+            # Set the software version
             band.app_version = em.element(SOFTWARE_VERSION)
-            # TODO TODO TODO - Fix this date
-            band.production_date = em.element('2014-10-23T21:56:29Z')
+
+            # Get the production date and time in string format
+            # Strip the microseconds and add a Z
+            date_now = ('{0}Z'.format(datetime.datetime.now()
+                                      .strftime('%Y-%m-%dT%H:%M:%S')))
+            band.production_date = em.element(date_now)
 
             # Append the band to the XML
             espa_metadata.xml_object.bands.append(band)
