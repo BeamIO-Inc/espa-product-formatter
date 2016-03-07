@@ -994,6 +994,81 @@ class BaseElevation(object):
         os.unlink(geoid_header_name)
         os.unlink(geoid_image_name)
 
+    def add_elevation_band_to_xml(self, elevation_source):
+        """Adds the elevation band to the ESPA Metadata XMLi file"""
+
+        espa_metadata = ESPAMetadata()
+        espa_metadata.parse(xml_filename=self.xml_filename)
+
+        # Create an element maker
+        em = objectify.ElementMaker(annotate=False,
+                                    namespace=None,
+                                    nsmap=None)
+
+        # Create a band element
+        band = em.band()
+
+        # Set attributes for the band element
+        band.set('product', 'elevation')
+        band.set('source', elevation_source)
+        band.set('name', 'elevation')
+        band.set('category', 'image')
+        band.set('data_type', 'INT16')
+        band.set('nlines', str(self.number_of_lines))
+        band.set('nsamps', str(self.number_of_samples))
+        # See below (valid_range comments) for why -9999 is specified
+        band.set('fill_value', '-9999')
+
+        # Add elements to the band object
+        band.short_name = em.element('ELEVATION')
+        band.long_name = em.element('elevation_band')
+        band.file_name = em.element(self.elevation_image_name)
+
+        # Create a pixel size element
+        band.pixel_size = em.element()
+        # Add attrbutes to the pixel size object
+        band.pixel_size.set('x', str(self.pixel_resolution_x))
+        band.pixel_size.set('y', str(self.pixel_resolution_x))
+        band.pixel_size.set('units', self.pixel_units)
+
+        band.resample_method = em.element('bilinear')
+        band.data_units = em.element('meters')
+
+        # Create a valid range element
+        band.valid_range = em.element()
+        # Add attrbutes to the valid range object
+        # WGS84 GEOID source has 0 for no data value
+        # GTOPO30 source has -9999 for no data value
+        # GLS source has -32767 for no data value
+        # (Because it is not specified GDAL uses that a a default,
+        #  however, the GLS specification says 0, which is also what it
+        #  uses for sea-level)
+        # RAMP source has -9999 for no data value
+        # We are conforming to our -9999 standard for INT16 products
+        band.valid_range.set('min', '-9998')
+        band.valid_range.set('max', '32767')
+
+        # Set the software version
+        band.app_version = em.element(SOFTWARE_VERSION)
+
+        # Get the production date and time in string format
+        # Strip the microseconds and add a Z
+        date_now = ('{0}Z'.format(datetime.datetime.now()
+                                  .strftime('%Y-%m-%dT%H:%M:%S')))
+        band.production_date = em.element(date_now)
+
+        # Append the band to the XML
+        espa_metadata.xml_object.bands.append(band)
+
+        # Validate the XML
+        espa_metadata.validate()
+
+        # Write it to the XML file
+        espa_metadata.write(xml_filename=self.xml_filename)
+
+        # Memory cleanup
+        del espa_metadata
+
     def generate(self):
         """Generates the elevation"""
 
@@ -1090,82 +1165,15 @@ class BaseElevation(object):
         # was written as Int16.
         Geo.update_envi_header(self.elevation_header_name, data_type=2)
 
+        # Only add the elevation band to the XML file
         try:
+            # Determine if we are processing using the XML
             getattr(self, 'xml_filename')
         except AttributeError:
             pass
         else:
-            espa_metadata = ESPAMetadata()
-            espa_metadata.parse(xml_filename=self.xml_filename)
-
-            # Create an element maker
-            em = objectify.ElementMaker(annotate=False,
-                                        namespace=None,
-                                        nsmap=None)
-
-            # Create a band element
-            band = em.band()
-
-            # Set attributes for the band element
-            band.set('product', 'elevation')
-            band.set('source', elevation_source)
-            band.set('name', 'elevation')
-            band.set('category', 'image')
-            band.set('data_type', 'INT16')
-            band.set('nlines', str(self.number_of_lines))
-            band.set('nsamps', str(self.number_of_samples))
-            # See below (valid_range comments) for why -9999 is specified
-            band.set('fill_value', '-9999')
-
-            # Add elements to the band object
-            band.short_name = em.element('ELEVATION')
-            band.long_name = em.element('elevation_band')
-            band.file_name = em.element(self.elevation_image_name)
-
-            # Create a pixel size element
-            band.pixel_size = em.element()
-            # Add attrbutes to the pixel size object
-            band.pixel_size.set('x', str(self.pixel_resolution_x))
-            band.pixel_size.set('y', str(self.pixel_resolution_x))
-            band.pixel_size.set('units', self.pixel_units)
-
-            band.resample_method = em.element('bilinear')
-            band.data_units = em.element('meters')
-
-            # Create a valid range element
-            band.valid_range = em.element()
-            # Add attrbutes to the valid range object
-            # WGS84 GEOID source has 0 for no data value
-            # GTOPO30 source has -9999 for no data value
-            # GLS source has -32767 for no data value
-            # (Because it is not specified GDAL uses that a a default,
-            #  however, the GLS specification says 0, which is also what it
-            #  uses for sea-level)
-            # RAMP source has -9999 for no data value
-            # We are conforming to our -9999 standard for INT16 products
-            band.valid_range.set('min', '-9998')
-            band.valid_range.set('max', '32767')
-
-            # Set the software version
-            band.app_version = em.element(SOFTWARE_VERSION)
-
-            # Get the production date and time in string format
-            # Strip the microseconds and add a Z
-            date_now = ('{0}Z'.format(datetime.datetime.now()
-                                      .strftime('%Y-%m-%dT%H:%M:%S')))
-            band.production_date = em.element(date_now)
-
-            # Append the band to the XML
-            espa_metadata.xml_object.bands.append(band)
-
-            # Validate the XML
-            espa_metadata.validate()
-
-            # Write it to the XML file
-            espa_metadata.write(xml_filename=self.xml_filename)
-
-            # Memory cleanup
-            del espa_metadata
+            # We are processing using XML so add the band
+            self.add_elevation_band_to_xml(elevation_source)
 
 
 class XMLElevation(BaseElevation):
