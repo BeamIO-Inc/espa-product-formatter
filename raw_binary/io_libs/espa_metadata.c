@@ -63,8 +63,6 @@ int validate_xml_file
             schema_file = ESPA_SCHEMA;
         }
     }
-    printf ("Validating %s metadata file with %s ...\n", meta_file,
-        schema_file);
 
     /* Set up the schema parser and parse the schema file/URL */
     xmlLineNumbersDefault (1);

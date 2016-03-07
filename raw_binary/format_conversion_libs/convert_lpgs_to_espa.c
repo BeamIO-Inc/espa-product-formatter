@@ -56,7 +56,6 @@ int read_lpgs_mtl
     char band_num[STR_SIZE][MAX_LPGS_BANDS]; /* band number for band name */
     int i;                    /* looping variable */
     int count;                /* number of chars copied in snprintf */
-    int neg_count;            /* number of latitude corners below zero */
     int band_count = 0;       /* count of the bands processed so we don't have
                                  to specify each band number directly, which
                                  get complicated as we are supporting TM, ETM+,
@@ -358,17 +357,6 @@ int read_lpgs_mtl
                      !strcmp (label, "ZONE_NUMBER"))
             {
                 sscanf (tokenptr, "%d", &gmeta->proj_info.utm_zone);
-
-                /* If three or four of the latitude corners are negative
-                   then the majority of the scene is below the equator.
-                   Negate the UTM zone. */
-                neg_count = 0;
-                if (gmeta->ul_corner[0] < 0.0) neg_count++;
-                if (gmeta->lr_corner[0] < 0.0) neg_count++;
-                if (ur_corner[0] < 0.0) neg_count++;
-                if (ll_corner[0] < 0.0) neg_count++;
-                if (neg_count >= 3)
-                    gmeta->proj_info.utm_zone = -gmeta->proj_info.utm_zone;
             }
 
             /* PS projection parameters */

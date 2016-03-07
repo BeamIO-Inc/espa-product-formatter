@@ -88,7 +88,6 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * The UTM zone in the MTL file is always positive.  When converting from LPGS to ESPA, if 3 or more of the corners have a negative latitude, then negate the UTM zone so that it reflects the scene in the southern hemisphere.  This will generate a negative UTM zone in the XML file as well as correctly identify the zone as South (vs. North) in the ENVI header files.
   * Updated schema (v1.3) and supporting libraries for schema changes including adding support for cfmask cloud cover and other percentages at the band level, adding support for the scene ID, and removal of the calibrated_nt.
   * Modified to store only the major version number in the schema and XML namespace instead of the major and minor version number.  Any schema changes that require that are non-optional will require a change to the major version.  Minor version changes should allow previously generated XMLs for the same major version to be used within the ESPA applications.
   * Updated Makefiles for ESPA environment and RPMs.
