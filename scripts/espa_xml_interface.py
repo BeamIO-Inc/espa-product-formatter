@@ -106,14 +106,14 @@ class XMLInterface(object):
             raise XMLError('Parsing Error - See LXML Error')
 
     def validate(self):
-        '''Validates the lxml objectify object against the schema
+        """Validates the lxml objectify object against the schema
 
         Performs validation by converting the lxml.objectify object back into
         a string and then parsing it again.
 
         Raises:
             XMLError: An error occurred using the lxml module.
-        '''
+        """
 
         try:
             temp_text = etree.tostring(self.xml_object, encoding='utf-8')
@@ -125,7 +125,7 @@ class XMLInterface(object):
             raise XMLError('Validation Error - See LXML Error')
 
     def write(self, xml_filename=None):
-        '''Writes the XML to a file
+        """Writes the XML to a file
 
         The XML is validated before being written to the file.  A temp file is
         utilized so that the original XML document is not lost should any
@@ -137,7 +137,7 @@ class XMLInterface(object):
 
         Raises:
             XMLError: An error occurred using the lxml module.
-        '''
+        """
 
         # First validate the lxml objectify object
         self.validate()
