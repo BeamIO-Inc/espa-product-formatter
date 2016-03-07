@@ -22,35 +22,29 @@ class ESPAMetadataError(Exception):
 
 
 class ESPAMetadata(XMLInterface):
-    """Enhances the XMLInterface specifically from an ESPA Metadata XML
+    """Enhances the XMLInterface specifically for an ESPA Metadata XML
 
-    TODO TODO TODO
-    Implements a class to wrap lxml functionality to provide validation of the
-    XML document, as well as provide access to an lxml.objectify object for
-    manipulation of the XML document.  Also parsing and writing from disk.
-
-    Attributes:
-            TODO TODO TODO
+    Determines the best source for the schema to use for validation of the
+    specified ESPA Metadata XML.  First the ESPA_SCHEMA environment variable
+    is searched for and used if present.  Second the installation directory
+    where the schema should exist if installed on the local system.  And third
+    the URI where the schema should reside on the internet.
     """
 
     def __init__(self, xml_filename=None):
         """Object initialization and parsing of the XML document
 
-        Creates an lxml schema from the specified XSD and creates a lxml
-        parser from the schema to be used during parsing and validation.
+        Performes determination for the source of the ESPA Metadata XML schema
+        an utilizes that source during initialization of the parent class.
 
         Args:
-            xml_xsd (str): The XSD to use for validation.
             xml_filename (str) The name of the file to parse.
-
-        Raises:
-            XMLError: An error occurred using the lxml module.
         """
 
         # Get the logger to use
-        self.logger = logging.getLogger('espa.processing')
+        logger = logging.getLogger('espa.processing')
         # Just in-case one was not defined
-        self.logger.addHandler(logging.NullHandler())
+        logger.addHandler(logging.NullHandler())
 
         xsd_version = '1_3'
         xsd_filename = 'espa_internal_metadata_v{0}.xsd'.format(xsd_version)
@@ -65,16 +59,16 @@ class ESPAMetadata(XMLInterface):
             if os.path.isfile(xsd_path):
                 with open(xsd_path, 'r') as xsd_fd:
                     xml_xsd = xsd_fd.read()
-                self.logger.info('Using XSD source {0} for validation'
-                                 .format(xsd_path))
+                logger.info('Using XSD source {0} for validation'
+                            .format(xsd_path))
             else:
-                self.logger.info('Defaulting to espa-product-formatter'
-                                 ' installation directory')
+                logger.info('Defaulting to espa-product-formatter'
+                            ' installation directory')
                 xml_xsd = None
         else:
-            self.logger.warning('Missing environment variable ESPA_SCHEMA'
-                                ' defaulting to espa-product-formatter'
-                                ' installation directory')
+            logger.warning('Missing environment variable ESPA_SCHEMA'
+                           ' defaulting to espa-product-formatter'
+                           ' installation directory')
             xml_xsd = None
 
         # Use the espa-product-formatter installation directory (second)
@@ -84,18 +78,18 @@ class ESPAMetadata(XMLInterface):
             if os.path.isfile(xsd_path):
                 with open(xsd_path, 'r') as xsd_fd:
                     xml_xsd = xsd_fd.read()
-                self.logger.info('Using XSD source {0} for validation'
-                                 .format(xsd_path))
+                logger.info('Using XSD source {0} for validation'
+                            .format(xsd_path))
             else:
-                self.logger.info('Defaulting to {0}'.format(xsd_uri))
+                logger.info('Defaulting to {0}'.format(xsd_uri))
                 xml_xsd = None
 
         # Use the schema_uri (third)
         if xml_xsd is None:
             with urllib2.urlopen(xsd_uri) as xsd_fd:
                 xml_xsd = xsd_fd.read()
-            self.logger.info('Using schema source {0} for validation'
-                             .format(xsd_uri))
+            logger.info('Using schema source {0} for validation'
+                        .format(xsd_uri))
 
         # (fail)
         if xml_xsd is None:
