@@ -82,7 +82,7 @@ rm -rf %{buildroot}
 
 # ----------------------------------------------------------------------------
 %changelog
-* Moin Mar 07 2016 Ronald D Dilley <rdilley@usgs.gov>
+* Mon Mar 07 2016 Ronald D Dilley <rdilley@usgs.gov>
 - Revisioned for a bug in the generated libraries
 
 * Thu Mar 03 2016 Ronald D Dilley <rdilley@usgs.gov>
