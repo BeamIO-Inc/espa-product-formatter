@@ -1016,12 +1016,13 @@ class BaseElevation(object):
         band.set('data_type', 'INT16')
         band.set('nlines', str(self.number_of_lines))
         band.set('nsamps', str(self.number_of_samples))
-        # See below (valid_range comments) for why -9999 is specified
+        # Don't really have a fill value, but setting to -9999 for consistency
+        # with our other INT16 products
         band.set('fill_value', '-9999')
 
         # Add elements to the band object
         band.short_name = em.element('ELEVATION')
-        band.long_name = em.element('elevation_band')
+        band.long_name = em.element('elevation')
         band.file_name = em.element(self.elevation_image_name)
 
         # Create a pixel size element
@@ -1033,20 +1034,6 @@ class BaseElevation(object):
 
         band.resample_method = em.element('bilinear')
         band.data_units = em.element('meters')
-
-        # Create a valid range element
-        band.valid_range = em.element()
-        # Add attrbutes to the valid range object
-        # WGS84 GEOID source has 0 for no data value
-        # GTOPO30 source has -9999 for no data value
-        # GLS source has -32767 for no data value
-        # (Because it is not specified GDAL uses that a a default,
-        #  however, the GLS specification says 0, which is also what it
-        #  uses for sea-level)
-        # RAMP source has -9999 for no data value
-        # We are conforming to our -9999 standard for INT16 products
-        band.valid_range.set('min', '-9998')
-        band.valid_range.set('max', '32767')
 
         # Set the software version
         band.app_version = em.element(SOFTWARE_VERSION)
