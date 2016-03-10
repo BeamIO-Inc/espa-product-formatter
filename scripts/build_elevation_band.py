@@ -235,9 +235,12 @@ class Math(object):
 
         Algorithm:
             Based on W. Randolph Franklin's algorithm:
-                http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+                http://www.ecse.rpi.edu
+                /Homepages/wrf/Research/Short_Notes/pnpoly.html
+
             See also the Wikipedia page:
-                http://eni.wikipedia.org/wiki/Point_in_polygon
+                http://eni.wikipedia.org
+                /wiki/Point_in_polygon
 
         Notes:
             Derived from Landsat IAS code, which is based on above algorithm.
