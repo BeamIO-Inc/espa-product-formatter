@@ -24,8 +24,8 @@ from lxml import objectify as objectify
 from osgeo import gdal, osr
 
 
-from espa_xml_interface import XMLError, XMLInterface
-from espa_metadata_api import ESPAMetadataError, ESPAMetadata
+from espa import XMLError, XMLInterface
+from espa import MetadataError, Metadata
 
 
 SOFTWARE_VERSION = 'ELEVATION_2.0.0'
@@ -997,7 +997,7 @@ class BaseElevation(object):
     def add_elevation_band_to_xml(self, elevation_source):
         """Adds the elevation band to the ESPA Metadata XMLi file"""
 
-        espa_metadata = ESPAMetadata()
+        espa_metadata = Metadata()
         espa_metadata.parse(xml_filename=self.xml_filename)
 
         # Create an element maker
@@ -1183,7 +1183,7 @@ class XMLElevation(BaseElevation):
           follows the format of those files.
         """
 
-        espa_metadata = ESPAMetadata()
+        espa_metadata = Metadata()
         espa_metadata.parse(xml_filename=self.xml_filename)
 
         self.bounding_north_latitude = float(espa_metadata.xml_object
