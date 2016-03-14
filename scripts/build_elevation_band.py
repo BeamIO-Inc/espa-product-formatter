@@ -26,6 +26,7 @@ from osgeo import gdal, osr
 
 from espa import XMLError, XMLInterface
 from espa import MetadataError, Metadata
+from espa import ENVIHeader
 
 
 SOFTWARE_VERSION = 'ELEVATION_2.0.0'
@@ -83,63 +84,6 @@ class Geo(object):
         del data_set
 
         return proj4
-
-    @staticmethod
-    def update_envi_header(hdr_file_path, data_type=None, no_data_value=None):
-        """Updates the specified ENVI header
-
-        Especially the no data value, since it is not supported by the
-        GDAL ENVI driver.
-        """
-
-        def find_ending_bracket(fd):
-            """Method to find the ending bracket for an ENVI element"""
-            while True:
-                next_line = fd.readline()
-                if (not next_line or
-                        next_line.strip().endswith('}')):
-                    break
-
-        hdr_text = StringIO()
-        with open(hdr_file_path, 'r') as tmp_fd:
-            while True:
-                line = tmp_fd.readline()
-                if not line:
-                    break
-
-                if line.startswith('description'):
-                    # These may be on multiple lines so read lines until
-                    # we find the closing brace
-                    if not line.strip().endswith('}'):
-                        find_ending_bracket(tmp_fd)
-                    hdr_text.write('description ='
-                                   ' {USGS-EROS-ESPA generated}\n')
-                elif line.startswith('band names'):
-                    # These may be on multiple lines so read lines until
-                    # we find the closing brace
-                    if not line.strip().endswith('}'):
-                        find_ending_bracket(tmp_fd)
-                    hdr_text.write('band names ='
-                                   ' {band 1 - elevation values}\n')
-                elif line.startswith('data type'):
-                    if data_type is not None:
-                        hdr_text.write('data type = {0}\n'
-                                       .format(data_type))
-                    else:
-                        hdr_text.write(line)
-                    if no_data_value is not None:
-                        hdr_text.write('data ignore value ='
-                                       ' {0}\n'.format(no_data_value))
-                elif (line.startswith('data ignore value') and
-                      no_data_value is None):
-                    # This implementation code requires it to be empty
-                    pass
-                else:
-                    hdr_text.write(line)
-
-        # Do the actual replace here
-        with open(hdr_file_path, 'w') as tmp_fd:
-            tmp_fd.write(hdr_text.getvalue())
 
     @staticmethod
     def warp(resampling_method=None,
@@ -410,7 +354,6 @@ class BaseElevation(object):
 
         # Elevation format and naming
         self.elevation_format = 'ENVI'
-        self.elevation_type_float32 = 'Float32'
         self.elevation_type_int16 = 'Int16'
         self.elevation_header_name_fmt = '{0}_elevation.hdr'
         self.elevation_image_name_fmt = '{0}_elevation.img'
@@ -998,7 +941,7 @@ class BaseElevation(object):
         os.unlink(geoid_image_name)
 
     def add_elevation_band_to_xml(self, elevation_source):
-        """Adds the elevation band to the ESPA Metadata XMLi file"""
+        """Adds the elevation band to the ESPA Metadata XML file"""
 
         espa_metadata = Metadata()
         espa_metadata.parse(xml_filename=self.xml_filename)
@@ -1153,7 +1096,10 @@ class BaseElevation(object):
         # Update the ENVI header
         # Specify the data type, because we were using Float32, but the final
         # was written as Int16.
-        Geo.update_envi_header(self.elevation_header_name, data_type=2)
+        envi_header = ENVIHeader(self.elevation_header_name)
+        envi_header.update_envi_header(band_names='band 1 - elevation',
+                                       data_type=2,
+                                       no_data_value=-9999)
 
         # Only add the elevation band to the XML file
         try:
@@ -1414,7 +1360,7 @@ def main():
     """Provides the main processing for the script"""
 
     # get the command line argument for the metadata file
-    description = ('Create the elevation band using either the MTL or XML'
+    description = ('Create an elevation band using either the MTL or XML'
                    ' metadata as the information source')
     parser = ArgumentParser(description=description)
 
@@ -1438,12 +1384,6 @@ def main():
                         default=False,
                         help='turn debug logging on')
 
-    parser.add_argument('--keep_intermediate',
-                        action='store_true',
-                        dest='keep_intermediate',
-                        default=False,
-                        help='keep the intermediate files')
-
     args = parser.parse_args()
 
     # Check logging level
@@ -1463,7 +1403,8 @@ def main():
     logger = logging.getLogger(__name__)
 
     if ESPA_ELEVATION_DIR not in os.environ:
-        print('Invalid environment: Missing ESPA_ELEVATION_DIR\n')
+        print('{0} environement variable not defined'
+              .format(ESPA_ELEVATION_DIR))
         sys.exit(1)  # EXIT_FAILURE
 
     elevation = None
