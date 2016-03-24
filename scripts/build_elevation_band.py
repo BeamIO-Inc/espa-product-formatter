@@ -676,17 +676,20 @@ class BaseElevation(object):
 
             n_s = 'n'
             if lat < 0:
-                lat = -lat
                 n_s = 's'
 
             for lon in lon_list:
                 e_w = 'e'
                 if lon <= 0:
-                    lon = -lon
                     e_w = 'w'
 
+                # Already know if north/south, east/west so we just need
+                # the positive value for the filename
+                abs_lat = abs(lat)
+                abs_lon = abs(lon)
+
                 tile_list.append('{0}{1:03}{2}{3:02}'
-                                 .format(e_w, int(lon), n_s, int(lat)))
+                                 .format(e_w, abs_lon, n_s, abs_lat))
 
         return tile_list
 
