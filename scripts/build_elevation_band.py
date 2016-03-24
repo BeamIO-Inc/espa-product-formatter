@@ -786,8 +786,13 @@ class BaseElevation(object):
                 if lon < 0:
                     e_w = 'w'
 
+                # Already know if north/south, east/west so we just need
+                # the positive value for the filename
+                abs_lat = abs(lat)
+                abs_lon = abs(lon)
+
                 tile_list.append('{0}{1:02}{2}{3:03}'
-                                 .format(n_s, int(lat), e_w, int(lon)))
+                                 .format(n_s, abs_lat, e_w, abs_lon))
 
         tile_count = len(tile_list)
         if tile_count == 0:
