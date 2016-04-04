@@ -12,8 +12,7 @@ include $(TOP)/make.config
 SCHEMAS = espa_internal_metadata_v1_0.xsd \
           espa_internal_metadata_v1_1.xsd \
           espa_internal_metadata_v1_2.xsd \
-          espa_internal_metadata_v1_3.xsd \
-          espa_internal_metadata_v1_4.xsd
+          espa_internal_metadata_v1_3.xsd
 
 all:
 

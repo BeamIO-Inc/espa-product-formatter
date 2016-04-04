@@ -111,15 +111,6 @@ elementFormDefault="qualified">
   </xs:restriction>
 </xs:simpleType>
 
-<xs:simpleType name="sourceType">
-  <xs:restriction base="xs:string">
-    <xs:enumeration value="level1"/>
-    <xs:enumeration value="toa_refl"/>
-    <xs:enumeration value="sr_refl"/>
-    <!-- Additional data types can be added if needed -->
-  </xs:restriction>
-</xs:simpleType>
-
 <xs:simpleType name="dataType">
   <xs:restriction base="xs:string">
     <xs:enumeration value="INT8"/>
@@ -430,7 +421,7 @@ elementFormDefault="qualified">
       <xs:element ref="production_date"/>
     </xs:sequence>
     <xs:attribute name="product" type="xs:string" use="required"/>
-    <xs:attribute name="source" type="sourceType" use="optional"/>
+    <xs:attribute name="source" type="xs:string" use="optional"/>
     <xs:attribute name="name" type="xs:string" use="required"/>
     <xs:attribute name="category" type="categoryType" use="required"/>
     <xs:attribute name="data_type" type="dataType" use="required"/>
