@@ -29,11 +29,11 @@ NOTES:
    but the schema version will contain the major and minor version number
    (i.e. 1.2) */
 #define LIBXML_SCHEMAS_ENABLED
-#define ESPA_SCHEMA_VERSION "1.3"
+#define ESPA_SCHEMA_VERSION "1.4"
 #define ESPA_NS "http://espa.cr.usgs.gov/v1"
 #define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v1"
-#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_3.xsd"
-#define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v1_3.xsd"
+#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_4.xsd"
+#define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v1_4.xsd"
 
 /* Data types */
 enum Espa_data_type
