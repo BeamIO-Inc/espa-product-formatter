@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Wed Feb 10 11:30:53 2016 by generateDS.py version 2.12b.
+# Generated Tue Apr  5 08:21:06 2016 by generateDS.py version 2.12b.
 #
 # Generated with the ESPA modified version of generateDS.py
 # See espa google code project.
@@ -3387,9 +3387,6 @@ class band(GeneratedsSuper):
     def set_scale_factor(self, scale_factor): self.scale_factor = scale_factor
     def get_add_offset(self): return self.add_offset
     def set_add_offset(self, add_offset): self.add_offset = add_offset
-    def validate_sourceType(self, value):
-        # Validate type sourceType, a restriction on xs:string.
-        pass
     def validate_categoryType(self, value):
         # Validate type categoryType, a restriction on xs:string.
         pass
@@ -3451,7 +3448,7 @@ class band(GeneratedsSuper):
             outfile.write(' product=%s' % (self.gds_format_string(quote_attrib(self.product).encode(ExternalEncoding), input_name='product'), ))
         if self.source is not None and 'source' not in already_processed:
             already_processed.add('source')
-            outfile.write(' source=%s' % (quote_attrib(self.source), ))
+            outfile.write(' source=%s' % (self.gds_format_string(quote_attrib(self.source).encode(ExternalEncoding), input_name='source'), ))
         if self.name is not None and 'name' not in already_processed:
             already_processed.add('name')
             outfile.write(' name=%s' % (self.gds_format_string(quote_attrib(self.name).encode(ExternalEncoding), input_name='name'), ))
@@ -3664,7 +3661,6 @@ class band(GeneratedsSuper):
         if value is not None and 'source' not in already_processed:
             already_processed.add('source')
             self.source = value
-            self.validate_sourceType(self.source)    # validate type sourceType
         value = find_attr_value_('name', node)
         if value is not None and 'name' not in already_processed:
             already_processed.add('name')
@@ -4494,7 +4490,7 @@ def validate_xml(rootObj, xmlns=None, xmlns_xsi=None, schema_uri=None):
         # Use the espa-common installation directory
         if schema_root == None:
             schema_name = schema_uri.split('/')[-1]
-            schema_path = '/usr/local/schema/%s' \
+            schema_path = '/usr/local/espa-common/schema/%s' \
                 % schema_name
             try:
                 schema_root = etree.parse(schema_path)
