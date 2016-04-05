@@ -1051,9 +1051,7 @@ class BaseElevation(object):
         self.bounding_east_longitude += self.maxbox_padding
         self.bounding_west_longitude -= self.maxbox_padding
 
-        # TODO TODO TODO - Fix this in the schema
         elevation_source = 'gtopo30'
-        elevation_source = 'level1'
         # Retrieve the tiles, mosaic, and warp to the source data
         if self.bounding_north_latitude <= self.ramp_south_limit:
             try:
@@ -1063,9 +1061,7 @@ class BaseElevation(object):
                 According to Landsat the RAMP DEM does not need adjusting to
                 the WGS84 GEOID
                 '''
-                # TODO TODO TODO - Fix this in the schema
                 elevation_source = 'ramp'
-                elevation_source = 'level1'
             except RAMPCoverageError:
                 logger.exception('RAMP DEM failed to cover input data'
                                  ' defaulting to GTOPO30')
@@ -1087,9 +1083,7 @@ class BaseElevation(object):
             try:
                 logger.info('Attempting to use GLS DEM')
                 self.generate_using_gls()
-                # TODO TODO TODO - Fix this in the schema
                 elevation_source = 'gls'
-                elevation_source = 'level1'
             except GLSOverWaterError:
                 logger.exception('GLS DEM over water defaulting to GTOPO30')
                 self.generate_using_gtopo30()
