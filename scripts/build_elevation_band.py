@@ -1172,7 +1172,7 @@ class XMLElevation(BaseElevation):
                                      .format(product_id))
 
         for band in espa_metadata.xml_object.bands.band:
-            if (band.attrib['product'] in ['L1T', 'L1G', 'L1GT'] and
+            if (band.attrib['product'] in ['L1T', 'L1G', 'L1S', 'L1GT'] and
                     band.attrib['name'] == 'band1'):
                 self.target_srs = (
                     Geo.get_proj4_projection_string(str(band.file_name)))
