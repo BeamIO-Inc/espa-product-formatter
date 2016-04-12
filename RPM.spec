@@ -6,8 +6,8 @@
 
 # ----------------------------------------------------------------------------
 Name:		espa-product-formatter
-Version:	1.6.0
-Release:	4%{?dist}
+Version:	201605
+Release:	1%{?dist}
 Summary:	ESPA Product Formatting Software
 
 Group:		ESPA
@@ -26,7 +26,7 @@ Provides executables for converting from input formats to our internal format, a
 
 # ----------------------------------------------------------------------------
 # Specify the repository tag/branch to clone and build from
-%define tagname dev_v%{version}
+%define tagname dev_v1.7.0
 # Specify the name of the directory to clone into
 %define clonedname %{name}-%{tagname}
 
@@ -82,9 +82,11 @@ rm -rf %{buildroot}
 
 # ----------------------------------------------------------------------------
 %changelog
+* Tue Apr 12 2016 Ronald D Dilley <rdilley@usgs.gov>
+- Updated for May 2016 release
+
 * Mon Mar 07 2016 Ronald D Dilley <rdilley@usgs.gov>
 - Revisioned for a bug in the generated libraries
-
 * Thu Mar 03 2016 Ronald D Dilley <rdilley@usgs.gov>
 - Revisioned for a bug in the generated libraries
 * Wed Feb 10 2016 Ronald D Dilley <rdilley@usgs.gov>
