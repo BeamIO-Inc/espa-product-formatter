@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 Name:		espa-product-formatter
 Version:	201605
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	ESPA Product Formatting Software
 
 Group:		ESPA
@@ -82,9 +82,11 @@ rm -rf %{buildroot}
 
 # ----------------------------------------------------------------------------
 %changelog
+* Wed Apr 27 2016 Ronald D Dilley <rdilley@usgs.gov>
+- Updated for release number
+
 * Tue Apr 12 2016 Ronald D Dilley <rdilley@usgs.gov>
 - Updated for May 2016 release
-
 * Mon Mar 07 2016 Ronald D Dilley <rdilley@usgs.gov>
 - Revisioned for a bug in the generated libraries
 * Thu Mar 03 2016 Ronald D Dilley <rdilley@usgs.gov>
