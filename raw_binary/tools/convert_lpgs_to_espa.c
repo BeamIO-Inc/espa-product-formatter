@@ -35,19 +35,15 @@ void usage ()
             "metadata file and associated raw binary files).\n\n");
     printf ("usage: convert_lpgs_to_espa "
             "--mtl=input_mtl_filename "
-            "--xml=output_xml_filename "
             "[--del_src_files]\n");
 
     printf ("\nwhere the following parameters are required:\n");
     printf ("    -mtl: name of the input LPGS MTL metadata file\n");
-    printf ("    -xml: name of the output XML metadata file which follows "
-            "the ESPA internal raw binary schema\n");
     printf ("    -del_src_files: if specified the source GeoTIFF files will "
             "be removed.  The _MTL.txt file will remain along with the "
             "gap directory for ETM+ products.\n");
     printf ("\nExample: convert_lpgs_to_espa "
-            "--mtl=LE70230282011250EDC00_MTL.txt "
-            "--xml=LE70230282011250EDC00.xml\n");
+            "--mtl=LE70230282011250EDC00_MTL.txt\n");
 }
 
 
@@ -81,6 +77,7 @@ short get_args
 {
     int c;                           /* current argument index */
     int option_index;                /* index for the command-line option */
+    char *cptr = NULL;               /* pointer to _MTL.txt in MTL filename */
     char errmsg[STR_SIZE];           /* error message */
     char FUNC_NAME[] = "get_args";   /* function name */
     static int del_flag = 0;         /* flag for removing the source files */
@@ -88,7 +85,6 @@ short get_args
     {
         {"del_src_files", no_argument, &del_flag, 1},
         {"mtl", required_argument, 0, 'i'},
-        {"xml", required_argument, 0, 'o'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -121,10 +117,6 @@ short get_args
                 *mtl_infile = strdup (optarg);
                 break;
      
-            case 'o':  /* XML outfile */
-                *xml_outfile = strdup (optarg);
-                break;
-     
             case '?':
             default:
                 sprintf (errmsg, "Unknown option %s", argv[optind-1]);
@@ -135,7 +127,7 @@ short get_args
         }
     }
 
-    /* Make sure the infiles and outfiles were specified */
+    /* Make sure the input MTL file was specified */
     if (*mtl_infile == NULL)
     {
         sprintf (errmsg, "LPGS MTL input file is a required argument");
@@ -144,11 +136,16 @@ short get_args
         return (ERROR);
     }
 
+    /* Generate the XML filename from the MTL filename.  Find the _MTL.txt and
+       change that to .xml. */
+    *xml_outfile = strdup (*mtl_infile);
+    cptr = strrchr (*xml_outfile, '_');
+    *cptr = '\0';
+    sprintf (*xml_outfile, "%s.xml", *xml_outfile);
     if (*xml_outfile == NULL)
     {
-        sprintf (errmsg, "XML output file is a required argument");
+        sprintf (errmsg, "XML output file was not correctly generated");
         error_handler (true, FUNC_NAME, errmsg);
-        usage ();
         return (ERROR);
     }
 

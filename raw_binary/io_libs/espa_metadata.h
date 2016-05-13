@@ -29,11 +29,11 @@ NOTES:
    but the schema version will contain the major and minor version number
    (i.e. 1.2) */
 #define LIBXML_SCHEMAS_ENABLED
-#define ESPA_SCHEMA_VERSION "1.3"
+#define ESPA_SCHEMA_VERSION "2.0"
 #define ESPA_NS "http://espa.cr.usgs.gov/v1"
 #define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v1"
-#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_3.xsd"
-#define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v1_3.xsd"
+#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v2_0.xsd"
+#define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v2_0.xsd"
 
 /* Data types */
 enum Espa_data_type
@@ -134,7 +134,7 @@ typedef struct
     int wrs_path;                 /* WRS path of this scene */
     int wrs_row;                  /* WRS row of this scene */
     char scene_center_time[STR_SIZE];  /* GMT time at scene center */
-    char scene_id[STR_SIZE];      /* scene ID */
+    char product_id[STR_SIZE];    /* product ID */
     char lpgs_metadata_file[STR_SIZE]; /* name of LPGS metadata file */
     float orientation_angle;      /* orientation angle of the scene (degrees) */
     float solar_zenith;           /* solar zenith angle (degrees) */

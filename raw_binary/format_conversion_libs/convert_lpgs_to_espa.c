@@ -82,7 +82,7 @@ int read_lpgs_mtl
     double ur_corner[2];     /* geographic UR lat, long */
     double ll_corner[2];     /* geographic LL lat, long */
     char *cptr = NULL;       /* pointer to the '_' in the band name */
-    char scene_id[STR_SIZE]; /* LPGS scene ID */
+    char product_id[STR_SIZE]; /* LPGS product ID */
     char band_fname[MAX_LPGS_BANDS][STR_SIZE];  /* filenames for each band */
     int band_min[MAX_LPGS_BANDS];  /* minimum value for each band */
     int band_max[MAX_LPGS_BANDS];  /* maximum value for each band */
@@ -1000,21 +1000,21 @@ int read_lpgs_mtl
     }
     bmeta = metadata->band;
 
-    /* Strip the scene ID from the LPGS band name */
-    count = snprintf (scene_id, sizeof (scene_id), "%s", band_fname[0]);
-    if (count < 0 || count >= sizeof (scene_id))
+    /* Strip the product ID from the LPGS band name */
+    count = snprintf (product_id, sizeof (product_id), "%s", band_fname[0]);
+    if (count < 0 || count >= sizeof (product_id))
     {
-        sprintf (errmsg, "Overflow of scene_id string");
+        sprintf (errmsg, "Overflow of product_id string");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
 
-    cptr = strrchr (scene_id, '_');
+    cptr = strrchr (product_id, '_');
     if (cptr == NULL)
     {
         sprintf (errmsg, "Unsuspected format for the filename.  Expected "
-            "{scene_id}_Bx.* however no '_' was found in the filename: %s.",
-            scene_id);
+            "{product_id}_Bx.* however no '_' was found in the filename: %s.",
+            product_id);
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
@@ -1162,7 +1162,7 @@ int read_lpgs_mtl
             sprintf (bmeta[i].long_name, "band %s digital numbers",
               band_num[i]);
             count = snprintf (bmeta[i].file_name, sizeof (bmeta[i].file_name),
-                "%s_B%s.img", scene_id, band_num[i]);
+                "%s_B%s.img", product_id, band_num[i]);
             if (count < 0 || count >= sizeof (bmeta[i].file_name))
             {
                 sprintf (errmsg, "Overflow of bmeta[i].file_name");
@@ -1175,7 +1175,7 @@ int read_lpgs_mtl
             strcpy (bmeta[i].name, "qa");
             strcpy (bmeta[i].long_name, "band quality");
             count = snprintf (bmeta[i].file_name, sizeof (bmeta[i].file_name),
-                "%s_BQA.img", scene_id);
+                "%s_BQA.img", product_id);
             if (count < 0 || count >= sizeof (bmeta[i].file_name))
             {
                 sprintf (errmsg, "Overflow of bmeta[i].file_name string");
@@ -1586,19 +1586,19 @@ int convert_lpgs_to_espa
         return (ERROR);
     }
 
-    /* Add the scene ID which is pulled from the MTL filename
-       ({scene_id}_MTL.txt) */
-    count = snprintf (xml_metadata.global.scene_id,
-        sizeof (xml_metadata.global.scene_id), "%s", lpgs_mtl_file);
-    if (count < 0 || count >= sizeof (xml_metadata.global.scene_id))
+    /* Add the product ID which is pulled from the MTL filename
+       ({product_id}_MTL.txt) */
+    count = snprintf (xml_metadata.global.product_id,
+        sizeof (xml_metadata.global.product_id), "%s", lpgs_mtl_file);
+    if (count < 0 || count >= sizeof (xml_metadata.global.product_id))
     {
-        sprintf (errmsg, "Overflow of xml_metadata.global.scene_id string");
+        sprintf (errmsg, "Overflow of xml_metadata.global.product_id string");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
 
-    /* Strip off the _MTL.txt filename extension to get the actual scene name */
-    cptr = strrchr (xml_metadata.global.scene_id, '_');
+    /* Strip off _MTL.txt filename extension to get the actual product name */
+    cptr = strrchr (xml_metadata.global.product_id, '_');
     *cptr = '\0';
 
     /* Write the metadata from our internal metadata structure to the output

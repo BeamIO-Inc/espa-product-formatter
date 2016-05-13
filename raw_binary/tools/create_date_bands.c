@@ -339,9 +339,9 @@ int main (int argc, char** argv)
                 break;
         }
 
-        /* Use the scene name to create the date filename */
+        /* Use the product name to create the date filename */
         snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name), "%s_%s",
-            gmeta->scene_id, tmp_ext);
+            gmeta->product_id, tmp_ext);
 
         out_bmeta->resample_method = ESPA_NN;
         out_bmeta->nlines = nlines;

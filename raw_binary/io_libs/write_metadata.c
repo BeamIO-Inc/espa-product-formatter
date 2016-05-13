@@ -122,9 +122,9 @@ int write_metadata
         "        <modis htile=\"%d\" vtile=\"%d\"/>\n",
         gmeta->htile, gmeta->vtile);
 
-    if (strcmp (gmeta->scene_id, ESPA_STRING_META_FILL))
+    if (strcmp (gmeta->product_id, ESPA_STRING_META_FILL))
         fprintf (fptr,
-        "        <scene_id>%s</scene_id>\n", gmeta->scene_id);
+        "        <product_id>%s</product_id>\n", gmeta->product_id);
 
     if (strcmp (gmeta->lpgs_metadata_file, ESPA_STRING_META_FILL))
         fprintf (fptr,
@@ -720,7 +720,7 @@ void print_metadata_struct
     printf ("  wrs_row: %d\n", metadata->global.wrs_row);
     printf ("  htile: %d\n", metadata->global.htile);
     printf ("  vtile: %d\n", metadata->global.vtile);
-    printf ("  scene_id: %s\n", metadata->global.scene_id);
+    printf ("  product_id: %s\n", metadata->global.product_id);
     printf ("  lpgs_metadata_file: %s\n",
         metadata->global.lpgs_metadata_file);
     printf ("  ul_corner (lat, long): %f %f\n",

@@ -1126,7 +1126,7 @@ int add_global_metadata
             return (ERROR);
         }
     }
-    else if (xmlStrEqual (cur_node->name, (const xmlChar *) "scene_id"))
+    else if (xmlStrEqual (cur_node->name, (const xmlChar *) "product_id"))
     {
         /* Expect the child node to be a text node containing the value of
            this field */
@@ -1139,11 +1139,11 @@ int add_global_metadata
         }
 
         /* Copy the content of the child node into the value for this field */
-        count = snprintf (gmeta->scene_id, sizeof (gmeta->scene_id), "%s",
+        count = snprintf (gmeta->product_id, sizeof (gmeta->product_id), "%s",
             (const char *) child_node->content);
-        if (count < 0 || count >= sizeof (gmeta->scene_id))
+        if (count < 0 || count >= sizeof (gmeta->product_id))
         {
-            sprintf (errmsg, "Overflow of gmeta->scene_id string");
+            sprintf (errmsg, "Overflow of gmeta->product_id string");
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }
