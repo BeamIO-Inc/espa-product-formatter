@@ -373,13 +373,13 @@ int read_lpgs_mtl
 
             /* ALBERS projection parameters (in addition to false easting and
                northing under PS proj params) */
-            else if (!strcmp (label, "STANDARD_PARALLEL_1"))
+            else if (!strcmp (label, "STANDARD_PARALLEL_1_LAT"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.standard_parallel1);
-            else if (!strcmp (label, "STANDARD_PARALLEL_2"))
+            else if (!strcmp (label, "STANDARD_PARALLEL_2_LAT"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.standard_parallel2);
-            else if (!strcmp (label, "CENTRAL_MERIDIAN"))
+            else if (!strcmp (label, "CENTRAL_MERIDIAN_LON"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.central_meridian);
-            else if (!strcmp (label, "ORIGIN_LATITUDE"))
+            else if (!strcmp (label, "ORIGIN_LAT"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.origin_latitude);
 
             else if (!strcmp (label, "RESAMPLING_OPTION"))
