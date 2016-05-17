@@ -313,22 +313,17 @@ class BaseElevation(object):
         # RAMP lat coordinate limits
         self.ramp_south_limit = -60.0
 
-        # WGS84 Information
+        # WGS84 GEOID Adjustment Information
         self.wgs84_dir = 'geoid'
         self.wgs84_header_name = 'geoid.hdr'
-        self.wgs84_image_name = 'geoid.dem'
-        self.wgs84_projection_name = 'geoid.prj'
+        self.wgs84_image_name = 'geoid.img'
 
         self.wgs84_header_path = os.path.join(self.espa_elevation_dir,
                                               self.wgs84_dir,
-                                              self.wgs84_header_name.upper())
+                                              self.wgs84_header_name)
         self.wgs84_image_path = os.path.join(self.espa_elevation_dir,
                                              self.wgs84_dir,
-                                             self.wgs84_image_name.upper())
-        self.wgs84_projection_path = os.path.join(self.espa_elevation_dir,
-                                                  self.wgs84_dir,
-                                                  self.wgs84_projection_name
-                                                  .upper())
+                                             self.wgs84_image_name)
 
         # RAMP Information
         self.ramp_dir = 'ramp'
@@ -883,7 +878,6 @@ class BaseElevation(object):
             # Should only need to test for one of them
             os.symlink(self.wgs84_header_path, self.wgs84_header_name)
             os.symlink(self.wgs84_image_path, self.wgs84_image_name)
-            os.symlink(self.wgs84_projection_path, self.wgs84_projection_name)
 
         image_extents = {'min_x': self.min_x_extent,
                          'min_y': self.min_y_extent,
@@ -904,7 +898,6 @@ class BaseElevation(object):
         # Remove the symlink to the WGS84 GEOID
         os.unlink(self.wgs84_header_name)
         os.unlink(self.wgs84_image_name)
-        os.unlink(self.wgs84_projection_name)
 
         # Open the WGS84 and elevation datasets
         geoid_ds = gdal.Open(geoid_image_name)
@@ -1172,7 +1165,7 @@ class XMLElevation(BaseElevation):
                                      .format(product_id))
 
         for band in espa_metadata.xml_object.bands.band:
-            if (band.attrib['product'] in ['L1T', 'L1G', 'L1GT'] and
+            if (band.attrib['product'] in ['L1T', 'L1G', 'L1S', 'L1GT'] and
                     band.attrib['name'] == 'band1'):
                 self.target_srs = (
                     Geo.get_proj4_projection_string(str(band.file_name)))

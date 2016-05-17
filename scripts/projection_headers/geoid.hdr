@@ -1,0 +1,13 @@
+ENVI
+description = {Adjustments to get to the GEOID}
+samples = 721
+lines   = 361
+bands   = 1
+header offset = 0
+file type = ENVI Standard
+data type = 2
+interleave = bsq
+byte order = 0
+map info = {Geographic Lat/Lon, 1, 1, -180.25, 90.25, 0.5, 0.5,WGS-84}
+coordinate system string = {GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]}
+band names = {GEOID Adjustment}
