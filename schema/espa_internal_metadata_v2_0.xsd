@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-targetNamespace="http://espa.cr.usgs.gov/v1"
-xmlns="http://espa.cr.usgs.gov/v1"
+targetNamespace="http://espa.cr.usgs.gov/v2"
+xmlns="http://espa.cr.usgs.gov/v2"
 elementFormDefault="qualified">
 
 <!-- definition of simple types -->
