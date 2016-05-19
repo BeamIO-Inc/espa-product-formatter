@@ -35,18 +35,14 @@ void usage ()
             "files).\n\n");
     printf ("usage: convert_modis_to_espa "
             "--hdf=input_hdf_filename "
-            "--xml=output_xml_filename "
             "[--del_src_files]\n");
 
     printf ("\nwhere the following parameters are required:\n");
     printf ("    -hdf: name of the input MODIS HDF file\n");
-    printf ("    -xml: name of the output XML metadata file which follows "
-            "the ESPA internal raw binary schema\n");
     printf ("    -del_src_files: if specified the source HDF file will "
             "be removed.\n");
     printf ("\nExample: convert_modis_to_espa "
-            "--hdf=MOD09A1.A2013241.h08v05.005.2013252120055.hdf "
-            "--xml=MOD09A1.A2013241.h08v05.005.2013252120055.xml\n");
+            "--hdf=MOD09A1.A2013241.h08v05.005.2013252120055.hdf\n");
 }
 
 
@@ -80,6 +76,7 @@ short get_args
 {
     int c;                           /* current argument index */
     int option_index;                /* index for the command-line option */
+    char *cptr = NULL;               /* pointer to .hdf in HDF filename */
     char errmsg[STR_SIZE];           /* error message */
     char FUNC_NAME[] = "get_args";   /* function name */
     static int del_flag = 0;         /* flag for removing the source files */
@@ -87,7 +84,6 @@ short get_args
     {
         {"del_src_files", no_argument, &del_flag, 1},
         {"hdf", required_argument, 0, 'i'},
-        {"xml", required_argument, 0, 'o'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
@@ -120,10 +116,6 @@ short get_args
                 *hdf_infile = strdup (optarg);
                 break;
      
-            case 'o':  /* XML outfile */
-                *xml_outfile = strdup (optarg);
-                break;
-     
             case '?':
             default:
                 sprintf (errmsg, "Unknown option %s", argv[optind-1]);
@@ -134,7 +126,7 @@ short get_args
         }
     }
 
-    /* Make sure the infiles and outfiles were specified */
+    /* Make sure the input HDF file was specified */
     if (*hdf_infile == NULL)
     {
         sprintf (errmsg, "MODIS HDF input file is a required argument");
@@ -143,11 +135,16 @@ short get_args
         return (ERROR);
     }
 
+    /* Generate the XML filename from the HDF filename.  Find the .hdf and
+       change that to .xml. */
+    *xml_outfile = strdup (*hdf_infile);
+    cptr = strrchr (*xml_outfile, '.');
+    *cptr = '\0';
+    sprintf (*xml_outfile, "%s.xml", *xml_outfile);
     if (*xml_outfile == NULL)
     {
-        sprintf (errmsg, "XML output file is a required argument");
+        sprintf (errmsg, "XML output file was not correctly generated");
         error_handler (true, FUNC_NAME, errmsg);
-        usage ();
         return (ERROR);
     }
 
