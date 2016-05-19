@@ -30,8 +30,8 @@ NOTES:
    (i.e. 1.2) */
 #define LIBXML_SCHEMAS_ENABLED
 #define ESPA_SCHEMA_VERSION "2.0"
-#define ESPA_NS "http://espa.cr.usgs.gov/v1"
-#define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v1"
+#define ESPA_NS "http://espa.cr.usgs.gov/v2"
+#define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v2"
 #define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v2_0.xsd"
 #define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v2_0.xsd"
 
