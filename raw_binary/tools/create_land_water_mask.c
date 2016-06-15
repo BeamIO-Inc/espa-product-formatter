@@ -293,8 +293,8 @@ int main (int argc, char** argv)
     out_bmeta->pixel_size[1] = bmeta->pixel_size[1];
     strcpy (out_bmeta->pixel_units, bmeta->pixel_units);
     strcpy (out_bmeta->data_units, "quality/feature classification");
-    out_bmeta->valid_range[0] = 0;
-    out_bmeta->valid_range[1] = 1;
+    out_bmeta->valid_range[0] = 0.0;
+    out_bmeta->valid_range[1] = 1.0;
     sprintf (out_bmeta->app_version, "create_land_water_mask_%s",
         ESPA_COMMON_VERSION);
 

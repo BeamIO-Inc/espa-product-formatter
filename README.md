@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.7.0 Release Notes
-Release Date: May 2016
+## ESPA-PRODUCT_FORMATTER Version 1.8.0 Release Notes
+Release Date: August 2016
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -10,7 +10,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.7.0]
+See git tag [version_1.8.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -88,9 +88,12 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Updated the LOCAL_ESPA_SCHEMA define to point to espa-product-formatter vs.
-    the outdated espa-common name.
-  * Modified the schema to allow the 'source' for the bands to be a generic
-    text vs. a specified list of options.
-  * Confirmed the L1T filenames are supported for both the legacy L1T filenames
-    as well as the new Landsat Collection filenames.
+  * Changed the scene_id in the XML schema to product_id in addition to the
+    XML output files.
+  * Confirmed that Alaska and Hawaii Albers will be supported by this release.
+  * Modified the convert_*_to_espa routines to automatically determine the
+    name of the XML file, given the MTL file.  The --xml command-line parameter
+    is no longer supported for the XML filename.
+  * Changed the valid_range data type from long to float.  The bands can be
+    of floating point data types, so this valid range should support the
+    floating point range.

@@ -320,8 +320,8 @@ int main (int argc, char** argv)
                 sprintf (out_bmeta->short_name, "%sDOY", tmpstr);
                 strcpy (out_bmeta->long_name, "day of year");
                 sprintf (tmp_ext, "doy.img");
-                out_bmeta->valid_range[0] = 1;
-                out_bmeta->valid_range[1] = 366;
+                out_bmeta->valid_range[0] = 1.0;
+                out_bmeta->valid_range[1] = 366.0;
                 strcpy (out_bmeta->data_units, "date");
                 break;
 
@@ -333,8 +333,8 @@ int main (int argc, char** argv)
                 sprintf (out_bmeta->short_name, "%sYEAR", tmpstr);
                 strcpy (out_bmeta->long_name, "year");
                 sprintf (tmp_ext, "year.img");
-                out_bmeta->valid_range[0] = 1970;
-                out_bmeta->valid_range[1] = 9999;
+                out_bmeta->valid_range[0] = 1970.0;
+                out_bmeta->valid_range[1] = 9999.0;
                 strcpy (out_bmeta->data_units, "date");
                 break;
         }

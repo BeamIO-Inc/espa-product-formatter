@@ -170,8 +170,7 @@ typedef struct
     double pixel_size[2];        /* pixel size x, y */
     char pixel_units[STR_SIZE];  /* units for pixel size (meters, degrees) */
     char data_units[STR_SIZE];   /* units of data stored in this band */
-    long valid_range[2];         /* use long to support the long data types
-                                    min, max */
+    float valid_range[2];        /* min, max valid value for this band */
     double rad_gain;             /* gain values for TOA radiance conversion */
     double rad_bias;             /* bias values for TOA radiance conversion */
     double refl_gain;            /* gain values for TOA reflectance conversion*/

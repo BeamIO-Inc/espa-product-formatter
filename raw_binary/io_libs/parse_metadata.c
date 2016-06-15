@@ -1894,9 +1894,9 @@ int add_band_metadata
             {
                 attr_val = xmlGetProp (cur_node, attr->name);
                 if (xmlStrEqual (attr->name, (const xmlChar *) "min"))
-                    bmeta->valid_range[0] = atol ((const char *) attr_val);
+                    bmeta->valid_range[0] = atof ((const char *) attr_val);
                 else if (xmlStrEqual (attr->name, (const xmlChar *) "max"))
-                    bmeta->valid_range[1] = atol ((const char *) attr_val);
+                    bmeta->valid_range[1] = atof ((const char *) attr_val);
                 else
                 {
                     sprintf (errmsg, "WARNING: unknown attribute for element "
