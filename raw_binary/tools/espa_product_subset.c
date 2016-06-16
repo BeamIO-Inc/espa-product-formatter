@@ -50,7 +50,7 @@ void usage ()
     printf ("\nExample: espa_product_subset "
             "--xml=LE70230282011250EDC00.xml "
             "--subset_xml=LE70230282011250EDC00_subset.xml "
-            "--product L1G --product L1T --product surface_reflectance\n");
+            "--product L1GT --product L1TP --product surface_reflectance\n");
 }
 
 

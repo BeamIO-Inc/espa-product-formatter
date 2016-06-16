@@ -1,7 +1,7 @@
 /*****************************************************************************
 FILE:  generate_land_water_mask
   
-PURPOSE: This application generates a land/water mask for L1G and L1T products,
+PURPOSE: This application generates a land/water mask for Level-1 products,
 based on an input land-mask polygon.
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
@@ -113,7 +113,7 @@ int generate_land_water_mask
             xml_meta->band[refl_indx].pixel_size[1];
     }
 
-    /* Set the l1g image band metadata to image structure */
+    /* Set the level-1 image band metadata to image structure */
     mask_image.corners = (struct IAS_CORNERS)
         {
             {upper_left_x, upper_left_y},
