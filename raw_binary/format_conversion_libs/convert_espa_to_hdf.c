@@ -376,8 +376,8 @@ int write_sds_attributes
         return (ERROR);
     }
 
-    if (bmeta->valid_range[0] != ESPA_INT_META_FILL &&
-        bmeta->valid_range[1] != ESPA_INT_META_FILL)
+    if (fabs (bmeta->valid_range[0] - ESPA_FLOAT_META_FILL) > ESPA_EPSILON &&
+        fabs (bmeta->valid_range[1] - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
     {
         attr.type = DFNT_INT32;
         attr.nval = 2;

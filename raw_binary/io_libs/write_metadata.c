@@ -320,11 +320,13 @@ int write_metadata
                 "            <data_units>%s</data_units>\n",
                 bmeta[i].data_units);
 
-        if (bmeta[i].valid_range[0] != ESPA_INT_META_FILL &&
-            bmeta[i].valid_range[1] != ESPA_INT_META_FILL)
+        if (fabs (bmeta[i].valid_range[0] - ESPA_FLOAT_META_FILL) >
+            ESPA_EPSILON &&
+            fabs (bmeta[i].valid_range[1] - ESPA_FLOAT_META_FILL) >
+            ESPA_EPSILON)
         {
             fprintf (fptr,
-                "            <valid_range min=\"%ld\" max=\"%ld\"/>\n",
+                "            <valid_range min=\"%f\" max=\"%f\"/>\n",
                 bmeta[i].valid_range[0], bmeta[i].valid_range[1]);
         }
 
@@ -579,11 +581,13 @@ int append_metadata
                 "            <data_units>%s</data_units>\n",
                 bmeta[i].data_units);
 
-        if (bmeta[i].valid_range[0] != ESPA_INT_META_FILL &&
-            bmeta[i].valid_range[1] != ESPA_INT_META_FILL)
+        if (fabs (bmeta[i].valid_range[0] - ESPA_FLOAT_META_FILL) >
+            ESPA_EPSILON &&
+            fabs (bmeta[i].valid_range[1] - ESPA_FLOAT_META_FILL) >
+            ESPA_EPSILON)
         {
             fprintf (fptr,
-                "            <valid_range min=\"%ld\" max=\"%ld\"/>\n",
+                "            <valid_range min=\"%f\" max=\"%f\"/>\n",
                 bmeta[i].valid_range[0], bmeta[i].valid_range[1]);
         }
 
@@ -840,10 +844,10 @@ void print_metadata_struct
         printf ("    pixel_size (x, y) : %g %g\n",
             metadata->band[i].pixel_size[0], metadata->band[i].pixel_size[1]);
         printf ("    data_units: %s\n", metadata->band[i].data_units);
-        if (metadata->band[i].valid_range[0] != 0 ||
-            metadata->band[i].valid_range[1] != 0)
+        if (metadata->band[i].valid_range[0] != 0.0 ||
+            metadata->band[i].valid_range[1] != 0.0)
         {
-            printf ("    valid_range (x, y) : %ld %ld\n",
+            printf ("    valid_range (x, y) : %g %g\n",
                 metadata->band[i].valid_range[0],
                 metadata->band[i].valid_range[1]);
         }

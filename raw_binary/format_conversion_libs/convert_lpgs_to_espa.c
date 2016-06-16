@@ -1061,8 +1061,8 @@ int read_lpgs_mtl
             return (ERROR);
         }
 
-        bmeta[i].valid_range[0] = band_min[i];
-        bmeta[i].valid_range[1] = band_max[i];
+        bmeta[i].valid_range[0] = (float) band_min[i];
+        bmeta[i].valid_range[1] = (float) band_max[i];
 
         if (gain_bias_available)
         {
@@ -1228,8 +1228,8 @@ int read_lpgs_mtl
             }
 
             bmeta[i].data_type = ESPA_UINT16;
-            bmeta[i].valid_range[0] = 0;
-            bmeta[i].valid_range[1] = 65535;
+            bmeta[i].valid_range[0] = 0.0;
+            bmeta[i].valid_range[1] = 65535.0;
             bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
             bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
 
