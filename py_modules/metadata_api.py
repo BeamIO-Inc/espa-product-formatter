@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Tue Apr  5 08:21:06 2016 by generateDS.py version 2.12b.
+# Generated Thu Jun 16 14:59:02 2016 by generateDS.py version 2.12b.
 #
 # Generated with the ESPA modified version of generateDS.py
 # See espa google code project.
@@ -2623,8 +2623,8 @@ class valid_range(GeneratedsSuper):
     subclass = None
     superclass = None
     def __init__(self, min=None, max=None):
-        self.min = _cast(int, min)
-        self.max = _cast(int, max)
+        self.min = _cast(float, min)
+        self.max = _cast(float, max)
         pass
     def factory(*args_, **kwargs_):
         if valid_range.subclass:
@@ -2672,10 +2672,10 @@ class valid_range(GeneratedsSuper):
     def exportAttributes(self, outfile, level, already_processed, namespace_='', name_='valid_range'):
         if self.min is not None and 'min' not in already_processed:
             already_processed.add('min')
-            outfile.write(' min="%s"' % self.gds_format_integer(self.min, input_name='min'))
+            outfile.write(' min="%s"' % self.gds_format_float(self.min, input_name='min'))
         if self.max is not None and 'max' not in already_processed:
             already_processed.add('max')
-            outfile.write(' max="%s"' % self.gds_format_integer(self.max, input_name='max'))
+            outfile.write(' max="%s"' % self.gds_format_float(self.max, input_name='max'))
     def exportChildren(self, outfile, level, namespace_='', name_='valid_range', fromsubclass_=False, pretty_print=True):
         pass
     def exportLiteral(self, outfile, level, name_='valid_range'):
@@ -2688,11 +2688,11 @@ class valid_range(GeneratedsSuper):
         if self.min is not None and 'min' not in already_processed:
             already_processed.add('min')
             showIndent(outfile, level)
-            outfile.write('min=%d,\n' % (self.min,))
+            outfile.write('min=%f,\n' % (self.min,))
         if self.max is not None and 'max' not in already_processed:
             already_processed.add('max')
             showIndent(outfile, level)
-            outfile.write('max=%d,\n' % (self.max,))
+            outfile.write('max=%f,\n' % (self.max,))
     def exportLiteralChildren(self, outfile, level, name_):
         pass
     def build(self, node):
@@ -2707,16 +2707,16 @@ class valid_range(GeneratedsSuper):
         if value is not None and 'min' not in already_processed:
             already_processed.add('min')
             try:
-                self.min = int(value)
+                self.min = float(value)
             except ValueError, exp:
-                raise_parse_error(node, 'Bad integer attribute: %s' % exp)
+                raise ValueError('Bad float/double attribute (min): %s' % exp)
         value = find_attr_value_('max', node)
         if value is not None and 'max' not in already_processed:
             already_processed.add('max')
             try:
-                self.max = int(value)
+                self.max = float(value)
             except ValueError, exp:
-                raise_parse_error(node, 'Bad integer attribute: %s' % exp)
+                raise ValueError('Bad float/double attribute (max): %s' % exp)
     def buildChildren(self, child_, node, nodeName_, fromsubclass_=False):
         pass
 # end class valid_range
@@ -3903,7 +3903,7 @@ class espa_metadata(GeneratedsSuper):
 class global_metadataType(GeneratedsSuper):
     subclass = None
     superclass = None
-    def __init__(self, data_provider=None, satellite=None, instrument=None, acquisition_date=None, scene_center_time=None, level1_production_date=None, solar_angles=None, earth_sun_distance=None, wrs=None, modis=None, scene_id=None, lpgs_metadata_file=None, corner=None, bounding_coordinates=None, projection_information=None, orientation_angle=None):
+    def __init__(self, data_provider=None, satellite=None, instrument=None, acquisition_date=None, scene_center_time=None, level1_production_date=None, solar_angles=None, earth_sun_distance=None, wrs=None, modis=None, product_id=None, lpgs_metadata_file=None, corner=None, bounding_coordinates=None, projection_information=None, orientation_angle=None):
         self.data_provider = data_provider
         self.satellite = satellite
         self.instrument = instrument
@@ -3926,7 +3926,7 @@ class global_metadataType(GeneratedsSuper):
         self.earth_sun_distance = earth_sun_distance
         self.wrs = wrs
         self.modis = modis
-        self.scene_id = scene_id
+        self.product_id = product_id
         self.lpgs_metadata_file = lpgs_metadata_file
         if corner is None:
             self.corner = []
@@ -3961,8 +3961,8 @@ class global_metadataType(GeneratedsSuper):
     def set_wrs(self, wrs): self.wrs = wrs
     def get_modis(self): return self.modis
     def set_modis(self, modis): self.modis = modis
-    def get_scene_id(self): return self.scene_id
-    def set_scene_id(self, scene_id): self.scene_id = scene_id
+    def get_product_id(self): return self.product_id
+    def set_product_id(self, product_id): self.product_id = product_id
     def get_lpgs_metadata_file(self): return self.lpgs_metadata_file
     def set_lpgs_metadata_file(self, lpgs_metadata_file): self.lpgs_metadata_file = lpgs_metadata_file
     def get_corner(self): return self.corner
@@ -3987,7 +3987,7 @@ class global_metadataType(GeneratedsSuper):
             self.earth_sun_distance is not None or
             self.wrs is not None or
             self.modis is not None or
-            self.scene_id is not None or
+            self.product_id is not None or
             self.lpgs_metadata_file is not None or
             self.corner or
             self.bounding_coordinates is not None or
@@ -4058,9 +4058,9 @@ class global_metadataType(GeneratedsSuper):
             self.wrs.export(outfile, level, namespace_, name_='wrs', pretty_print=pretty_print)
         if self.modis is not None:
             self.modis.export(outfile, level, namespace_, name_='modis', pretty_print=pretty_print)
-        if self.scene_id is not None:
+        if self.product_id is not None:
             showIndent(outfile, level, pretty_print)
-            outfile.write('<%sscene_id>%s</%sscene_id>%s' % (namespace_, self.gds_format_string(quote_xml(self.scene_id).encode(ExternalEncoding), input_name='scene_id'), namespace_, eol_))
+            outfile.write('<%sproduct_id>%s</%sproduct_id>%s' % (namespace_, self.gds_format_string(quote_xml(self.product_id).encode(ExternalEncoding), input_name='product_id'), namespace_, eol_))
         if self.lpgs_metadata_file is not None:
             showIndent(outfile, level, pretty_print)
             outfile.write('<%slpgs_metadata_file>%s</%slpgs_metadata_file>%s' % (namespace_, self.gds_format_string(quote_xml(self.lpgs_metadata_file).encode(ExternalEncoding), input_name='lpgs_metadata_file'), namespace_, eol_))
@@ -4121,9 +4121,9 @@ class global_metadataType(GeneratedsSuper):
             self.modis.exportLiteral(outfile, level)
             showIndent(outfile, level)
             outfile.write('),\n')
-        if self.scene_id is not None:
+        if self.product_id is not None:
             showIndent(outfile, level)
-            outfile.write('scene_id=%s,\n' % quote_python(self.scene_id).encode(ExternalEncoding))
+            outfile.write('product_id=%s,\n' % quote_python(self.product_id).encode(ExternalEncoding))
         if self.lpgs_metadata_file is not None:
             showIndent(outfile, level)
             outfile.write('lpgs_metadata_file=%s,\n' % quote_python(self.lpgs_metadata_file).encode(ExternalEncoding))
@@ -4208,10 +4208,10 @@ class global_metadataType(GeneratedsSuper):
             obj_ = modis.factory()
             obj_.build(child_)
             self.modis = obj_
-        elif nodeName_ == 'scene_id':
-            scene_id_ = child_.text
-            scene_id_ = self.gds_validate_string(scene_id_, node, 'scene_id')
-            self.scene_id = scene_id_
+        elif nodeName_ == 'product_id':
+            product_id_ = child_.text
+            product_id_ = self.gds_validate_string(product_id_, node, 'product_id')
+            self.product_id = product_id_
         elif nodeName_ == 'lpgs_metadata_file':
             lpgs_metadata_file_ = child_.text
             lpgs_metadata_file_ = self.gds_validate_string(lpgs_metadata_file_, node, 'lpgs_metadata_file')
@@ -4533,10 +4533,10 @@ def validate_xml(rootObj, xmlns=None, xmlns_xsi=None, schema_uri=None):
 
 # ESPA - Added a module method to allow exporting from the module level with
 #        validation
-def export(outFile, rootObj, xmlns='http://espa.cr.usgs.gov/v1', xmlns_xsi='http://www.w3.org/2001/XMLSchema-instance', schema_uri='http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_3.xsd'):
+def export(outFile, rootObj, xmlns='http://espa.cr.usgs.gov/v1', xmlns_xsi='http://www.w3.org/2001/XMLSchema-instance', schema_uri='http://espa.cr.usgs.gov/schema/espa_internal_metadata_v2_0.xsd'):
     ns_def = build_ns_def(xmlns, xmlns_xsi, schema_uri)
 
-    rootObj.set_version('1.3.0')
+    rootObj.set_version('2.0.0')
 
     xml_text = ''
     try:
