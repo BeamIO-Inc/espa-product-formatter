@@ -97,3 +97,5 @@ be needed for your application or other espa product formatter libraries may nee
   * Changed the valid_range data type from long to float.  The bands can be
     of floating point data types, so this valid range should support the
     floating point range.
+  * Support the new collection file naming convention with a 4-character product
+    ID versus 3 characters.
