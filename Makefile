@@ -3,7 +3,7 @@
 #
 # Project Name: product formatter
 #-----------------------------------------------------------------------------
-.PHONY: check-environment all install clean all-raw-binary install-raw-binary clean-raw-binary
+.PHONY: check-environment all install clean all-raw-binary install-raw-binary clean-raw-binary rpms schema-rpm
 
 include make.config
 
@@ -39,6 +39,13 @@ install-python:
 install-schema:
 	echo "make install in $(DIR_SCHEMA)"; \
         (cd $(DIR_SCHEMA); $(MAKE) install);
+
+#-----------------------------------------------------------------------------
+rpms:
+	rpmbuild -bb --clean RPM_spec_files/RPM.spec
+
+schema-rpm:
+	rpmbuild -bb --clean RPM_spec_files/RPM-SCHEMAS.spec
 
 #-----------------------------------------------------------------------------
 check-environment:
