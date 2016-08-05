@@ -167,7 +167,7 @@ void init_metadata_struct
     gmeta->htile = ESPA_INT_META_FILL;
     gmeta->vtile = ESPA_INT_META_FILL;
     strcpy (gmeta->lpgs_metadata_file, ESPA_STRING_META_FILL);
-    strcpy (gmeta->scene_id, ESPA_STRING_META_FILL);
+    strcpy (gmeta->product_id, ESPA_STRING_META_FILL);
     gmeta->ul_corner[0] = gmeta->ul_corner[1] = ESPA_FLOAT_META_FILL;
     gmeta->lr_corner[0] = gmeta->lr_corner[1] = ESPA_FLOAT_META_FILL;
     gmeta->bounding_coords[0] = ESPA_FLOAT_META_FILL;
@@ -252,7 +252,8 @@ int allocate_band_metadata
         bmeta[i].pixel_size[0] = bmeta[i].pixel_size[1] = ESPA_FLOAT_META_FILL;
         strcpy (bmeta[i].pixel_units, ESPA_STRING_META_FILL);
         strcpy (bmeta[i].data_units, ESPA_STRING_META_FILL);
-        bmeta[i].valid_range[0] = bmeta[i].valid_range[1] = ESPA_INT_META_FILL;
+        bmeta[i].valid_range[0] = bmeta[i].valid_range[1] =
+            ESPA_FLOAT_META_FILL;
         bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
         bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
         bmeta[i].refl_gain = ESPA_FLOAT_META_FILL;

@@ -29,11 +29,11 @@ NOTES:
    but the schema version will contain the major and minor version number
    (i.e. 1.2) */
 #define LIBXML_SCHEMAS_ENABLED
-#define ESPA_SCHEMA_VERSION "1.3"
-#define ESPA_NS "http://espa.cr.usgs.gov/v1"
-#define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v1"
-#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_3.xsd"
-#define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v1_3.xsd"
+#define ESPA_SCHEMA_VERSION "2.0"
+#define ESPA_NS "http://espa.cr.usgs.gov/v2"
+#define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v2"
+#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v2_0.xsd"
+#define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v2_0.xsd"
 
 /* Data types */
 enum Espa_data_type
@@ -134,7 +134,7 @@ typedef struct
     int wrs_path;                 /* WRS path of this scene */
     int wrs_row;                  /* WRS row of this scene */
     char scene_center_time[STR_SIZE];  /* GMT time at scene center */
-    char scene_id[STR_SIZE];      /* scene ID */
+    char product_id[STR_SIZE];    /* product ID */
     char lpgs_metadata_file[STR_SIZE]; /* name of LPGS metadata file */
     float orientation_angle;      /* orientation angle of the scene (degrees) */
     float solar_zenith;           /* solar zenith angle (degrees) */
@@ -170,8 +170,7 @@ typedef struct
     double pixel_size[2];        /* pixel size x, y */
     char pixel_units[STR_SIZE];  /* units for pixel size (meters, degrees) */
     char data_units[STR_SIZE];   /* units of data stored in this band */
-    long valid_range[2];         /* use long to support the long data types
-                                    min, max */
+    float valid_range[2];        /* min, max valid value for this band */
     double rad_gain;             /* gain values for TOA radiance conversion */
     double rad_bias;             /* bias values for TOA radiance conversion */
     double refl_gain;            /* gain values for TOA reflectance conversion*/

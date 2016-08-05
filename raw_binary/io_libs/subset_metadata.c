@@ -155,11 +155,11 @@ int subset_metadata_by_product
     outmeta->global.htile = inmeta->global.htile;
     outmeta->global.vtile = inmeta->global.vtile;
 
-    count = snprintf (outmeta->global.scene_id,
-        sizeof (outmeta->global.scene_id), "%s", inmeta->global.scene_id);
-    if (count < 0 || count >= sizeof (outmeta->global.scene_id))
+    count = snprintf (outmeta->global.product_id,
+        sizeof (outmeta->global.product_id), "%s", inmeta->global.product_id);
+    if (count < 0 || count >= sizeof (outmeta->global.product_id))
     {
-        sprintf (errmsg, "Overflow of outmeta->global.scene_id");
+        sprintf (errmsg, "Overflow of outmeta->global.product_id");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
@@ -640,11 +640,11 @@ int subset_metadata_by_band
     outmeta->global.htile = inmeta->global.htile;
     outmeta->global.vtile = inmeta->global.vtile;
 
-    count = snprintf (outmeta->global.scene_id,
-        sizeof (outmeta->global.scene_id), "%s", inmeta->global.scene_id);
-    if (count < 0 || count >= sizeof (outmeta->global.scene_id))
+    count = snprintf (outmeta->global.product_id,
+        sizeof (outmeta->global.product_id), "%s", inmeta->global.product_id);
+    if (count < 0 || count >= sizeof (outmeta->global.product_id))
     {
-        sprintf (errmsg, "Overflow of outmeta->global.scene_id");
+        sprintf (errmsg, "Overflow of outmeta->global.product_id");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }

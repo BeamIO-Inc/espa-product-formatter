@@ -142,14 +142,42 @@ Geoloc_t *setup_mapping
     this->cos_orien = cos (space_def->orientation_angle);
   
     /* Convert angular projection parameters to DMS the necessary projections */
-    if (this->def.proj_num == GCTP_PS_PROJ ||
-        this->def.proj_num == GCTP_ALBERS_PROJ)
+    if (this->def.proj_num == GCTP_PS_PROJ)
     {
+        /* Central meridian and origin of latitude */
         if (!degdms (&this->def.proj_param[4], &temp1, "DEG", "LON" ) ||
             !degdms (&this->def.proj_param[5], &temp2, "DEG", "LAT" ))
         {
             free (this);
-            sprintf (errmsg, "Converting PS or ALBERS angular parameters from "
+            sprintf (errmsg, "Converting PS angular parameters from degrees "
+                "to DMS");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (NULL);
+        }
+        this->def.proj_param[4] = temp1;
+        this->def.proj_param[5] = temp2;
+    }
+    else if (this->def.proj_num == GCTP_ALBERS_PROJ)
+    {
+        /* Standard parallels */
+        if (!degdms (&this->def.proj_param[2], &temp1, "DEG", "LON" ) ||
+            !degdms (&this->def.proj_param[3], &temp2, "DEG", "LAT" ))
+        {
+            free (this);
+            sprintf (errmsg, "Converting ALBERS angular parameters from "
+                "degrees to DMS");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (NULL);
+        }
+        this->def.proj_param[2] = temp1;
+        this->def.proj_param[3] = temp2;
+
+        /* Central meridian and origin of latitude */
+        if (!degdms (&this->def.proj_param[4], &temp1, "DEG", "LON" ) ||
+            !degdms (&this->def.proj_param[5], &temp2, "DEG", "LAT" ))
+        {
+            free (this);
+            sprintf (errmsg, "Converting ALBERS angular parameters from "
                 "degrees to DMS");
             error_handler (true, FUNC_NAME, errmsg);
             return (NULL);
@@ -363,12 +391,12 @@ bool get_geoloc_info
     Espa_global_meta_t *gmeta=&xml_metadata->global;  /* global metadata */
 
     /* Use 'band1' band-related metadata for the reflectance information for
-       Landsat.  If band1 isn't available then just use the first band in the
-       XML file (for MODIS and others). */
+       Landsat (Level 1 products).  If band1 isn't available then just use the
+       first band in the XML file (for MODIS and others). */
     for (i = 0; i < xml_metadata->nbands; i++)
     {
         if (!strcmp (xml_metadata->band[i].name, "band1") &&
-            !strncmp (xml_metadata->band[i].product, "L1", 2))  /* L1G or L1T */
+            !strncmp (xml_metadata->band[i].product, "L1", 2))
         {
             /* this is the index we'll use for Landsat band info */
             refl_indx = i;

@@ -122,9 +122,9 @@ int write_metadata
         "        <modis htile=\"%d\" vtile=\"%d\"/>\n",
         gmeta->htile, gmeta->vtile);
 
-    if (strcmp (gmeta->scene_id, ESPA_STRING_META_FILL))
+    if (strcmp (gmeta->product_id, ESPA_STRING_META_FILL))
         fprintf (fptr,
-        "        <scene_id>%s</scene_id>\n", gmeta->scene_id);
+        "        <product_id>%s</product_id>\n", gmeta->product_id);
 
     if (strcmp (gmeta->lpgs_metadata_file, ESPA_STRING_META_FILL))
         fprintf (fptr,
@@ -320,11 +320,13 @@ int write_metadata
                 "            <data_units>%s</data_units>\n",
                 bmeta[i].data_units);
 
-        if (bmeta[i].valid_range[0] != ESPA_INT_META_FILL &&
-            bmeta[i].valid_range[1] != ESPA_INT_META_FILL)
+        if (fabs (bmeta[i].valid_range[0] - ESPA_FLOAT_META_FILL) >
+            ESPA_EPSILON &&
+            fabs (bmeta[i].valid_range[1] - ESPA_FLOAT_META_FILL) >
+            ESPA_EPSILON)
         {
             fprintf (fptr,
-                "            <valid_range min=\"%ld\" max=\"%ld\"/>\n",
+                "            <valid_range min=\"%f\" max=\"%f\"/>\n",
                 bmeta[i].valid_range[0], bmeta[i].valid_range[1]);
         }
 
@@ -579,11 +581,13 @@ int append_metadata
                 "            <data_units>%s</data_units>\n",
                 bmeta[i].data_units);
 
-        if (bmeta[i].valid_range[0] != ESPA_INT_META_FILL &&
-            bmeta[i].valid_range[1] != ESPA_INT_META_FILL)
+        if (fabs (bmeta[i].valid_range[0] - ESPA_FLOAT_META_FILL) >
+            ESPA_EPSILON &&
+            fabs (bmeta[i].valid_range[1] - ESPA_FLOAT_META_FILL) >
+            ESPA_EPSILON)
         {
             fprintf (fptr,
-                "            <valid_range min=\"%ld\" max=\"%ld\"/>\n",
+                "            <valid_range min=\"%f\" max=\"%f\"/>\n",
                 bmeta[i].valid_range[0], bmeta[i].valid_range[1]);
         }
 
@@ -720,7 +724,7 @@ void print_metadata_struct
     printf ("  wrs_row: %d\n", metadata->global.wrs_row);
     printf ("  htile: %d\n", metadata->global.htile);
     printf ("  vtile: %d\n", metadata->global.vtile);
-    printf ("  scene_id: %s\n", metadata->global.scene_id);
+    printf ("  product_id: %s\n", metadata->global.product_id);
     printf ("  lpgs_metadata_file: %s\n",
         metadata->global.lpgs_metadata_file);
     printf ("  ul_corner (lat, long): %f %f\n",
@@ -840,10 +844,10 @@ void print_metadata_struct
         printf ("    pixel_size (x, y) : %g %g\n",
             metadata->band[i].pixel_size[0], metadata->band[i].pixel_size[1]);
         printf ("    data_units: %s\n", metadata->band[i].data_units);
-        if (metadata->band[i].valid_range[0] != 0 ||
-            metadata->band[i].valid_range[1] != 0)
+        if (metadata->band[i].valid_range[0] != 0.0 ||
+            metadata->band[i].valid_range[1] != 0.0)
         {
-            printf ("    valid_range (x, y) : %ld %ld\n",
+            printf ("    valid_range (x, y) : %g %g\n",
                 metadata->band[i].valid_range[0],
                 metadata->band[i].valid_range[1]);
         }
