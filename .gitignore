@@ -9,6 +9,7 @@ raw_binary/include/
 raw_binary/tools/convert_espa_to_bip
 raw_binary/tools/convert_espa_to_gtif
 raw_binary/tools/convert_espa_to_hdf
+raw_binary/tools/convert_espa_to_netcdf
 raw_binary/tools/convert_lpgs_to_espa
 raw_binary/tools/convert_modis_to_espa
 raw_binary/tools/create_date_bands
