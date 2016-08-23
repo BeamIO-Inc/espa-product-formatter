@@ -180,12 +180,17 @@ LIB12   = \
     -L$(HDFEOS_GCTPLIB) -lGctp \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
-    -L$(ZLIBLIB) -lz \
     -L$(LZMALIB) -llzma \
     -L$(SZIPLIB) -lsz \
-    -L$(HDF5LIB) -lhdf5_hl -lhdf5 \
     -L$(NCDF4LIB) -lnetcdf \
-    $(MATHLIB)
+    -L$(HDF5LIB) -lhdf5_hl -lhdf5 \
+    -L$(CURLLIB) -lcurl \
+    -L$(IDNLIB) -lidn \
+    -L$(ZLIBLIB) -lz \
+    $(MATHLIB) \
+    -lpthread \
+    -lrt \
+    -ldl
 
 # Define C executables
 EXE1 = convert_lpgs_to_espa
