@@ -174,18 +174,18 @@ LIB11   = \
 
 LIB12   = \
     -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
-    -L$(XML2LIB) -lxml2 \
+    -L$(NCDF4LIB) -lnetcdf \
     -L$(HDFLIB) -lmfhdf -ldf \
     -L$(HDFEOS_LIB) -lhdfeos \
     -L$(HDFEOS_GCTPLIB) -lGctp \
+    -L$(HDF5LIB) -lhdf5_hl -lhdf5 \
+    -L$(CURLLIB) -lcurl \
+    -L$(IDNLIB) -lidn \
+    -L$(XML2LIB) -lxml2 \
     -L$(JPEGLIB) -ljpeg \
     -L$(JBIGLIB) -ljbig \
     -L$(LZMALIB) -llzma \
     -L$(SZIPLIB) -lsz \
-    -L$(NCDF4LIB) -lnetcdf \
-    -L$(HDF5LIB) -lhdf5_hl -lhdf5 \
-    -L$(CURLLIB) -lcurl \
-    -L$(IDNLIB) -lidn \
     -L$(ZLIBLIB) -lz \
     $(MATHLIB) \
     -lpthread \
