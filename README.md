@@ -17,7 +17,11 @@ See git tag [version_1.9.0]
   * TIFF libraries (3.8.2 or most current) -- ftp://ftp.remotesensing.org/pub/libtiff/
   * GeoTIFF libraries (1.2.5 or most current) -- ftp://ftp.remotesensing.org/pub/geotiff/libgeotiff/
   * HDF4 libraries (4.2.5 or most current) -- https://www.hdfgroup.org/ftp/HDF/releases/
+  * HDF5 libraries (1.8.13 or most current) -- https://www.hdfgroup.org/ftp/HDF5/releases/
   * HDF-EOS2 libraries (2.18 or most current) -- ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release/
+  * NetCDF libraries (4.1.1 or most current) -- http://www.unidata.ucar.edu/downloads/netcdf/index.jsp
+  * CURL libraries (7.48.0 or most current) -- https://curl.haxx.se/download
+  * IDN libraries (1.32 or most current) -- ftp://ftp.gnu.org/gnu/libidn
   * JPEG libraries (version 6b) -- http://www.ijg.org/files/
   * ZLIB libraries (version 1.2.8) -- http://zlib.net/
   * XML2 libraries -- ftp://xmlsoft.org/libxml2/
@@ -27,7 +31,7 @@ See git tag [version_1.9.0]
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
 
 ### Installation
-  * Install dependent libraries - HDF-EOS GCTP (from HDF-EOS2), HDF4, HDF-EOS2, TIFF, GeoTIFF, JPEG, XML2, JBIG, and ZLIB.
+  * Install dependent libraries - HDF-EOS GCTP (from HDF-EOS2), HDF4, HDF5, HDF-EOS2, NetCDF, CURL, IDN, TIFF, GeoTIFF, JPEG, XML2, JBIG, and ZLIB.
 
   * Set up environment variables.  Can create an environment shell file or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.  Note: If the HDF library was configured and built with szip support, then the user will also need to add an environment variable for SZIP include (SZIPINC) and library (SZIPLIB) files.
   ```
@@ -39,8 +43,12 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
     export GEOTIFF_LIB="path_to_GEOTIFF_libraries"
     export HDFINC="path_to_HDF4_include_files"
     export HDFLIB="path_to_HDF4_libraries"
+    export HDF5INC="path_to_HDF5_include_files"
+    export HDF5LIB="path_to_HDF5_libraries"
     export HDFEOS_INC="path_to_HDFEOS2_include_files"
     export HDFEOS_LIB="path_to_HDFEOS2_libraries"
+    export NCDF4INC="path_to_NETCDF_include_files"
+    export NCDF4LIB="path_to_NETCDF_libraries"
     export JPEGINC="path_to_JPEG_include_files"
     export JPEGLIB="path_to_JPEG_libraries"
     export XML2INC="path_to_XML2_include_files"
@@ -49,6 +57,10 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
     export JBIGLIB="path_to_JBIG_libraries"
     export ZLIBINC="path_to_ZLIB_include_files"
     export ZLIBLIB="path_to_ZLIB_libraries"    
+    export CURLINC="path_to_CURL_include_files"
+    export CURLLIB="path_to_CURL_libraries"
+    export IDNINC="path_to_IDN_include_files"
+    export IDNLIB="path_to_IDN_libraries"
     export ESPAINC="path_to_format_converter_raw_binary_include_directory"
     export ESPALIB="path_to_format_converter_raw_binary_lib_directory"
   ```
