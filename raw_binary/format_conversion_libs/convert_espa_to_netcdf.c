@@ -1117,6 +1117,7 @@ int convert_espa_to_netcdf
     char errmsg[STR_SIZE];   /* error message */
     char xml_file[STR_SIZE]; /* new XML file for the NetCDF product */
     char *cptr = NULL;       /* pointer to empty space in the band name */
+    int i;                   /* band looping variable */
     int count;               /* number of chars copied in snprintf */
     Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
                                 populated by reading the MTL metadata file */
@@ -1160,6 +1161,11 @@ int convert_espa_to_netcdf
             return (ERROR);
         }
     }
+
+    /* Loop through the bands and modify the band names to be those of the
+       overall netCDF product */
+    for (i = 0; i < xml_metadata.nbands; i++)
+        strcpy (xml_metadata.band[i].file_name, netcdf_file);
 
     /* Create the XML file for the NetCDF product */
     count = snprintf (xml_file, sizeof (xml_file), "%s", netcdf_file);
