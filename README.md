@@ -22,7 +22,7 @@ See git tag [version_1.8.0]
   * ZLIB libraries (version 1.2.8) -- http://zlib.net/
   * XML2 libraries -- ftp://xmlsoft.org/libxml2/
   * JBIG libraries -- http://www.cl.cam.ac.uk/~mgk25/jbigkit/
-  * Land/water static polygon -- http://espa.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz
+  * Land/water static polygon -- http://edclpdsftp.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz
 
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
 
