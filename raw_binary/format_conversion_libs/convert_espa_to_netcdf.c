@@ -212,7 +212,7 @@ int write_band_attributes
         }
     }
 
-    if (bmeta->scale_factor != ESPA_INT_META_FILL)
+    if (fabs (bmeta->scale_factor - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
     {
         float_dval[0] = (float) bmeta->scale_factor;
         retval = nc_put_att_float (ncid, band_varid, OUTPUT_SCALE_FACTOR, 
@@ -227,7 +227,7 @@ int write_band_attributes
         }
     }
 
-    if (bmeta->add_offset != ESPA_INT_META_FILL)
+    if (fabs (bmeta->add_offset - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
     {
         float_dval[0] = (float) bmeta->add_offset;
         retval = nc_put_att_float (ncid, band_varid, OUTPUT_ADD_OFFSET, 

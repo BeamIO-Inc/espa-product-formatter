@@ -379,7 +379,7 @@ int write_sds_attributes
     if (fabs (bmeta->valid_range[0] - ESPA_FLOAT_META_FILL) > ESPA_EPSILON &&
         fabs (bmeta->valid_range[1] - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
     {
-        attr.type = DFNT_INT32;
+        attr.type = DFNT_FLOAT32;
         attr.nval = 2;
         attr.name = OUTPUT_VALID_RANGE;
         dval[0] = (double) bmeta->valid_range[0];
@@ -423,7 +423,7 @@ int write_sds_attributes
         }
     }
 
-    if (bmeta->scale_factor != ESPA_INT_META_FILL)
+    if (fabs (bmeta->scale_factor - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
     {
         attr.type = DFNT_FLOAT32;
         attr.nval = 1;
@@ -439,7 +439,7 @@ int write_sds_attributes
 
     }
 
-    if (bmeta->add_offset != ESPA_INT_META_FILL)
+    if (fabs (bmeta->add_offset - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
     {
         attr.type = DFNT_FLOAT64;
         attr.nval = 1;
