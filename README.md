@@ -57,7 +57,7 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
     export PREFIX="path_to_directory_for_format_converter_build_data"
    ```
 
-  * Download the static land/water polygon from http://espa.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz. Unzip the file into $PREFIX/static_data.  Define the ESPA_LAND_MASS_POLYGON environment variable to point to the $PREFIX/static_data/land_no_buf.ply file in order to run the land/water mask code.
+  * Download the static land/water polygon from http://elpdsftp.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz. Unzip the file into $PREFIX/static_data.  Define the ESPA_LAND_MASS_POLYGON environment variable to point to the $PREFIX/static_data/land_no_buf.ply file in order to run the land/water mask code.
   ```
     export ESPA_LAND_MASS_POLYGON=$PREFIX/static_data/land_no_buf.ply
   ```
