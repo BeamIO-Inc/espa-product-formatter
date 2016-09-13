@@ -792,7 +792,7 @@ int create_netcdf_metadata
                 mycount = (int) xml_metadata->band[i].pixel_size[1]; /* Y dim */
 
             count = snprintf (dim_name[0], sizeof (dim_name[0]), 
-                "YDim_band%d_%d", i, mycount);  /* Y dim */
+                "YDim_%s_%d", xml_metadata->band[i].name, mycount);  /* Y dim */
             if (count < 0 || count >= sizeof (dim_name[0]))
             {
                 sprintf (errmsg, "Overflow of dim_name[0] string");
@@ -806,7 +806,7 @@ int create_netcdf_metadata
                 mycount = (int) xml_metadata->band[i].pixel_size[0]; /* X dim */
 
             count = snprintf (dim_name[1], sizeof (dim_name[1]),
-                "XDim_band%d_%d", i, mycount);  /* X dim */
+                "XDim_%s_%d", xml_metadata->band[i].name, mycount);  /* X dim */
             if (count < 0 || count >= sizeof (dim_name[1]))
             {
                 sprintf (errmsg, "Overflow of dim_name[1] string");
