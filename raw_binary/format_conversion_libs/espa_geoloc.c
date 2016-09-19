@@ -544,6 +544,10 @@ NOTES:
 2. This assumes the setup mapping was setup using the UL of the UL pixel.
    It then loops around the outer edges of each pixel as it loops around the
    outer edges of the entire image.
+3. Due to the possibility of wrapping around the 180 degree meridian on scenes
+   which cross the antimeridian, we will handle these scenes differently. The
+   western longitude will be the lowest value in the eastern hemisphere.  The
+   eastern longitude will be the highest value in the western hemisphere.
 ******************************************************************************/
 bool compute_bounds
 (
@@ -556,13 +560,20 @@ bool compute_bounds
 )
 {
     char FUNC_NAME[] = "compute_bounds";  /* function name */
-    char errmsg[STR_SIZE];            /* error message */
-    Img_coord_float_t img;            /* image coordinates for current pixel */
-    Geo_coord_t geo;                  /* geodetic coordinates (note radians) */
-    int ix, iy;                       /* current x,y coordinates */
+    char errmsg[STR_SIZE];       /* error message */
+    Img_coord_float_t img;       /* image coordinates for current pixel */
+    Geo_coord_t geo;             /* geodetic coordinates (note radians) */
+    int ix, iy;                  /* current x,y coordinates */
+    float ul_lat;                /* latitude (degs) for UL corner */
+    float ul_lon;                /* longitude (degs) for UL corner */
+    float ur_lon;                /* longitude (degs) for UR corner */
+    float ll_lon;                /* longitude (degs) for LL corner */
+    float lr_lon;                /* longitude (degs) for LR corner */
+    bool meridian_crossing;      /* does this scene cross the 180th meridian */
 
-    /* Initialize the bounding coordinates with the upper left of the UL
-       corner */
+    /* Determine if this scene crosses the 180th meridian. Determine the
+       longitude of each corner, then look if they are in opposite
+       hemispheres. */
     img.l = 0.0;
     img.s = 0.0;
     img.is_fill = false;
@@ -572,11 +583,64 @@ bool compute_bounds
         error_handler (true, FUNC_NAME, errmsg);
         return (false);
     }
+    ul_lat = geo.lat * DEG;
+    ul_lon = geo.lon * DEG;
 
-    bounds->max_lat = geo.lat * DEG;
-    bounds->min_lat = geo.lat * DEG;
-    bounds->max_lon = geo.lon * DEG;
-    bounds->min_lon = geo.lon * DEG;
+    img.l = 0.0;
+    img.s = nsamps;
+    img.is_fill = false;
+    if (!from_space (space, &img, &geo))
+    {
+        sprintf (errmsg, "Mapping line, sample pixel to lat/long");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (false);
+    }
+    ur_lon = geo.lon * DEG;
+
+    img.l = nlines;
+    img.s = 0.0;
+    img.is_fill = false;
+    if (!from_space (space, &img, &geo))
+    {
+        sprintf (errmsg, "Mapping line, sample pixel to lat/long");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (false);
+    }
+    ll_lon = geo.lon * DEG;
+
+    img.l = nlines;
+    img.s = nsamps; 
+    img.is_fill = false;
+    if (!from_space (space, &img, &geo))
+    {
+        sprintf (errmsg, "Mapping line, sample pixel to lat/long");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (false);
+    }
+    lr_lon = geo.lon * DEG;
+
+    /* Meridian crossing if any of the corner longitudes are opposite from the
+       UL corner */
+    meridian_crossing = false;
+    if (ul_lon > 0.0 && (ur_lon < 0.0 || ll_lon < 0.0 || lr_lon < 0.0))
+        meridian_crossing = true;
+    else if (ul_lon < 0.0 && (ur_lon > 0.0 || ll_lon > 0.0 || lr_lon > 0.0))
+        meridian_crossing = true;
+
+    /* Initialize the bounding coordinates with the upper left of the UL
+       corner */
+    bounds->max_lat = ul_lat;
+    bounds->min_lat = ul_lat;
+    if (meridian_crossing)
+    {
+        bounds->max_lon = -999.0;
+        bounds->min_lon = 999.0;
+    }
+    else
+    {
+        bounds->max_lon = ul_lon;
+        bounds->min_lon = ul_lon;
+    }
 
     /* Determine the bounding coords by looping around the edges of the image
        in line, sample space and converting to lat/long space. Remember that
@@ -598,10 +662,22 @@ bool compute_bounds
             return (false);
         }
 
+        /* Save the min/max */
         bounds->max_lat = max (bounds->max_lat, geo.lat*DEG);
         bounds->min_lat = min (bounds->min_lat, geo.lat*DEG);
-        bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
-        bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+        if (meridian_crossing)
+        {   /* Looking for the minimum positive longitude (eastern hemisphere
+               and the maximum negative longitude (western hemisphere) */
+            if (geo.lon > 0)
+                bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+            if (geo.lon < 0)
+                bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
+        }
+        else
+        {   /* Standard min/max computation */
+            bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
+            bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+        }
     }
 
     /** bottom -- go to (nsamps-1) + 1 to get to the far right edge of the
@@ -620,10 +696,22 @@ bool compute_bounds
             return (false);
         }
 
+        /* Save the min/max */
         bounds->max_lat = max (bounds->max_lat, geo.lat*DEG);
         bounds->min_lat = min (bounds->min_lat, geo.lat*DEG);
-        bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
-        bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+        if (meridian_crossing)
+        {   /* Looking for the minimum positive longitude (eastern hemisphere
+               and the maximum negative longitude (western hemisphere) */
+            if (geo.lon > 0)
+                bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+            if (geo.lon < 0)
+                bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
+        }
+        else
+        {   /* Standard min/max computation */
+            bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
+            bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+        }
     }
 
     /** left -- go to (nlines-1) + 1 to get to the bottom edge of the image **/
@@ -640,10 +728,22 @@ bool compute_bounds
             return (false);
         }
 
+        /* Save the min/max */
         bounds->max_lat = max (bounds->max_lat, geo.lat*DEG);
         bounds->min_lat = min (bounds->min_lat, geo.lat*DEG);
-        bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
-        bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+        if (meridian_crossing)
+        {   /* Looking for the minimum positive longitude (eastern hemisphere
+               and the maximum negative longitude (western hemisphere) */
+            if (geo.lon > 0)
+                bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+            if (geo.lon < 0)
+                bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
+        }
+        else
+        {   /* Standard min/max computation */
+            bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
+            bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+        }
     }
 
     /** right -- go to (nlines-1) + 1 to get to the bottom edge of the image **/
@@ -661,10 +761,22 @@ bool compute_bounds
             return (false);
         }
 
+        /* Save the min/max */
         bounds->max_lat = max (bounds->max_lat, geo.lat*DEG);
         bounds->min_lat = min (bounds->min_lat, geo.lat*DEG);
-        bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
-        bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+        if (meridian_crossing)
+        {   /* Looking for the minimum positive longitude (eastern hemisphere
+               and the maximum negative longitude (western hemisphere) */
+            if (geo.lon > 0)
+                bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+            if (geo.lon < 0)
+                bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
+        }
+        else
+        {   /* Standard min/max computation */
+            bounds->max_lon = max (bounds->max_lon, geo.lon*DEG);
+            bounds->min_lon = min (bounds->min_lon, geo.lon*DEG);
+        }
     }
 
     /* Successful completion */

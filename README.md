@@ -102,3 +102,8 @@ be needed for your application or other espa product formatter libraries may nee
 ## Release Notes
   * Created a tool and libraries to support converting from ESPA to netCDF.
   * Fixed minor bug in convert land/water mask.
+  * Fixed the compute_bounds function to correctly handle scenes which cross the
+    180th meridian.  These antimeridian crossings require that the minimum of
+    the positive longitudes be reported as the western boundary.  And, the
+    maximum of the negative longitudes are reported as the eastern boundary, to
+    correctly handle the wrapping from one hemisphere to the other.
