@@ -565,11 +565,13 @@ bool compute_bounds
     Geo_coord_t geo;             /* geodetic coordinates (note radians) */
     int ix, iy;                  /* current x,y coordinates */
     float ul_lat;                /* latitude (degs) for UL corner */
+    float lr_lat;                /* latitude (degs) for LR corner */
     float ul_lon;                /* longitude (degs) for UL corner */
     float ur_lon;                /* longitude (degs) for UR corner */
     float ll_lon;                /* longitude (degs) for LL corner */
     float lr_lon;                /* longitude (degs) for LR corner */
-    bool meridian_crossing;      /* does this scene cross the 180th meridian */
+    bool meridian_crossing;      /* does this scene cross the 180th meridian,
+                                    but not the prime meridian */
 
     /* Determine if this scene crosses the 180th meridian. Determine the
        longitude of each corner, then look if they are in opposite
@@ -617,15 +619,31 @@ bool compute_bounds
         error_handler (true, FUNC_NAME, errmsg);
         return (false);
     }
+    lr_lat = geo.lat * DEG;
     lr_lon = geo.lon * DEG;
 
     /* Meridian crossing if any of the corner longitudes are opposite from the
-       UL corner */
+       UL corner. However we want to focus only on the antimeridian crossing.
+       Thus if the western corners (UL, LL) are positive and one of the eastern
+       corners is negative, then we have an antimeridian crossing (but not prime
+       meridian crossing).  In addition, if both of the eastern corners are
+       negative and one of the western corners is positive, then we also have an
+       antimeridian crossing (but not a prime meridian crossing). */
     meridian_crossing = false;
-    if (ul_lon > 0.0 && (ur_lon < 0.0 || ll_lon < 0.0 || lr_lon < 0.0))
+    if ((ul_lon > 0.0 && ll_lon > 0.0) && (ur_lon < 0.0 || lr_lon < 0.0))
         meridian_crossing = true;
-    else if (ul_lon < 0.0 && (ur_lon > 0.0 || ll_lon > 0.0 || lr_lon > 0.0))
+    else if ((ur_lon < 0.0 && lr_lon < 0.0) && (ul_lon > 0.0 || ll_lon > 0.0))
         meridian_crossing = true;
+
+    /* If this is an ascending scene, then the opposite checks must be made */
+    if (ul_lat < lr_lat)
+    {
+        if ((ul_lon < 0.0 && ll_lon < 0.0) && (ur_lon > 0.0 || lr_lon > 0.0))
+            meridian_crossing = true;
+        else if ((ur_lon > 0.0 && lr_lon > 0.0) &&
+                 (ul_lon < 0.0 || ll_lon < 0.0))
+            meridian_crossing = true;
+    }
 
     /* Initialize the bounding coordinates with the upper left of the UL
        corner */
