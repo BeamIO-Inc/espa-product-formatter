@@ -630,14 +630,18 @@ bool compute_bounds
        negative and one of the western corners is positive, then we also have an
        antimeridian crossing (but not a prime meridian crossing). */
     meridian_crossing = false;
-    if ((ul_lon > 0.0 && ll_lon > 0.0) && (ur_lon < 0.0 || lr_lon < 0.0))
-        meridian_crossing = true;
-    else if ((ur_lon < 0.0 && lr_lon < 0.0) && (ul_lon > 0.0 || ll_lon > 0.0))
-        meridian_crossing = true;
-
-    /* If this is an ascending scene, then the opposite checks must be made */
-    if (ul_lat < lr_lat)
+    if (ul_lat >= lr_lat)
+    {    /* Descending scene */
+        if ((ul_lon > 0.0 && ll_lon > 0.0) && (ur_lon < 0.0 || lr_lon < 0.0))
+            meridian_crossing = true;
+        else if ((ur_lon < 0.0 && lr_lon < 0.0) &&
+                 (ul_lon > 0.0 || ll_lon > 0.0))
+            meridian_crossing = true;
+    }
+    else
     {
+        /* If this is an ascending scene, then the opposite checks must be
+           made */
         if ((ul_lon < 0.0 && ll_lon < 0.0) && (ur_lon > 0.0 || lr_lon > 0.0))
             meridian_crossing = true;
         else if ((ur_lon > 0.0 && lr_lon > 0.0) &&
