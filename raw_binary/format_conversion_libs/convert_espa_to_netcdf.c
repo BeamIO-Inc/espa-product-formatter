@@ -966,7 +966,7 @@ int create_netcdf_metadata
         for (x = 0; x < nsamps; x++)
         {
             xdims[x] = xml_metadata->global.proj_info.ul_corner[0] 
-                + (int)xml_metadata->band[i].pixel_size[0] * x;
+                + xml_metadata->band[i].pixel_size[0] * x;
         }
 
         /* Write the x coordinate variables */
@@ -995,7 +995,7 @@ int create_netcdf_metadata
         for (y = 0; y < nlines; y++)
         {
             ydims[y] = xml_metadata->global.proj_info.ul_corner[1] 
-                - (int)xml_metadata->band[i].pixel_size[1] * y;
+                - xml_metadata->band[i].pixel_size[1] * y;
         }
 
         /* Write the y coordinate variables */
