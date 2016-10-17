@@ -51,10 +51,17 @@ OBJ10 = $(SRC10:.c=.o)
 SRC11 = clip_band_misalignment.c
 OBJ11 = $(SRC11:.c=.o)
 
+SRC12 = convert_espa_to_netcdf.c
+OBJ12 = $(SRC12:.c=.o)
+
+
 # Define include paths
 INCDIR  = -I. -I../include -I$(XML2INC) -I$(TIFFINC) -I$(GEOTIFF_INC) \
           -I$(HDFINC) -I$(HDFEOS_INC) -I$(JBIGINC) -I$(ZLIBINC)
+NETCDF_INCDIR = -I. -I../include -I$(XML2INC) -I$(HDF5INC) -I$(NCDF4INC)
+          
 NCFLAGS = $(EXTRA) $(INCDIR)
+NETCDF_NCFLAGS = $(EXTRA) $(NETCDF_INCDIR)
 
 # Define the object libraries and paths
 MATHLIB = -lm
@@ -165,6 +172,26 @@ LIB11   = \
     -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
+LIB12   = \
+    -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
+    -L$(NCDF4LIB) -lnetcdf \
+    -L$(HDFLIB) -lmfhdf -ldf \
+    -L$(HDFEOS_LIB) -lhdfeos \
+    -L$(HDFEOS_GCTPLIB) -lGctp \
+    -L$(HDF5LIB) -lhdf5_hl -lhdf5 \
+    -L$(CURLLIB) -lcurl \
+    -L$(IDNLIB) -lidn \
+    -L$(XML2LIB) -lxml2 \
+    -L$(JPEGLIB) -ljpeg \
+    -L$(JBIGLIB) -ljbig \
+    -L$(LZMALIB) -llzma \
+    -L$(SZIPLIB) -lsz \
+    -L$(ZLIBLIB) -lz \
+    $(MATHLIB) \
+    -lpthread \
+    -lrt \
+    -ldl
+
 # Define C executables
 EXE1 = convert_lpgs_to_espa
 EXE2 = convert_espa_to_hdf
@@ -177,7 +204,8 @@ EXE8 = create_land_water_mask
 EXE9 = convert_espa_to_bip
 EXE10 = create_date_bands
 EXE11 = clip_band_misalignment
-ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11)
+EXE12 = convert_espa_to_netcdf
+ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11) $(EXE12)
 
 #-----------------------------------------------------------------------------
 all: $(ALL_EXES)
@@ -215,6 +243,9 @@ $(EXE10): $(OBJ10) $(INC)
 $(EXE11): $(OBJ11) $(INC)
 	$(CC) $(NCFLAGS) -o $(EXE11) $(OBJ11) $(LIB11)
 
+$(EXE12): $(OBJ12) $(INC)
+	$(CC) $(NETCDF_NCFLAGS) -o $(EXE12) $(OBJ12) $(LIB12)
+
 #-----------------------------------------------------------------------------
 install: $(ALL_EXES)
 	install -d $(bin_link_path)
@@ -241,6 +272,7 @@ $(OBJ8): $(INC)
 $(OBJ9): $(INC)
 $(OBJ10): $(INC)
 $(OBJ11): $(INC)
+$(OBJ12): $(INC)
 
 .c.o:
 	$(CC) $(NCFLAGS) -c $<

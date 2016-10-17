@@ -244,7 +244,7 @@ int main (int argc, char** argv)
     }
 
     /* Make sure the representative band was found in the XML file */
-    if (refl_indx == -9)
+    if (refl_indx == -99)
     {
         sprintf (errmsg, "Band 1 (band1) was not found in the XML file");
         error_handler (true, FUNC_NAME, errmsg);

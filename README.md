@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.8.0 Release Notes
-Release Date: August 2016
+## ESPA-PRODUCT_FORMATTER Version 1.9.0 Release Notes
+Release Date: October 2016
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -10,14 +10,18 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.8.0]
+See git tag [version_1.9.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
   * TIFF libraries (3.8.2 or most current) -- ftp://ftp.remotesensing.org/pub/libtiff/
   * GeoTIFF libraries (1.2.5 or most current) -- ftp://ftp.remotesensing.org/pub/geotiff/libgeotiff/
   * HDF4 libraries (4.2.5 or most current) -- https://www.hdfgroup.org/ftp/HDF/releases/
+  * HDF5 libraries (1.8.13 or most current) -- https://www.hdfgroup.org/ftp/HDF5/releases/
   * HDF-EOS2 libraries (2.18 or most current) -- ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release/
+  * NetCDF libraries (4.1.1 or most current) -- http://www.unidata.ucar.edu/downloads/netcdf/index.jsp
+  * CURL libraries (7.48.0 or most current) -- https://curl.haxx.se/download
+  * IDN libraries (1.32 or most current) -- ftp://ftp.gnu.org/gnu/libidn
   * JPEG libraries (version 6b) -- http://www.ijg.org/files/
   * ZLIB libraries (version 1.2.8) -- http://zlib.net/
   * XML2 libraries -- ftp://xmlsoft.org/libxml2/
@@ -27,7 +31,7 @@ See git tag [version_1.8.0]
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
 
 ### Installation
-  * Install dependent libraries - HDF-EOS GCTP (from HDF-EOS2), HDF4, HDF-EOS2, TIFF, GeoTIFF, JPEG, XML2, JBIG, and ZLIB.
+  * Install dependent libraries - HDF-EOS GCTP (from HDF-EOS2), HDF4, HDF5, HDF-EOS2, NetCDF, CURL, IDN, TIFF, GeoTIFF, JPEG, XML2, JBIG, and ZLIB.
 
   * Set up environment variables.  Can create an environment shell file or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.  Note: If the HDF library was configured and built with szip support, then the user will also need to add an environment variable for SZIP include (SZIPINC) and library (SZIPLIB) files.
   ```
@@ -39,8 +43,12 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
     export GEOTIFF_LIB="path_to_GEOTIFF_libraries"
     export HDFINC="path_to_HDF4_include_files"
     export HDFLIB="path_to_HDF4_libraries"
+    export HDF5INC="path_to_HDF5_include_files"
+    export HDF5LIB="path_to_HDF5_libraries"
     export HDFEOS_INC="path_to_HDFEOS2_include_files"
     export HDFEOS_LIB="path_to_HDFEOS2_libraries"
+    export NCDF4INC="path_to_NETCDF_include_files"
+    export NCDF4LIB="path_to_NETCDF_libraries"
     export JPEGINC="path_to_JPEG_include_files"
     export JPEGLIB="path_to_JPEG_libraries"
     export XML2INC="path_to_XML2_include_files"
@@ -49,6 +57,10 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
     export JBIGLIB="path_to_JBIG_libraries"
     export ZLIBINC="path_to_ZLIB_include_files"
     export ZLIBLIB="path_to_ZLIB_libraries"    
+    export CURLINC="path_to_CURL_include_files"
+    export CURLLIB="path_to_CURL_libraries"
+    export IDNINC="path_to_IDN_include_files"
+    export IDNLIB="path_to_IDN_libraries"
     export ESPAINC="path_to_format_converter_raw_binary_include_directory"
     export ESPALIB="path_to_format_converter_raw_binary_lib_directory"
   ```
@@ -88,14 +100,10 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Changed the scene_id in the XML schema to product_id in addition to the
-    XML output files.
-  * Confirmed that Alaska and Hawaii Albers will be supported by this release.
-  * Modified the convert_*_to_espa routines to automatically determine the
-    name of the XML file, given the MTL file.  The --xml command-line parameter
-    is no longer supported for the XML filename.
-  * Changed the valid_range data type from long to float.  The bands can be
-    of floating point data types, so this valid range should support the
-    floating point range.
-  * Support the new collection file naming convention with a 4-character product
-    ID versus 3 characters.
+  * Created a tool and libraries to support converting from ESPA to netCDF.
+  * Fixed minor bug in convert land/water mask.
+  * Fixed the compute_bounds function to correctly handle scenes which cross the
+    180th meridian.  These antimeridian crossings require that the minimum of
+    the positive longitudes be reported as the western boundary.  And, the
+    maximum of the negative longitudes are reported as the eastern boundary, to
+    correctly handle the wrapping from one hemisphere to the other.
