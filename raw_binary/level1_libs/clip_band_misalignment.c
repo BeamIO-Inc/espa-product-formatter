@@ -106,7 +106,7 @@ int clip_band_misalignment
         for (bnd = 0; bnd < NBAND_OPTIONS; bnd++)
         {
             /* Is the current band in the metadata one of our expected bands */
-            sprintf (curr_band, "band%d", band_options[bnd]);
+            sprintf (curr_band, "b%d", band_options[bnd]);
             if (!strcmp (bmeta[i].name, curr_band))
             {
                 /* Open the band file */
@@ -133,7 +133,7 @@ int clip_band_misalignment
         }
 
         /* Is this the quality band */
-        sprintf (curr_band, "qa");
+        sprintf (curr_band, "bqa");
         if (!strcmp (bmeta[i].name, curr_band))
         {
             fp_bqa = open_raw_binary (bmeta[i].file_name, "r+");

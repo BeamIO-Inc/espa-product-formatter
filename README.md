@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.9.0 Release Notes
-Release Date: October 2016
+## ESPA-PRODUCT_FORMATTER Version 1.10.0 Release Notes
+Release Date: January 2017
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -10,7 +10,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.9.0]
+See git tag [version_1.10.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -100,10 +100,17 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Created a tool and libraries to support converting from ESPA to netCDF.
-  * Fixed minor bug in convert land/water mask.
-  * Fixed the compute_bounds function to correctly handle scenes which cross the
-    180th meridian.  These antimeridian crossings require that the minimum of
-    the positive longitudes be reported as the western boundary.  And, the
-    maximum of the negative longitudes are reported as the eastern boundary, to
-    correctly handle the wrapping from one hemisphere to the other.
+  * Modified that Level-1 band names to be consistent with the LPGS Level-1
+    names, except using lower-case.  Thus band 1 is _b1 (_B1 from LPGS), band 2
+    is _b2, and band X is _bX.  The Level-1 QA band is _bqa (_BQA from LPGS)
+    versus the previous _qa.  NOTE: The Level-2 and higher filenames will use
+    _bandX for their filenames.
+  * Modified the associated libraries and tools which used the Level-1 bands
+    as input.  Many use band 1 and the QA band, therefore the code was updated
+    to use the new XML band names.
+  * Fixed a bug in the ESPA to GeoTIFF converter to deal with the case where
+    there is no fill value.  Previously the code did not check for the fill
+    value and therefore just wrote out -3333 (default value to identify the
+    fill value is not used).  The fix calls gdal without the nodata value
+    in the case that the fill value is not set.  This was a bug which was found
+    when converting the land/water mask to GeoTIFF.

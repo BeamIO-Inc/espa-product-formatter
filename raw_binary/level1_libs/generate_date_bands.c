@@ -145,7 +145,7 @@ int generate_date_bands
     /* Use band 1 as the representative band in the XML */
     for (i = 0; i < xml_meta->nbands; i++)
     {
-        if (!strcmp (xml_meta->band[i].name, "band1"))
+        if (!strcmp (xml_meta->band[i].name, "b1"))
         {
             /* this is the index we'll use for reflectance band info */
             refl_indx = i;
@@ -166,7 +166,7 @@ int generate_date_bands
     /* Make sure the representative band was found in the XML file */
     if (refl_indx == -9)
     {
-        sprintf (errmsg, "Band 1 (band1) was not found in the XML file");
+        sprintf (errmsg, "Band 1 (b1) was not found in the XML file");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }

@@ -51,7 +51,7 @@ void usage ()
     printf ("\nExample: espa_band_subset "
             "--xml=LE70230282011250EDC00.xml "
             "--subset_xml=LE70230282011250EDC00_subset.xml "
-            "--band band1 --band band4 --band band7\n");
+            "--band b1 --band b4 --band b7\n");
     printf ("\nExample: espa_band_subset "
             "--xml=LE70230282011250EDC00.xml "
             "--subset_xml=LE70230282011250EDC00_subset.xml\n");

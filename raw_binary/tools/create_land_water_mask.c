@@ -235,7 +235,7 @@ int main (int argc, char** argv)
     /* Use band 1 as the representative band in the XML */
     for (i = 0; i < xml_metadata.nbands; i++)
     {
-        if (!strcmp (xml_metadata.band[i].name, "band1"))
+        if (!strcmp (xml_metadata.band[i].name, "b1"))
         {
             /* this is the index we'll use for reflectance band info */
             refl_indx = i;

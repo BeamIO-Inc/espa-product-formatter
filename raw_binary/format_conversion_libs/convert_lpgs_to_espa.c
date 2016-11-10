@@ -1155,33 +1155,27 @@ int read_lpgs_mtl
             strcpy (bmeta[i].short_name, "LO8DN");
         }
 
-        /* Set up the band names */
+        /* Set up the band names - use lower case 'b' versus upper case 'B'
+           to distinguish ESPA products from original Level-1 products. */
         if (strcmp (band_num[i], "bqa"))
         {
-            sprintf (bmeta[i].name, "band%s", band_num[i]);
+            sprintf (bmeta[i].name, "b%s", band_num[i]);
             sprintf (bmeta[i].long_name, "band %s digital numbers",
               band_num[i]);
-            count = snprintf (bmeta[i].file_name, sizeof (bmeta[i].file_name),
-                "%s_B%s.img", product_id, band_num[i]);
-            if (count < 0 || count >= sizeof (bmeta[i].file_name))
-            {
-                sprintf (errmsg, "Overflow of bmeta[i].file_name");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
         }
         else if (!strcmp (band_num[i], "bqa"))
         {
-            strcpy (bmeta[i].name, "qa");
+            strcpy (bmeta[i].name, "bqa");
             strcpy (bmeta[i].long_name, "band quality");
-            count = snprintf (bmeta[i].file_name, sizeof (bmeta[i].file_name),
-                "%s_BQA.img", product_id);
-            if (count < 0 || count >= sizeof (bmeta[i].file_name))
-            {
-                sprintf (errmsg, "Overflow of bmeta[i].file_name string");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
+        }
+
+        count = snprintf (bmeta[i].file_name, sizeof (bmeta[i].file_name),
+            "%s_%s.img", product_id, bmeta[i].name);
+        if (count < 0 || count >= sizeof (bmeta[i].file_name))
+        {
+            sprintf (errmsg, "Overflow of bmeta[i].file_name");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
         }
 
         /* Set up the image size and resolution */
