@@ -14,13 +14,15 @@ include $(TOP)/make.config
 CC    = gcc
 RM    = rm
 AR    = ar rcsv
-EXTRA = -Wall $(EXTRA_OPTIONS)
+EXTRA = -Wall -DIAS_NO_SENSOR_META_SUPPORT $(EXTRA_OPTIONS)
 
 # Define the include files
-INC = l8_angles.h
+INC = l8_angles.h landsat_angles.h
 
 # Define the source code and object files
-SRC = l8_angles.c angles_api.c
+SRC = l8_angles.c \
+      angles_api.c \
+      landsat_angles.c
 OBJ = $(SRC:.c=.o)
 
 # Define include paths

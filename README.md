@@ -114,3 +114,8 @@ be needed for your application or other espa product formatter libraries may nee
     fill value is not used).  The fix calls gdal without the nodata value
     in the case that the fill value is not set.  This was a bug which was found
     when converting the land/water mask to GeoTIFF.
+  * Added per-pixel angle libraries for Landsat 4-7 to support generation of
+    the per-pixel angle bands for the Collection products, which have the angle
+    coefficient files delivered with the product.
+  * Created a tool to generate the per-pixel angle bands for band 4 as the
+    representative band to be used for TOA and SR corrections.

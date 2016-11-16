@@ -22,13 +22,12 @@ NOTES:
 #include "envi_header.h"
 #include "parse_metadata.h"
 #include "write_metadata.h"
+#include "landsat_angles.h"
 #include "l8_angles.h"
 
 /* Define the band information for each of the instruments.  Currently the
    maximum number of input bands is the number of bands for L8. */
 #define MAX_NBANDS L8_NBANDS
-#define L45_NBANDS 7
-#define L7_NBANDS 8
 
 /* Define the fill value and the scaling factors (offsets the scale applied
    in the  */
@@ -70,7 +69,7 @@ void usage ()
     printf ("    -xml: name of the input XML metadata file wich follows the "
             "ESPA internal raw binary schema\n");
     printf ("    -average: write the reflectance band averages instead of "
-            "writing each of the band angles.\n\n");
+            "writing each of the band angles (not supported for L4-7).\n\n");
 
     printf ("\nExample: create_angle_bands "
             "--xml=LC80470272013287LGN00.xml\n");
@@ -187,8 +186,8 @@ MODULE:  main
 
 PURPOSE: Creates the Landsat solar and view/satellite per-pixel angles.  Both
 the zenith and azimuth angles are created for each angle type for each
-band.  An option is supported to write the average of the reflectance bands for
-each angle instead of writing the angle for each band.
+band.  An option is supported for OLI to write the average of the reflectance
+bands for each angle instead of writing the angle for each band.
 
 RETURN VALUE:
 Type = int
@@ -297,11 +296,10 @@ int main (int argc, char** argv)
     else
         process_l45 = true;
 
-    /* Short-circuit the L4-7 processing for now. Remove when L4-7 is
-       supported. */
-    if (process_l7 || process_l45)
+    /* If processing L4-7 then the band average is not supported */
+    if ((process_l7 || process_l45) && band_avg)
     {
-        sprintf (errmsg, "Only Landsat 8 is currently supported");
+        sprintf (errmsg, "Band average is only supported for Landsat 8");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
@@ -386,10 +384,12 @@ int main (int argc, char** argv)
         }
         else
         {  /* Landsat 4-7 */
-           /* TODO HANDLE THIS */
-            sprintf (errmsg, "Only Landsat 8 is currently supported");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
+            if (landsat_per_pixel_angles (ang_infile, 1, "ALL", solar_zenith,
+                solar_azimuth, sat_zenith, sat_azimuth, nlines, nsamps) !=
+                SUCCESS)
+            {  /* Error messages already written */
+                exit (ERROR);
+            }
         }
 
         /* Setup the XML file for these bands */
@@ -462,7 +462,8 @@ int main (int argc, char** argv)
             snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name), "%s",
                 tmpfile);
             out_bmeta->data_type = ESPA_INT16;
-            out_bmeta->fill_value = ANGLE_BAND_FILL;
+            if (process_l8)  /* only L8 has fill */
+                out_bmeta->fill_value = ANGLE_BAND_FILL;
             out_bmeta->scale_factor = ANGLE_BAND_SCALE_FACT;
             strcpy (out_bmeta->data_units, "degrees");
             out_bmeta->nlines = nlines[curr_bndx];
@@ -577,7 +578,8 @@ int main (int argc, char** argv)
         else
         {  /* Landsat 4-7 */
            /* TODO HANDLE THIS */
-            sprintf (errmsg, "Only Landsat 8 is currently supported");
+            sprintf (errmsg, "Only Landsat 8 is currently supported for band "
+                "averages on the solar/view angles");
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }

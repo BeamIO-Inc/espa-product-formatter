@@ -14,6 +14,7 @@ raw_binary/tools/convert_lpgs_to_espa
 raw_binary/tools/convert_modis_to_espa
 raw_binary/tools/create_date_bands
 raw_binary/tools/create_angle_bands
+raw_binary/tools/create_landsat_angle_bands
 raw_binary/tools/create_land_water_mask
 raw_binary/tools/espa_band_subset
 raw_binary/tools/espa_product_subset

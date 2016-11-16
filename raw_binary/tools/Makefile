@@ -12,7 +12,7 @@ include $(TOP)/make.config
 # Set up compile options
 CC    = gcc
 RM    = rm
-EXTRA = -Wall $(EXTRA_OPTIONS)
+EXTRA = -g -Wall $(EXTRA_OPTIONS)
 
 # Define the include files
 INC =
@@ -53,6 +53,9 @@ OBJ11 = $(SRC11:.c=.o)
 
 SRC12 = convert_espa_to_netcdf.c
 OBJ12 = $(SRC12:.c=.o)
+
+SRC13 = create_landsat_angle_bands.c
+OBJ13 = $(SRC13:.c=.o)
 
 
 # Define include paths
@@ -134,7 +137,7 @@ LIB6   = \
 LIB7   = \
     -L../lib -l_espa_raw_binary -l_espa_common \
     -L$(XML2LIB) -lxml2 \
-    -l_espa_band_angles -l_espa_l8_ang \
+    -l_espa_band_angles -l_espa_l8_ang -l_espa_landsat_ang \
     -L$(ZLIBLIB) -lz \
     -L$(LZMALIB) -llzma \
     $(MATHLIB)
@@ -192,6 +195,15 @@ LIB12   = \
     -lrt \
     -ldl
 
+LIB13   = \
+    -L../lib -l_espa_raw_binary -l_espa_common \
+    -L$(XML2LIB) -lxml2 \
+    -l_espa_band_angles -l_espa_landsat_ang \
+    -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
+    $(MATHLIB)
+
+
 # Define C executables
 EXE1 = convert_lpgs_to_espa
 EXE2 = convert_espa_to_hdf
@@ -205,7 +217,8 @@ EXE9 = convert_espa_to_bip
 EXE10 = create_date_bands
 EXE11 = clip_band_misalignment
 EXE12 = convert_espa_to_netcdf
-ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11) $(EXE12)
+EXE13 = create_landsat_angle_bands
+ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11) $(EXE12) $(EXE13)
 
 #-----------------------------------------------------------------------------
 all: $(ALL_EXES)
@@ -246,6 +259,9 @@ $(EXE11): $(OBJ11) $(INC)
 $(EXE12): $(OBJ12) $(INC)
 	$(CC) $(NETCDF_NCFLAGS) -o $(EXE12) $(OBJ12) $(LIB12)
 
+$(EXE13): $(OBJ13) $(INC)
+	$(CC) $(NCFLAGS) -o $(EXE13) $(OBJ13) $(LIB13)
+
 #-----------------------------------------------------------------------------
 install: $(ALL_EXES)
 	install -d $(bin_link_path)
@@ -273,6 +289,7 @@ $(OBJ9): $(INC)
 $(OBJ10): $(INC)
 $(OBJ11): $(INC)
 $(OBJ12): $(INC)
+$(OBJ13): $(INC)
 
 .c.o:
 	$(CC) $(NCFLAGS) -c $<
