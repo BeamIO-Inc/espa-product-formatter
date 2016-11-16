@@ -1,9 +1,9 @@
 /*****************************************************************************
 FILE: create_landsat_angle_bands
 
-PURPOSE: Creates the Landsat 4-7 solar and view/satellite per-pixel angles
-for the specified Landsat bands (4 - representative band, 61, 62).  Both the
-zenith and azimuth angles are created for each angle type for each Landsat band.
+PURPOSE: Creates the Landsat 4-7 solar and view/satellite per-pixel angles for
+the specified Landsat bands (4 - representative band).  Both the zenith and
+azimuth angles are created for each angle type for each Landsat band.
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
@@ -50,9 +50,9 @@ NOTES:
 void usage ()
 {
     printf ("create_angle_bands creates the Landsat solar and view "
-            "(satellite) per-pixel angles for bands 4, 61, and 62.  Both the "
-            "zenith and azimuth angles are created for each angle.  Values "
-            "are written in degrees and scaled by 100.\n\n");
+            "(satellite) per-pixel angles for band 4.  Both the zenith and "
+            "azimuth angles are created for each angle.  Values are written "
+            "in degrees and scaled by 100.\n\n");
     printf ("usage: create_angle_bands "
             "--xml=input_metadata_filename\n");
 
@@ -62,9 +62,8 @@ void usage ()
 
     printf ("\nExample: create_angle_bands "
             "--xml=LE07_L1TP_022033_20140228_20161028_01_T1.xml\n");
-    printf ("This writes a single band file for each of the bands (4, 61, 62) "
-            "for the solar azimuth/zenith and the satellite azimuth/zenith "
-            "angles.\n");
+    printf ("This writes a single band file for each of the bands (b4) for the "
+            "solar azimuth/zenith and the satellite azimuth/zenith angles.\n");
 }
 
 
@@ -191,8 +190,8 @@ int main (int argc, char** argv)
     char ang_infile[STR_SIZE];   /* input angle coefficient filename */
     char outfile[STR_SIZE];      /* output base filename for angle bands */
     char band_list[STR_SIZE];    /* char array of list of bands to process */
-    char etm_list[] = "4,61,62"; /* list of ETM bands to process */
-    char tm_list[] = "4,6";      /* list of TM bands to process */
+    char etm_list[] = "4";       /* list of ETM bands to process */
+    char tm_list[] = "4";        /* list of TM bands to process */
     char production_date[MAX_DATE_LEN+1]; /* current date/year for production */
     char band_angle[NANGLE_BANDS][STR_SIZE] = {"solar zenith", "solar azimuth",
                                     "sensor zenith", "sensor azimuth"};
@@ -207,20 +206,20 @@ int main (int argc, char** argv)
     int curr_index;              /* index of current output band in the input
                                     band array */
     int nbands_input;            /* number of input bands available */
-    int etm_nbands = 3;          /* number of ETM bands to process for PPA */
-    int tm_nbands = 2;           /* number of TM bands to process for PPA */
+    int etm_nbands = 1;          /* number of ETM bands to process for PPA */
+    int tm_nbands = 1;           /* number of TM bands to process for PPA */
     int landsat_nbands;          /* number of bands to process for PPA */
     int *landsat_bands = NULL;   /* array of output bands to be processed;
                                     set to point to either etm_bands or
                                     tm_bands */
-    int etm_bands[] = {4, 61, 62}; /* output bands to be processed */
-    int tm_bands[] = {4, 6};     /* output bands to be processed */
+    int etm_bands[] = {4};       /* output bands to be processed */
+    int tm_bands[] = {4};        /* output bands to be processed */
     int *band_indx = NULL;       /* array of indices for the output bands within
                                     the full set of input bands; set to point
                                     to either etm_band_indx or tm_band_indx */
-    int etm_band_indx[] = {3, 5, 6};  /* index in the overall input bands for
+    int etm_band_indx[] = {3};   /* index in the overall input bands for
                                     the output bands [1,2,3,4,5,61,62,7,8] */
-    int tm_band_indx[] = {3, 5}; /* index in the overall input bands for
+    int tm_band_indx[] = {3};    /* index in the overall input bands for
                                     the output bands [1,2,3,4,5,6,7,8] */
     int out_nbands;              /* number of output bands to be written */
     int nlines[L7_NBANDS];       /* number of lines for each band */
@@ -348,8 +347,8 @@ int main (int argc, char** argv)
         exit (ERROR);
     }
 
-    /* Create the Landsat angle bands for bands 4, 61, 62 (or just band 6 if
-       processing TM data).  Create a full resolution product. */
+    /* Create the Landsat angle bands for the specified bands.  Create a full
+       resolution product. */
     if (landsat_per_pixel_angles (ang_infile, 1, band_list, solar_zenith,
         solar_azimuth, sat_zenith, sat_azimuth, nlines, nsamps) != SUCCESS)
     {  /* Error messages already written */
