@@ -12,7 +12,7 @@ include $(TOP)/make.config
 # Set up compile options
 CC    = gcc
 RM    = rm
-EXTRA = -g -Wall $(EXTRA_OPTIONS)
+EXTRA = -Wall $(EXTRA_OPTIONS)
 
 # Define the include files
 INC =
