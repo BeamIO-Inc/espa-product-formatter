@@ -26,13 +26,14 @@ See git tag [version_1.10.0]
   * ZLIB libraries (version 1.2.8) -- http://zlib.net/
   * XML2 libraries -- ftp://xmlsoft.org/libxml2/
   * JBIG libraries -- http://www.cl.cam.ac.uk/~mgk25/jbigkit/
+  * LZMA libraries -- http://www.7-zip.org/sdk.html
+  * SZIP libraries -- http://www.compressconsult.com/szip/
   * Land/water static polygon -- http://edclpdsftp.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz
 
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
 
 ### Installation
-  * Install dependent libraries - HDF-EOS GCTP (from HDF-EOS2), HDF4, HDF5, HDF-EOS2, NetCDF, CURL, IDN, TIFF, GeoTIFF, JPEG, XML2, JBIG, and ZLIB.
-
+  * Install dependent libraries.  Many of these come standard with the Linux distribution.
   * Set up environment variables.  Can create an environment shell file or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.  Note: If the HDF library was configured and built with szip support, then the user will also need to add an environment variable for SZIP include (SZIPINC) and library (SZIPLIB) files.
   ```
     export HDFEOS_GCTPINC="path_to_HDF-EOS_GCTP_include_files"
@@ -57,8 +58,12 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
     export JBIGLIB="path_to_JBIG_libraries"
     export ZLIBINC="path_to_ZLIB_include_files"
     export ZLIBLIB="path_to_ZLIB_libraries"    
+    export SZIPINC="path_to_SZIP_include_files"
+    export SZIPLIB="path_to_SZIP_libraries"    
     export CURLINC="path_to_CURL_include_files"
     export CURLLIB="path_to_CURL_libraries"
+    export LZMAINC="path_to_LZMA_include_files"
+    export LZMALIB="path_to_LZMA_libraries"
     export IDNINC="path_to_IDN_include_files"
     export IDNLIB="path_to_IDN_libraries"
     export ESPAINC="path_to_format_converter_raw_binary_include_directory"
