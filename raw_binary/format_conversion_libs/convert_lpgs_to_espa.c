@@ -1158,13 +1158,13 @@ int read_lpgs_mtl
         /* Set up the band names - use lower case 'b' versus upper case 'B'
            to distinguish ESPA products from original Level-1 products. */
         if (strcmp (band_num[i], "bqa"))
-        {
+        {  /* bands other than band quality band */
             sprintf (bmeta[i].name, "b%s", band_num[i]);
             sprintf (bmeta[i].long_name, "band %s digital numbers",
               band_num[i]);
         }
-        else if (!strcmp (band_num[i], "bqa"))
-        {
+        else
+        {  /* band quality band */
             strcpy (bmeta[i].name, "bqa");
             strcpy (bmeta[i].long_name, "band quality");
         }

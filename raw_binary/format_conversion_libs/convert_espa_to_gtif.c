@@ -106,12 +106,6 @@ int convert_espa_to_gtif
             count = snprintf (gdal_cmd, sizeof (gdal_cmd),
                 "gdal_translate -of Gtiff -co \"TFW=YES\" -q %s %s",
                 xml_metadata.band[i].file_name, gtif_band);
-            if (count < 0 || count >= sizeof (gdal_cmd))
-            {
-                sprintf (errmsg, "Overflow of gdal_cmd string");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
         }
         else
         {
@@ -120,12 +114,12 @@ int convert_espa_to_gtif
              "gdal_translate -of Gtiff -a_nodata %ld -co \"TFW=YES\" -q %s %s",
                 xml_metadata.band[i].fill_value, xml_metadata.band[i].file_name,
                 gtif_band);
-            if (count < 0 || count >= sizeof (gdal_cmd))
-            {
-                sprintf (errmsg, "Overflow of gdal_cmd string");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
+        }
+        if (count < 0 || count >= sizeof (gdal_cmd))
+        {
+            sprintf (errmsg, "Overflow of gdal_cmd string");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
         }
 
         if (system (gdal_cmd) == -1)

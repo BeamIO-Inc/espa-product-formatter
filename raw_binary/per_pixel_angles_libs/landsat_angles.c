@@ -56,8 +56,8 @@ int landsat_per_pixel_angles
                                   "ALL" - defaults to all bands 1-8 / 1-7.
                                   Must be comma separated with no spaces in
                                   between.  Example: 1,2,3,4,5,61,62,7,8
-                                  The solar/sat_zenith/azimuth arrays should
-                                  will have angles processed for these bands */
+                                  The solar/sat_zenith/azimuth arrays will have
+                                  angles processed for these bands */
     short *solar_zenith[L7_NBANDS],  /* O: Array of pointers for the solar
                                            zenith angle array, one per band
                                            (if NULL, don't process), degrees
@@ -95,7 +95,7 @@ int landsat_per_pixel_angles
                                              band in band_list */
     int end_char_loc;                     /* Ending character of the current
                                              band in band_list */
-    int bnd_list[L7_NBANDS];              /* List of bands as intergers */
+    int bnd_list[L7_NBANDS];              /* List of bands as integers */
     int l45_bands[] = {1, 2, 3, 4, 5, 6, 7}; /* Landsat 4-5 band numbers */
     int l7_bands[] = {1, 2, 3, 4, 5, 61, 62, 7, 8}; /* Landsat 7 band numbers */
 
@@ -137,7 +137,7 @@ int landsat_per_pixel_angles
         return ERROR;
     }
 
-    /* Get the sat/sensor from the ACF. */
+    /* Get the sat/sensor from the angle coefficient file. */
     strcpy(sensor_type, metadata.spacecraft_id);
     if (xxx_initialize_sensor_type(sensor_type) == IAS_SENSOR_UNKNOWN)
     {
@@ -180,7 +180,7 @@ int landsat_per_pixel_angles
             /* End of the band number is the previous location */
             end_char_loc = i-1;
 
-            /* Copy these characters to their sting */
+            /* Copy these characters to their string */
             strncpy (band, &band_list[start_char_loc],
                 end_char_loc - start_char_loc + 1);
             bnd_list[band_count++] = atoi(band);
@@ -379,3 +379,85 @@ int landsat_per_pixel_angles
     return SUCCESS;
 }
 
+
+/******************************************************************************
+MODULE:  init_per_pixel_angles
+
+PURPOSE:  Initializes the solar and satellite angle arrays to NULL, for each
+band in the array.  This allows the free_per_pixel_angles to work properly.
+
+RETURN VALUE: N/A
+******************************************************************************/
+void init_per_pixel_angles
+(
+    short *solar_zenith[L7_NBANDS],  /* O: Array of pointers for the solar
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *solar_azimuth[L7_NBANDS], /* O: Array of pointers for the solar
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_zenith[L7_NBANDS],    /* O: Array of pointers for the satellite
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_azimuth[L7_NBANDS]    /* O: Array of pointers for the satellite
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+)
+{
+    int i;   /* looping variable */
+
+    /* Initialize the pointers to NULL for each band, if that array pointer
+       is not NULL */
+    for (i = 0; i < L7_NBANDS; i++)
+    {
+        if (solar_zenith)
+            solar_zenith[i] = NULL;
+        if (solar_azimuth)
+            solar_azimuth[i] = NULL;
+        if (sat_zenith)
+            sat_zenith[i] = NULL;
+        if (sat_azimuth)
+            sat_azimuth[i] = NULL;
+    }
+}
+
+
+/******************************************************************************
+MODULE:  free_per_pixel_angles
+
+PURPOSE:  Frees the solar and satellite angle arrays, for each band in the
+array.
+
+RETURN VALUE: N/A
+******************************************************************************/
+void free_per_pixel_angles
+(
+    short *solar_zenith[L7_NBANDS],  /* O: Array of pointers for the solar
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *solar_azimuth[L7_NBANDS], /* O: Array of pointers for the solar
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_zenith[L7_NBANDS],    /* O: Array of pointers for the satellite
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_azimuth[L7_NBANDS]    /* O: Array of pointers for the satellite
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+)
+{
+    int i;   /* looping variable */
+
+    /* Free the pointers for each band if that array is not NULL */
+    for (i = 0; i < L7_NBANDS; i++)
+    {
+        if (solar_zenith)
+            free (solar_zenith[i]);
+        if (solar_azimuth)
+            free (solar_azimuth[i]);
+        if (sat_zenith)
+            free (sat_zenith[i]);
+        if (sat_azimuth)
+            free (sat_azimuth[i]);
+    }
+}

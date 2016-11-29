@@ -39,7 +39,6 @@ int landsat_per_pixel_angles
                                   between.  Example: 1,2,3,4,5,61,62,7,8
                                   The solar/sat_zenith/azimuth arrays should
                                   will have angles processed for these bands */
-                                  /* TODO - GAIL support this */
     short *solar_zenith[L7_NBANDS],  /* O: Array of pointers for the solar
                                            zenith angle array, one per band
                                            (if NULL, don't process), degrees
@@ -60,6 +59,34 @@ int landsat_per_pixel_angles
                                   subsample factor */
     int nsamps[L7_NBANDS]   /* O: Number of samples for each band, based on the
                                   subsample factor */
+);
+
+void init_per_pixel_angles
+(
+    short *solar_zenith[L7_NBANDS],  /* O: Array of pointers for the solar
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *solar_azimuth[L7_NBANDS], /* O: Array of pointers for the solar
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_zenith[L7_NBANDS],    /* O: Array of pointers for the satellite
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_azimuth[L7_NBANDS]    /* O: Array of pointers for the satellite
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+);
+
+void free_per_pixel_angles
+(
+    short *solar_zenith[L7_NBANDS],  /* O: Array of pointers for the solar
+                                           zenith angle array, one per band */
+    short *solar_azimuth[L7_NBANDS], /* O: Array of pointers for the solar
+                                           azimuth angle array, one per band */
+    short *sat_zenith[L7_NBANDS],    /* O: Array of pointers for the satellite
+                                           zenith angle array, one per band */
+    short *sat_azimuth[L7_NBANDS]    /* O: Array of pointers for the satellite
+                                           azimuth angle array, one per band */
 );
 
 #endif

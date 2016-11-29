@@ -24,7 +24,7 @@ NOTES:
 #include "write_metadata.h"
 #include "landsat_angles.h"
 
-/* Define the fill value and the scaling factors */
+/* Define the scaling factor */
 #define ANGLE_BAND_SCALE_FACT 0.01
 
 /* Define the solar/sensor angle band indices */
@@ -49,10 +49,11 @@ NOTES:
 ******************************************************************************/
 void usage ()
 {
-    printf ("create_angle_bands creates the Landsat solar and view "
-            "(satellite) per-pixel angles for band 4.  Both the zenith and "
-            "azimuth angles are created for each angle.  Values are written "
-            "in degrees and scaled by 100.\n\n");
+    printf ("create_angle_bands creates the zenith and azimuth per-pixel "
+            "values for the solar and view (satellite) angles.  These "
+            "per-pixel angle values are only generated for band 4, which is "
+            "the representative band for TM and ETM+.  Values are written in "
+            "degrees and scaled by 100.\n\n");
     printf ("usage: create_angle_bands "
             "--xml=input_metadata_filename\n");
 
@@ -142,7 +143,7 @@ short get_args
         }
     }
 
-    /* Make sure the infiles and outfiles were specified */
+    /* Make sure the XML file was specified */
     if (*xml_infile == NULL)
     {
         sprintf (errmsg, "Input XML file is a required argument");
@@ -272,7 +273,7 @@ int main (int argc, char** argv)
     bmeta = xml_metadata.band;
     gmeta = &xml_metadata.global;
 
-    /* Determine if L8 is being processed */
+    /* Determine which instrument is being processed */
     if (!strncmp (gmeta->instrument, "ETM", 3))
         process_l7 = true;
     else
@@ -347,11 +348,17 @@ int main (int argc, char** argv)
         exit (ERROR);
     }
 
+    /* Initialize the Landsat angle bands to NULL */
+    init_per_pixel_angles (solar_zenith, solar_azimuth, sat_zenith,
+        sat_azimuth);
+
     /* Create the Landsat angle bands for the specified bands.  Create a full
        resolution product. */
     if (landsat_per_pixel_angles (ang_infile, 1, band_list, solar_zenith,
         solar_azimuth, sat_zenith, sat_azimuth, nlines, nsamps) != SUCCESS)
     {  /* Error messages already written */
+        free_per_pixel_angles (solar_zenith, solar_azimuth, sat_zenith,
+            sat_azimuth);
         exit (ERROR);
     }
 
@@ -476,6 +483,8 @@ int main (int argc, char** argv)
             fptr = open_raw_binary (out_bmeta->file_name, "wb");
             if (!fptr)
             {
+                free_per_pixel_angles (solar_zenith, solar_azimuth, sat_zenith,
+                    sat_azimuth);
                 sprintf (errmsg, "Unable to open the %s file",
                     band_angle[ang]);
                 error_handler (true, FUNC_NAME, errmsg);
@@ -486,6 +495,8 @@ int main (int argc, char** argv)
             if (write_raw_binary (fptr, nlines[curr_index], nsamps[curr_index],
                 sizeof (short), curr_angle) != SUCCESS)
             {
+                free_per_pixel_angles (solar_zenith, solar_azimuth, sat_zenith,
+                    sat_azimuth);
                 sprintf (errmsg, "Unable to write to the %s file",
                     band_angle[ang]);
                 error_handler (true, FUNC_NAME, errmsg);
@@ -498,6 +509,8 @@ int main (int argc, char** argv)
             /* Create the ENVI header */
             if (create_envi_struct (out_bmeta, gmeta, &envi_hdr) != SUCCESS)
             {
+                free_per_pixel_angles (solar_zenith, solar_azimuth, sat_zenith,
+                    sat_azimuth);
                 sprintf (errmsg, "Error creating the ENVI header file.");
                 error_handler (true, FUNC_NAME, errmsg);
                 exit (ERROR);
@@ -508,6 +521,8 @@ int main (int argc, char** argv)
             sprintf (&tmpfile[strlen(tmpfile)-3], "hdr");
             if (write_envi_hdr (tmpfile, &envi_hdr) != SUCCESS)
             {
+                free_per_pixel_angles (solar_zenith, solar_azimuth, sat_zenith,
+                    sat_azimuth);
                 sprintf (errmsg, "Writing the ENVI header file: %s.",
                     tmpfile);
                 error_handler (true, FUNC_NAME, errmsg);
@@ -517,17 +532,8 @@ int main (int argc, char** argv)
     }  /* for ang < NANGLE_BANDS */
 
     /* Free the pointers */
-    for (i = 0; i < landsat_nbands; i++)
-    {
-        /* Determine the index of this band in the overall list of input
-           bands, then free the solar/satellite arrays that were allocated in
-           the landsat_per_pixel_angles array */
-        curr_index = band_indx[i];
-        free (solar_zenith[curr_index]);
-        free (solar_azimuth[curr_index]);
-        free (sat_zenith[curr_index]);
-        free (sat_azimuth[curr_index]);
-    }
+    free_per_pixel_angles (solar_zenith, solar_azimuth, sat_zenith,
+        sat_azimuth);
 
     /* Append the solar/sensor angle bands to the XML file */
     if (append_metadata (out_nbands, out_meta.band, xml_infile) != SUCCESS)
