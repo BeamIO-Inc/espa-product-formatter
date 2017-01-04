@@ -56,7 +56,7 @@ NOTES:
 ******************************************************************************/
 void usage ()
 {
-    printf ("create_angle_bands creates the Landsat solar and view "
+    printf ("create_angle_bands creates the Landsat 8 solar and view "
             "(satellite) per-pixel angles for each band or for an average of "
             "the reflective bands.  Both the zenith and azimuth angles are "
             "created for each angle.  Values are written in degrees and scaled "
@@ -69,7 +69,7 @@ void usage ()
     printf ("    -xml: name of the input XML metadata file wich follows the "
             "ESPA internal raw binary schema\n");
     printf ("    -average: write the reflectance band averages instead of "
-            "writing each of the band angles (not supported for L4-7).\n\n");
+            "writing each of the band angles\n\n");
 
     printf ("\nExample: create_angle_bands "
             "--xml=LC80470272013287LGN00.xml\n");

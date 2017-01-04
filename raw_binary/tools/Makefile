@@ -57,6 +57,9 @@ OBJ12 = $(SRC12:.c=.o)
 SRC13 = create_landsat_angle_bands.c
 OBJ13 = $(SRC13:.c=.o)
 
+SRC14 = create_l8_angle_bands.c
+OBJ14 = $(SRC14:.c=.o)
+
 
 # Define include paths
 INCDIR  = -I. -I../include -I$(XML2INC) -I$(TIFFINC) -I$(GEOTIFF_INC) \
@@ -203,6 +206,13 @@ LIB13   = \
     -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
+LIB14   = \
+    -L../lib -l_espa_raw_binary -l_espa_common \
+    -L$(XML2LIB) -lxml2 \
+    -l_espa_band_angles -l_espa_l8_ang \
+    -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
+    $(MATHLIB)
 
 # Define C executables
 EXE1 = convert_lpgs_to_espa
@@ -218,7 +228,8 @@ EXE10 = create_date_bands
 EXE11 = clip_band_misalignment
 EXE12 = convert_espa_to_netcdf
 EXE13 = create_landsat_angle_bands
-ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11) $(EXE12) $(EXE13)
+EXE14 = create_l8_angle_bands
+ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11) $(EXE12) $(EXE13) $(EXE14)
 
 #-----------------------------------------------------------------------------
 all: $(ALL_EXES)
@@ -262,6 +273,9 @@ $(EXE12): $(OBJ12) $(INC)
 $(EXE13): $(OBJ13) $(INC)
 	$(CC) $(NCFLAGS) -o $(EXE13) $(OBJ13) $(LIB13)
 
+$(EXE14): $(OBJ14) $(INC)
+	$(CC) $(NCFLAGS) -o $(EXE14) $(OBJ14) $(LIB14)
+
 #-----------------------------------------------------------------------------
 install: $(ALL_EXES)
 	install -d $(bin_link_path)
@@ -290,6 +304,7 @@ $(OBJ10): $(INC)
 $(OBJ11): $(INC)
 $(OBJ12): $(INC)
 $(OBJ13): $(INC)
+$(OBJ14): $(INC)
 
 .c.o:
 	$(CC) $(NCFLAGS) -c $<
