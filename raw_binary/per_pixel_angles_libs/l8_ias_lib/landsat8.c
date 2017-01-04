@@ -116,6 +116,7 @@ IAS_SATELLITE_ATTRIBUTES *ias_sat_attr_initialize_landsat8()
         l8_band_attribs[band_index].band_index = band_index;  
         l8_band_attribs[band_index].qcal_min = QUANTIZE_CAL_MIN;
         l8_band_attribs[band_index].qcal_max = QUANTIZE_CAL_MAX;
+        l8_band_attribs[band_index].can_saturate = FALSE;
     }
 
     /* Set up the OLI Coastal Aerosol band (band number 1) */
@@ -137,6 +138,7 @@ IAS_SATELLITE_ATTRIBUTES *ias_sat_attr_initialize_landsat8()
     l8_band_attribs[band_index].pixel_resolution = OLI_PIXEL_RESOLUTION_NORMAL;
     l8_band_attribs[band_index].wavelength_nm_range[0]=433;
     l8_band_attribs[band_index].wavelength_nm_range[1]=453;
+    l8_band_attribs[band_index].can_saturate = TRUE;
 
     /* Set up the OLI blue band (band number 2) */
     band_index++;
@@ -157,6 +159,7 @@ IAS_SATELLITE_ATTRIBUTES *ias_sat_attr_initialize_landsat8()
     l8_band_attribs[band_index].pixel_resolution = OLI_PIXEL_RESOLUTION_NORMAL;
     l8_band_attribs[band_index].wavelength_nm_range[0]=450;
     l8_band_attribs[band_index].wavelength_nm_range[1]=515;
+    l8_band_attribs[band_index].can_saturate = TRUE;
 
     /* Set up the OLI Green band (band number 3) */
     band_index++;
@@ -177,6 +180,7 @@ IAS_SATELLITE_ATTRIBUTES *ias_sat_attr_initialize_landsat8()
     l8_band_attribs[band_index].pixel_resolution = OLI_PIXEL_RESOLUTION_NORMAL;
     l8_band_attribs[band_index].wavelength_nm_range[0]=525;
     l8_band_attribs[band_index].wavelength_nm_range[1]=600;
+    l8_band_attribs[band_index].can_saturate = TRUE;
 
     /* Set up the OLI Red band (band number 4) */
     band_index++;
@@ -197,6 +201,7 @@ IAS_SATELLITE_ATTRIBUTES *ias_sat_attr_initialize_landsat8()
     l8_band_attribs[band_index].pixel_resolution = OLI_PIXEL_RESOLUTION_NORMAL;
     l8_band_attribs[band_index].wavelength_nm_range[0]=630;
     l8_band_attribs[band_index].wavelength_nm_range[1]=680;
+    l8_band_attribs[band_index].can_saturate = TRUE;
 
     /* Set up the OLI Near Infrared (NIR) band (band number 5) */
     band_index++;
@@ -217,6 +222,7 @@ IAS_SATELLITE_ATTRIBUTES *ias_sat_attr_initialize_landsat8()
     l8_band_attribs[band_index].pixel_resolution = OLI_PIXEL_RESOLUTION_NORMAL;
     l8_band_attribs[band_index].wavelength_nm_range[0]=845;
     l8_band_attribs[band_index].wavelength_nm_range[1]=885;
+    l8_band_attribs[band_index].can_saturate = TRUE;
 
     /* Set up the first OLI Shortwave Infrared (SWIR) band (band number 6) */
     band_index++;
@@ -237,6 +243,7 @@ IAS_SATELLITE_ATTRIBUTES *ias_sat_attr_initialize_landsat8()
     l8_band_attribs[band_index].pixel_resolution = OLI_PIXEL_RESOLUTION_NORMAL;
     l8_band_attribs[band_index].wavelength_nm_range[0]=1560;
     l8_band_attribs[band_index].wavelength_nm_range[1]=1660;
+    l8_band_attribs[band_index].can_saturate = TRUE;
 
     /* Set up the second OLI Shortwave Infrared (SWIR) band (band number 7) */
     band_index++;
@@ -257,8 +264,11 @@ IAS_SATELLITE_ATTRIBUTES *ias_sat_attr_initialize_landsat8()
     l8_band_attribs[band_index].pixel_resolution = OLI_PIXEL_RESOLUTION_NORMAL;
     l8_band_attribs[band_index].wavelength_nm_range[0]=2100;
     l8_band_attribs[band_index].wavelength_nm_range[1]=2300;
+    l8_band_attribs[band_index].can_saturate = TRUE;
 
-    /* Set up the OLI Panchromatic band (band number 8) */
+    /* Set up the OLI Panchromatic band (band number 8).
+       Note: Band 8 can saturate, but it will never be reported
+             so its 'can_saturate' attribute it set to false */
     band_index++;
     strcpy(l8_band_attribs[band_index].band_name, "OLI_PAN");
     l8_band_attribs[band_index].sensor_id = IAS_OLI;
@@ -276,6 +286,7 @@ IAS_SATELLITE_ATTRIBUTES *ias_sat_attr_initialize_landsat8()
     l8_band_attribs[band_index].pixel_resolution = OLI_PIXEL_RESOLUTION_PAN;
     l8_band_attribs[band_index].wavelength_nm_range[0]=500;
     l8_band_attribs[band_index].wavelength_nm_range[1]=680;
+    l8_band_attribs[band_index].can_saturate = FALSE;
 
     /* Set up the OLI Cirrus Cloud band (band number 9) */
     band_index++;
@@ -296,6 +307,7 @@ IAS_SATELLITE_ATTRIBUTES *ias_sat_attr_initialize_landsat8()
     l8_band_attribs[band_index].pixel_resolution = OLI_PIXEL_RESOLUTION_NORMAL;
     l8_band_attribs[band_index].wavelength_nm_range[0]=1360;
     l8_band_attribs[band_index].wavelength_nm_range[1]=1390;
+    l8_band_attribs[band_index].can_saturate = TRUE;
 
     /* Set up the first TIRS thermal band (band number 10) */
     band_index++;

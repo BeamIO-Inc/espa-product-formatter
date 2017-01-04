@@ -143,7 +143,8 @@ typedef struct ias_band_attributes
     double wavelength_nm_range[2]; /* range of wavelengths in nm in this band 
                                       - this really isn't needed for anything, 
                                       but could prove useful for metadata. */
-    
+    int can_saturate;           /* Flag indicating whether or not a band can
+                                   contain saturation or not */
 } IAS_BAND_ATTRIBUTES;
 
 /* Defines the structure to store the top-level satellite attributes */
@@ -316,6 +317,13 @@ int ias_sat_attr_get_quantization_cal_max
 (
     int band_number,            /* I: Current band number */
     int *qcal_max               /* O: qcal max value */
+);
+
+int ias_sat_attr_report_saturation_for_band
+(
+    int band_number,                   /* I: Band number */
+    int *should_report_saturation_flag /* O: Flag to say if saturation should
+                                             be reported */
 );
 
 /* Routine to retrieve the sensor name associated with the satellite name. */

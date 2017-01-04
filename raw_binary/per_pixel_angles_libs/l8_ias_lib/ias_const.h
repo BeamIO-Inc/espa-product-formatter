@@ -132,19 +132,18 @@
    The bit positions of the mask are described below.  The representation of a
    16-bit mask is shown on the right with a flag indicating where each class's
    confidence level is stored.
-  
-       Flag Description    Bits   Flag 
-       ------------------  -----  ----
-       Fill:                   0    f
-       Dropped Frame:          1    d          CCcc ssvv RRww Rtdf
-       Terrain Occlusion:      2    t          1111 1111 1111 1111
-       <reserved>:             3    R
-       Water:                4-5    w
-       <reserved>:           6-7    R
-       Vegetation:           8-9    v
-       Snow & Ice:         10-11    s
-       Cirrus:             12-13    c
-       Cloud:              14-15    C
+
+       Flag Description      Bits      Flag       RRRi issS SccC rrtf
+       ------------------    -----     ----       1111 1111 1111 1111
+       Designated Fill           0    f
+       Terrain Occlusion         1    t
+       Radiometric Saturation  2-3    r
+       Cloud                     4    C
+       Cloud confidence        5-6    c
+       Cloud Shadow            7-8    S
+       Snow / Ice confidence  9-10    s
+       Cirrus confidence     11-12    i
+       <Reserved>            13-15    R
 
     The following defines can be used to extract the bit information from a
     quality band sample.
@@ -154,34 +153,32 @@
 
 #define IAS_QUALITY_BIT_FILL              0x0001 /* Bit 0 */
 
-#define IAS_QUALITY_BIT_DROPPED_FRAME     0x0002 /* Bit 1 */
+#define IAS_QUALITY_BIT_TERRAIN_OCCLUSION 0x0002 /* Bit 1 */
 
-#define IAS_QUALITY_BIT_TERRAIN_OCCLUSION 0x0004 /* Bit 2 */
+#define IAS_QUALITY_BIT_RAD_SAT_01        0x0004 /* Bit 2 */
+#define IAS_QUALITY_BIT_RAD_SAT_10        0x0008 /* Bit 3 */
+#define IAS_QUALITY_BIT_RAD_SAT_11        0x000C /* Bit 2 and 3 */
 
-#define IAS_QUALITY_BIT_RESERVED_1        0x0008 /* Bit 3 */
+#define IAS_QUALITY_BIT_CLOUD             0x0010 /* Bit 4 */
 
-#define IAS_QUALITY_BIT_WATER_01          0x0010 /* Bit 4 */
-#define IAS_QUALITY_BIT_WATER_10          0x0020 /* Bit 5 */
-#define IAS_QUALITY_BIT_WATER_11          0x0030 /* Bits 4 and 5 */
+#define IAS_QUALITY_BIT_CLOUD_01          0x0020 /* Bit 5 */
+#define IAS_QUALITY_BIT_CLOUD_10          0x0040 /* Bit 6 */
+#define IAS_QUALITY_BIT_CLOUD_11          0x0060 /* Bit 5 and 6 */
 
-#define IAS_QUALITY_BIT_RESERVED_2        0x0040 /* Bit 6 */
-#define IAS_QUALITY_BIT_RESERVED_3        0x0080 /* Bit 7 */
+#define IAS_QUALITY_BIT_CLOUD_SHADOW_01   0x0080 /* Bit 7 */
+#define IAS_QUALITY_BIT_CLOUD_SHADOW_10   0x0100 /* Bit 8 */
+#define IAS_QUALITY_BIT_CLOUD_SHADOW_11   0x0180 /* Bit 7 and 8 */
 
-#define IAS_QUALITY_BIT_VEGETATION_01     0x0100 /* Bit 8 */
-#define IAS_QUALITY_BIT_VEGETATION_10     0x0200 /* Bit 9 */
-#define IAS_QUALITY_BIT_VEGETATION_11     0x0300 /* Bits 8 and 9 */
+#define IAS_QUALITY_BIT_SNOW_ICE_01       0x0200 /* Bit 9 */
+#define IAS_QUALITY_BIT_SNOW_ICE_10       0x0400 /* Bit 10 */
+#define IAS_QUALITY_BIT_SNOW_ICE_11       0x0600 /* Bits 9 and 10 */
 
-#define IAS_QUALITY_BIT_SNOW_ICE_01       0x0400 /* Bit 10 */
-#define IAS_QUALITY_BIT_SNOW_ICE_10       0x0800 /* Bit 11 */
-#define IAS_QUALITY_BIT_SNOW_ICE_11       0x0C00 /* Bits 10 and 11 */
+#define IAS_QUALITY_BIT_CIRRUS_01         0x0800 /* Bit 11 */
+#define IAS_QUALITY_BIT_CIRRUS_10         0x1000 /* Bit 12 */
+#define IAS_QUALITY_BIT_CIRRUS_11         0x1800 /* Bits 11 and 12 */
 
-#define IAS_QUALITY_BIT_CIRRUS_01         0x1000 /* Bit 12 */
-#define IAS_QUALITY_BIT_CIRRUS_10         0x2000 /* Bit 13 */
-#define IAS_QUALITY_BIT_CIRRUS_11         0x3000 /* Bits 12 and 13 */
-
-#define IAS_QUALITY_BIT_CLOUD_01          0x4000 /* Bit 14 */
-#define IAS_QUALITY_BIT_CLOUD_10          0x8000 /* Bit 15 */
-#define IAS_QUALITY_BIT_CLOUD_11          0xC000 /* Bits 14 and 15 */
+#define IAS_QUALITY_BIT_RESERVED_1        0x2000 /* Bit 13 */
+#define IAS_QUALITY_BIT_RESERVED_2        0x4000 /* Bit 14 */
+#define IAS_QUALITY_BIT_RESERVED_3        0x8000 /* Bit 15 */
 
 #endif
-

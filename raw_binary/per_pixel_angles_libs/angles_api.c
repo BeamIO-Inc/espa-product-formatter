@@ -11,8 +11,6 @@ Name: calculate_angles
 Purpose: Calculate the satellite and solar zenith and azimuth angles.
 
 Note: ias_angle_gen_calculate_angles_rpc will return the angles in radians
-  1. zenith values are from 0 to pi radians
-  2. azimuth values are from -pi to pi radians
 
 Return: SUCCESS / ERROR
  ******************************************************************************/

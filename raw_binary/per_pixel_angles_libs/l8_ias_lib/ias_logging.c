@@ -11,6 +11,7 @@ PURPOSE: Implements the standard message logging interface
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #define LOGGING_C
 #include "ias_logging.h"
@@ -34,8 +35,100 @@ static int channels_on = 0;                       /* Flag set if channels
 static int use_blacklist = 0;                     /* Flag indicates if the
                                                      channel list contains
                                                      disabled channels */
-
+static int dump_registered = 0;                   /* Flag that indicates
+                                                     atexit dump handler was
+                                                     registered */
 /*************************************************************************/
+
+/*************************************************************************
+
+NAME: channel_enabled
+
+PURPOSE: Checks if the specified channel is enabled. 
+
+RETURNS: FALSE -- channel disabled 
+         TRUE  -- channel enabled
+
+**************************************************************************/
+static int is_channel_enabled
+(
+    const char *channel
+)
+{
+    /* if no channels are defined all are enabled */
+    if ( strlen(ias_log_channels) == 0 )
+        return TRUE;
+
+    /* build the search string (prepend/append commas) */
+    char search_str[strlen(channel) + 3];
+    sprintf(search_str, ",%s,", channel);
+
+    /* return true if the channel is found in the channel list */
+    if ( strstr(ias_log_channels, search_str) != NULL )
+    {
+        if ( use_blacklist )
+            return FALSE;
+        else
+            return TRUE;
+    }
+
+    if ( use_blacklist )
+        return TRUE;
+    else
+        return FALSE;
+}
+
+/*************************************************************************
+
+NAME: dump_io
+
+PURPOSE: Dumps the process IO file to the log channel 'IO'
+
+RETURNS: Void
+
+**************************************************************************/
+static void dump_io
+(
+)
+{
+    /* If dump io is registered then we know that the IO channel is enabled
+       and the log level <= IAS_LOG_LEVEL_DEBUG */
+    char buffer[1000];
+    FILE *fp;
+
+    /* Prepare the filename */
+    sprintf(buffer, "/proc/%d/io", pid);
+    fp = fopen(buffer, "r");
+    if (!fp)
+    {
+        IAS_LOG_WARNING("Unable to open the %s file - not reporting IO stats",
+            buffer);
+        return;
+    }
+
+    /* Reset the output to stdout incase the user is targeting
+       a separate log file since the log file has likely been closed
+       before this runs */
+    file_ptr = stdout;
+
+    /* Loop over each line */
+    while (fgets(buffer, sizeof(buffer), fp))
+    {
+        int last_char = strlen(buffer) - 1;
+
+        /* Remove the new line if present */
+        if (last_char >= 0 && buffer[last_char] == '\n')
+        {
+            buffer[last_char] = '\0';
+        }
+
+        /* Log the IO information */
+        ias_log_message_with_channel(IAS_LOG_LEVEL_DEBUG, "IO", __FILE__,
+            __LINE__, buffer);
+    }
+
+    pclose(fp);
+}
 
 /*************************************************************************
 
@@ -126,6 +219,14 @@ int ias_log_initialize
     if (setvbuf(file_ptr, NULL, _IOLBF, 0) !=0)  
     {
         IAS_LOG_WARNING("Incorrect type or size of buffer for file_ptr");   
+    }
+
+    /* Register the at exit handler if not already registered */
+    if (is_channel_enabled("IO") && (IAS_LOG_LEVEL_DEBUG
+        <= ias_log_message_level) && !dump_registered)
+    {
+        if (atexit(dump_io) == 0)
+            dump_registered = 1;
     }
 
     return SUCCESS;
@@ -223,44 +324,6 @@ static int format_time
     }
 
     return SUCCESS;
-}
-
-/*************************************************************************
-
-NAME: channel_enabled
-
-PURPOSE: Checks if the specified channel is enabled. 
-
-RETURNS: FALSE -- channel disabled 
-         TRUE  -- channel enabled
-
-**************************************************************************/
-static int is_channel_enabled
-(
-    const char *channel
-)
-{
-    /* if no channels are defined all are enabled */
-    if ( strlen(ias_log_channels) == 0 )
-        return TRUE;
-
-    /* build the search string (prepend/append commas) */
-    char search_str[strlen(channel) + 3];
-    sprintf(search_str, ",%s,", channel);
-
-    /* return true if the channel is found in the channel list */
-    if ( strstr(ias_log_channels, search_str) != NULL )
-    {
-        if ( use_blacklist )
-            return FALSE;
-        else
-            return TRUE;
-    }
-
-    if ( use_blacklist )
-        return TRUE;
-    else
-        return FALSE;
 }
 
 /*************************************************************************

@@ -298,6 +298,28 @@ int ias_parm_provide_help
                 table[count_##table++] = &parm_name##_##table; \
             else IAS_LOG_ERROR("Error: %s size exceeded", #table)
 
+/* Add double taking into account the pass through the processing flow. */
+#define IAS_PARM_ADD_DOUBLE_WITH_PASS(table, parm_name, description, \
+            is_required, is_an_array, has_range, low, high, \
+            num_defaults, default_ptr, return_ptr, return_bytes, min_count, \
+            processing_pass) \
+            char temp_##table##_##parm_name[200]; \
+            int range_##parm_name##_##table[] = {low, high}; \
+            if (processing_pass == 0) \
+                strcpy(temp_##table##_##parm_name,#parm_name); \
+            else \
+                sprintf(temp_##table##_##parm_name,"%s_PASS_%d",#parm_name, \
+                    processing_pass); \
+            struct ias_parm_parameter_definition parm_name##_##table = \
+            {temp_##table##_##parm_name, description, is_required, \
+            IAS_PARM_DOUBLE, is_an_array, \
+            has_range, SET_INT_LIST(range_##parm_name##_##table), \
+            num_defaults,SET_DOUBLE_LIST(default_ptr), \
+            SET_DOUBLE_LIST(return_ptr), return_bytes, min_count}; \
+            if (count_##table < size_##table) \
+                table[count_##table++] = &parm_name##_##table; \
+            else IAS_LOG_ERROR("Error: %s size exceeded", #table)
+
 /* parameter definition to add a string */
 #define IAS_PARM_ADD_STRING(table, parm_name, description, is_required, \
             valid_count, valid_ptr, num_defaults, default_ptr, \

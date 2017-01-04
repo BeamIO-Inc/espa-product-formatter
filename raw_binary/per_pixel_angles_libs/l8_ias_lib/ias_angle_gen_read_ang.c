@@ -220,10 +220,14 @@ static int ias_angle_gen_read_ang_projection
     {
         metadata->projection.proj_code = PS;
     }
+    else if (strcmp(map_projection, "AEA") == 0)
+    {
+        metadata->projection.proj_code = ALBERS;
+    }
     else
     {
         IAS_LOG_ERROR("MAP_PROJECTION parameter is invalid must be "
-            "UTM or PS");
+            "AEA, UTM or PS");
         return ERROR;
     }
 

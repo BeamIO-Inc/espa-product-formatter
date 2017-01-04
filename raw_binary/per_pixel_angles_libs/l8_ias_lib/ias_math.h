@@ -180,14 +180,6 @@ void ias_math_convert_quaternion2rpy
      IAS_VECTOR *att                /* O: output roll-pitch-yaw */
 );
 
-int ias_math_rotate_quaternion
-(
-    const IAS_VECTOR *ref_vector,   /* I: Reference LOS */
-    const IAS_VECTOR *search_vector,/* I: Search LOS */
-    IAS_QUATERNION *quaternion,     /* O: Quaternion of rotation */
-    double *angle                   /* O: Rotation angle */
-);
- 
 double ias_math_eval_legendre
 (
     double x,                   /* I: point at which to compute value */
@@ -725,5 +717,13 @@ int ias_math_point_in_closed_polygon_distance
     double *distance        /* O: Distance from point to polygon boundary in
                                specified direction */
 );
+
+/* math constants */
+double ias_math_get_pi();
+double ias_math_get_two_pi();
+double ias_math_get_arcsec_to_radian_conversion();
+double ias_math_get_radians_per_degree();
+double ias_math_get_degrees_per_radian();
+double ias_math_get_degrees_per_hour();
 
 #endif

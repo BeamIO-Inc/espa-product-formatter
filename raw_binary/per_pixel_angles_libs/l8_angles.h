@@ -140,4 +140,36 @@ int read_parameters
     L8_ANGLES_PARAMETERS *parameters      /* O: Generate Chips parameters */
 );
 
+void init_l8_per_pixel_angles
+(
+    short *solar_zenith[L8_NBANDS],  /* O: Array of pointers for the solar
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *solar_azimuth[L8_NBANDS], /* O: Array of pointers for the solar
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_zenith[L8_NBANDS],    /* O: Array of pointers for the satellite
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_azimuth[L8_NBANDS]    /* O: Array of pointers for the satellite
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+);
+
+void free_l8_per_pixel_angles
+(
+    short *solar_zenith[L8_NBANDS],  /* O: Array of pointers for the solar
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *solar_azimuth[L8_NBANDS], /* O: Array of pointers for the solar
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_zenith[L8_NBANDS],    /* O: Array of pointers for the satellite
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_azimuth[L8_NBANDS]    /* O: Array of pointers for the satellite
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+);
+
 #endif

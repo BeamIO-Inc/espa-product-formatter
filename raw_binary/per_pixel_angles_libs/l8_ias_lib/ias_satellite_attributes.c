@@ -1058,3 +1058,71 @@ const char *ias_sat_attr_get_satellite_sensor_name()
    /* Return the associated sensor name. */
    return curr_satellite->sensor_name;
 }
+
+/*************************************************************************
+
+NAME: ias_sat_attr_report_saturation_for_band
+
+PURPOSE: Determines if saturation should be reported for a band
+
+RETURNS: TRUE / FALSE
+*************************************************************************/
+int ias_sat_attr_report_saturation_for_band
+(
+    int band_number,                   /* I: Band number */
+    int *should_report_saturation_flag /* O: Flag to say if saturation should
+                                             be reported */
+)
+{
+    int band_index;
+    *should_report_saturation_flag = FALSE;
+
+    /* Has the library been initialized? */
+    if (!curr_satellite)
+    {
+        IAS_LOG_ERROR("Satellite Attributes have not been initialized");
+        return ERROR;
+    }
+
+    band_index = ias_sat_attr_convert_band_number_to_index(band_number);
+    if (band_index == ERROR)
+    {
+        IAS_LOG_ERROR("Unable to convert band number %d to band index",
+            band_number);
+        return ERROR;
+    }
+
+    /* Check if the band itself can saturate */
+    if (curr_satellite->band_attributes[band_index].can_saturate)
+    {
+        *should_report_saturation_flag = TRUE;
+    }
+    else
+    {
+        /* Report saturation for this band if any band of this sensor type can
+           can have saturation */
+        IAS_SENSOR_ID sensor_id = curr_satellite->band_attributes[
+            band_index].sensor_id;
+        IAS_BAND_CLASSIFICATION band_class = curr_satellite->band_attributes[
+            band_index].band_classification;
+
+        /* Loop through the bands to see if any bands of this sensor type can
+           saturate */
+        for (band_index = 0; band_index < curr_satellite->total_bands;
+             band_index++)
+        {
+            const IAS_BAND_ATTRIBUTES *band_attr
+                    = &curr_satellite->band_attributes[band_index];
+
+            if (band_attr->sensor_id == sensor_id
+                && band_attr->band_classification == band_class
+                && band_attr->can_saturate)
+            {
+                *should_report_saturation_flag = TRUE;
+                break;
+            }
+        }
+    }
+
+    return SUCCESS;
+}

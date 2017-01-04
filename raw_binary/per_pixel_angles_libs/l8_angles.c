@@ -211,7 +211,6 @@ int l8_per_pixel_angles
 
         /* Get framing information for this band if return is not successful
            then band is not present in metadata so continue */
-/* TODO -- do we need an array of frames vs. a single frame?? */
         if (get_frame(&metadata, band_index, &frame[band_index]) != SUCCESS)
         {
             IAS_LOG_WARNING("Band not present in metadata for band number %d",
@@ -884,3 +883,87 @@ static int process_parameters
 
     return SUCCESS;
 }
+
+
+/******************************************************************************
+MODULE:  init_l8_per_pixel_angles
+
+PURPOSE:  Initializes the solar and satellite angle arrays to NULL, for each
+band in the array.  This allows the free_per_pixel_angles to work properly.
+
+RETURN VALUE: N/A
+******************************************************************************/
+void init_l8_per_pixel_angles
+(
+    short *solar_zenith[L8_NBANDS],  /* O: Array of pointers for the solar
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *solar_azimuth[L8_NBANDS], /* O: Array of pointers for the solar
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_zenith[L8_NBANDS],    /* O: Array of pointers for the satellite
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_azimuth[L8_NBANDS]    /* O: Array of pointers for the satellite
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+)
+{
+    int i;   /* looping variable */
+
+    /* Initialize the pointers to NULL for each band, if that array pointer
+       is not NULL */
+    for (i = 0; i < L8_NBANDS; i++)
+    {
+        if (solar_zenith)
+            solar_zenith[i] = NULL;
+        if (solar_azimuth)
+            solar_azimuth[i] = NULL;
+        if (sat_zenith)
+            sat_zenith[i] = NULL;
+        if (sat_azimuth)
+            sat_azimuth[i] = NULL;
+    }
+}
+
+
+/******************************************************************************
+MODULE:  free_l8_per_pixel_angles
+
+PURPOSE:  Frees the solar and satellite angle arrays, for each band in the
+array.
+
+RETURN VALUE: N/A
+******************************************************************************/
+void free_l8_per_pixel_angles
+(
+    short *solar_zenith[L8_NBANDS],  /* O: Array of pointers for the solar
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *solar_azimuth[L8_NBANDS], /* O: Array of pointers for the solar
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_zenith[L8_NBANDS],    /* O: Array of pointers for the satellite
+                                           zenith angle array, one per band
+                                           (if NULL, don't process) */
+    short *sat_azimuth[L8_NBANDS]    /* O: Array of pointers for the satellite
+                                           azimuth angle array, one per band
+                                           (if NULL, don't process) */
+)
+{
+    int i;   /* looping variable */
+
+    /* Free the pointers for each band if that array is not NULL */
+    for (i = 0; i < L8_NBANDS; i++)
+    {
+        if (solar_zenith)
+            free (solar_zenith[i]);
+        if (solar_azimuth)
+            free (solar_azimuth[i]);
+        if (sat_zenith)
+            free (sat_zenith[i]);
+        if (sat_azimuth)
+            free (sat_azimuth[i]);
+    }
+}
+
