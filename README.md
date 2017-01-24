@@ -112,3 +112,5 @@ be needed for your application or other espa product formatter libraries may nee
   * Updated to change the product type of the angle bands to be something other
     than 'intermediate product' since the angle bands will be delivered with
     the surface reflectance products.
+  * Changed the name of the angle band file to use _b versus _B to be consistent
+    with the lower-case naming convention we have been using.
