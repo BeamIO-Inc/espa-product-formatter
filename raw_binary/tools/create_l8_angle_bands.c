@@ -323,7 +323,7 @@ int main (int argc, char** argv)
     {
         /* Set up the band metadata for the current band */
         out_bmeta = &out_meta.band[i];
-        strcpy (out_bmeta->product, "intermediate_data");
+        strcpy (out_bmeta->product, "angle_bands");
         strcpy (out_bmeta->source, "level1");
         strcpy (out_bmeta->category, "image");
 
@@ -339,7 +339,7 @@ int main (int argc, char** argv)
             case (SOLAR_ZEN):  /* solar zenith */
                 /* Determine the output file for the solar zenith band */
                 snprintf (tmpfile, sizeof (tmpfile),
-                    "%s_B%d_solar_zenith.img", outfile, curr_band);
+                    "%s_b%d_solar_zenith.img", outfile, curr_band);
                 sprintf (out_bmeta->name, "solar_zenith_band%d", curr_band);
                 strncpy (tmpstr, bmeta->short_name, 3);
                 sprintf (out_bmeta->short_name, "%sSOLZEN", tmpstr);
@@ -350,7 +350,7 @@ int main (int argc, char** argv)
             case (SOLAR_AZ):  /* solar azimuth */
                 /* Determine the output file for the solar azimuth band */
                 snprintf (tmpfile, sizeof (tmpfile),
-                    "%s_B%d_solar_azimuth.img", outfile, curr_band);
+                    "%s_b%d_solar_azimuth.img", outfile, curr_band);
                 sprintf (out_bmeta->name, "solar_azimuth_band%d",
                     curr_band);
                 strncpy (tmpstr, bmeta->short_name, 3);
@@ -362,7 +362,7 @@ int main (int argc, char** argv)
             case (SENSOR_ZEN):  /* sensor zenith */
                 /* Determine the output file for the sensor zenith band */
                 snprintf (tmpfile, sizeof (tmpfile),
-                    "%s_B%d_sensor_zenith.img", outfile, curr_band);
+                    "%s_b%d_sensor_zenith.img", outfile, curr_band);
                 sprintf (out_bmeta->name, "sensor_zenith_band%d",
                     curr_band);
                 strncpy (tmpstr, bmeta->short_name, 3);
@@ -374,7 +374,7 @@ int main (int argc, char** argv)
             case (SENSOR_AZ):  /* sensor azimuth */
                 /* Determine the output file for the sensor azimuth band */
                 snprintf (tmpfile, sizeof (tmpfile),
-                    "%s_B%d_sensor_azimuth.img", outfile, curr_band);
+                    "%s_b%d_sensor_azimuth.img", outfile, curr_band);
                 sprintf (out_bmeta->name, "sensor_azimuth_band%d",
                     curr_band);
                 strncpy (tmpstr, bmeta->short_name, 3);
