@@ -719,7 +719,7 @@ int ias_math_point_in_closed_polygon_distance
 );
 
 /* math constants */
-double ias_math_get_pi();
+/* double ias_math_get_pi(); */
 double ias_math_get_two_pi();
 double ias_math_get_arcsec_to_radian_conversion();
 double ias_math_get_radians_per_degree();
