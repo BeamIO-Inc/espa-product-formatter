@@ -107,7 +107,7 @@ be needed for your application or other espa product formatter libraries may nee
 ## Release Notes
   * Updated the Landsat 8 angle libraries to utilize the latest version of the
     Landsat tool as published by the Landsat team.
-  * Updated the angle band tools to support a sepcific L8 tool to generate the
+  * Updated the angle band tools to support a specific L8 tool to generate the
     L8 angle for only band 4 (as the representative band).
   * Updated to change the product type of the angle bands to be something other
     than 'intermediate product' since the angle bands will be delivered with

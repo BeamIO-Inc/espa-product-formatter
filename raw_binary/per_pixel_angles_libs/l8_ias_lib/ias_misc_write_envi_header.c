@@ -282,7 +282,7 @@ int ias_misc_write_envi_header
         double corner_x = upper_left_x - (projection_distance_x / 2.0);
         double corner_y = upper_left_y + (projection_distance_y / 2.0);
 
-        /* Only supporting UTM, PS, and GEO map projections at this time */
+        /* Only supporting UTM, PS, GEO, ALBERS map projections at this time */
         if (proj_info->proj_code == UTM)
         {
             /* Output the UTM projection information */
