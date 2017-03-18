@@ -24,7 +24,9 @@ NOTES:
 #include "write_metadata.h"
 #include "landsat_angles.h"
 
-/* Define the scaling factor */
+/* Define the fill value and the scaling factors (offsets the scale applied
+   in the  */
+#define ANGLE_BAND_FILL -32767
 #define ANGLE_BAND_SCALE_FACT 0.01
 
 /* Define the solar/sensor angle band indices */
@@ -426,6 +428,7 @@ int main (int argc, char** argv)
         snprintf (out_bmeta->file_name, sizeof (out_bmeta->file_name), "%s",
             tmpfile);
         out_bmeta->data_type = ESPA_INT16;
+        out_bmeta->fill_value = ANGLE_BAND_FILL;
         out_bmeta->scale_factor = ANGLE_BAND_SCALE_FACT;
         strcpy (out_bmeta->data_units, "degrees");
         out_bmeta->nlines = nlines[curr_index];

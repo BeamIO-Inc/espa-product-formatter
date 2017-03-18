@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.11.0 Release Notes
-Release Date: February 2017
+## ESPA-PRODUCT_FORMATTER Version 1.12.0 Release Notes
+Release Date: May 2017
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -10,7 +10,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.11.0]
+See git tag [version_1.12.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -105,12 +105,6 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Updated the Landsat 8 angle libraries to utilize the latest version of the
-    Landsat tool as published by the Landsat team.
-  * Updated the angle band tools to support a specific L8 tool to generate the
-    L8 angle for only band 4 (as the representative band).
-  * Updated to change the product type of the angle bands to be something other
-    than 'intermediate product' since the angle bands will be delivered with
-    the surface reflectance products.
-  * Changed the name of the angle band file to use _b versus _B to be consistent
-    with the lower-case naming convention we have been using.
+  * Updated L4-7 and L8 angle bands to have a fill value of -32767 versus
+    -9999, since that is -99.99 degrees which can be a valid angle value in
+    some cases.

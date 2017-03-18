@@ -27,7 +27,7 @@ NOTES:
 
 /* Define the fill value and the scaling factors (offsets the scale applied
    in the  */
-#define ANGLE_BAND_FILL -9999
+#define ANGLE_BAND_FILL -32767
 #define ANGLE_BAND_SCALE_FACT 0.01
 
 /* Define the solar/sensor angle band indices */
