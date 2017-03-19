@@ -105,6 +105,6 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Updated L4-7 and L8 angle bands to have a fill value of -32767 versus
+  * Updated L4-7 and L8 angle bands to have a fill value of -32768 versus
     -9999, since that is -99.99 degrees which can be a valid angle value in
     some cases.
