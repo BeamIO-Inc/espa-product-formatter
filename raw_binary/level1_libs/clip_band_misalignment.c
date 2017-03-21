@@ -263,9 +263,14 @@ int clip_band_misalignment
                 }
             }
 
-            /* If a fill pixel was found, then set all pixels to fill and set
-               the band quality to fill */
-            if (fill)
+            /* If a fill pixel was found or this pixel is flagged as fill in
+               the band quality band, then set all bands to fill and set the
+               band quality to fill. Technically if the band quality is set to
+               fill, then one of the bands should have been flagged as fill.
+               However, we have found a few cases where the band quality is
+               set to fill and none of the bands are fill. That case is fixed
+               in the following code block. */
+            if (fill || (bqa_buf[s] == 1))
             {
                 for (i = 0; i < bnd_count; i++)
                     file_buf[i][s] = 0;
