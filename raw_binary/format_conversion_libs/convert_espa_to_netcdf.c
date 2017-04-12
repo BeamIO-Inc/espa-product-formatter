@@ -1178,8 +1178,16 @@ int convert_espa_to_netcdf
 
     cptr = strrchr (xml_file, '.');
     if (cptr != NULL)
+    {
+        /* File extension found.  Replace it with the new extension */
         *cptr = '\0';
-    strcpy (cptr, "_nc.xml");
+        strcpy (cptr, "_nc.xml");
+    }
+    else
+    {
+        /* File extension found.  Replace it with the new extension */
+        strcat (xml_file, "_nc.xml");
+    }
 
     /* Write the new XML file containing the new band names */
     if (write_metadata (&xml_metadata, xml_file) != SUCCESS)

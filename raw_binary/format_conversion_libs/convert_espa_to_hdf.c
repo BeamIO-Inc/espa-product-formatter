@@ -1100,8 +1100,16 @@ int convert_espa_to_hdf
 
     cptr = strrchr (xml_file, '.');
     if (cptr != NULL)
+    {
+        /* File extension found.  Replace it with the new extension */
         *cptr = '\0';
-    strcpy (cptr, "_hdf.xml");
+        strcpy (cptr, "_hdf.xml");
+    }
+    else
+    {
+        /* No file extension found.  Just append the new extension */
+        strcat (xml_file, "_hdf.xml");
+    }
 
     /* Write the new XML file containing the new band names */
     if (write_metadata (&xml_metadata, xml_file) != SUCCESS)

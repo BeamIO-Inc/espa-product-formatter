@@ -416,7 +416,17 @@ int convert_espa_to_raw_binary_bip
         return (ERROR);
     }
     cptr = strchr (envi_file, '.');
-    strcpy (cptr, ".hdr");
+    if (cptr != NULL)
+    {
+        /* File extension found.  Replace it with the new extension */
+        *cptr = '\0';
+        strcpy (cptr, ".hdr");
+    }
+    else
+    {
+        /* No file extension found.  Just append the new extension */
+        strcat (envi_file, ".hdr");
+    }
 
     if (write_envi_hdr (envi_file, &envi_hdr) != SUCCESS)
     {
@@ -495,7 +505,17 @@ int convert_espa_to_raw_binary_bip
         return (ERROR);
     }
     cptr = strrchr (xml_file, '.');
-    strcpy (cptr, "_bip.xml");
+    if (cptr != NULL)
+    {
+        /* File extension found.  Replace it with the new extension */
+        *cptr = '\0';
+        strcpy (cptr, "_bip.xml");
+    }
+    else
+    {
+        /* No file extension found.  Just append the new extension */
+        strcat (xml_file, "_bip.xml");
+    }
 
     /* Write the new XML file */
     if (write_metadata (&xml_metadata, xml_file) != SUCCESS)
