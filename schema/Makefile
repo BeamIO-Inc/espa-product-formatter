@@ -20,7 +20,7 @@ all:
 install:
 	install -d $(schema_link_path)
 	install -d $(schema_lib_install_path)
-	install -m 644 $(SCHEMAS) $(schema_lib_install_path)
+	install -m 644 $(SCHEMAS) $(schema_lib_install_path) || exit 1
 	@for schema in $(SCHEMAS); do \
         cmd="ln -sf $(schema_lib_link_path)/$$schema $(schema_link_path)/$$schema"; \
         echo "$$cmd"; $$cmd; \

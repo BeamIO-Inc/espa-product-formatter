@@ -61,7 +61,7 @@ install-headers:
 	install -d $(raw_binary_inc_install_path)
 	@for inc in $(INC); do \
         echo "install -m 644 $$inc $(raw_binary_inc_install_path)/$$inc"; \
-        install -m 644 $$inc $(raw_binary_inc_install_path)/$$inc; \
+        install -m 644 $$inc $(raw_binary_inc_install_path)/$$inc || exit 1; \
         echo "ln -sf $(raw_binary_link_inc_path)/$$inc $(inc_link_path)/$$inc"; \
         ln -sf $(raw_binary_link_inc_path)/$$inc $(inc_link_path)/$$inc; \
         done

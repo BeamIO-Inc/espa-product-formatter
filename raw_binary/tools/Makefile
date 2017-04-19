@@ -280,7 +280,7 @@ $(EXE14): $(OBJ14) $(INC)
 install: $(ALL_EXES)
 	install -d $(bin_link_path)
 	install -d $(raw_binary_bin_install_path)
-	install -m 755 $(ALL_EXES) $(raw_binary_bin_install_path)
+	install -m 755 $(ALL_EXES) $(raw_binary_bin_install_path) || exit 1
 	@for executable in $(ALL_EXES); do \
         echo "ln -sf $(raw_binary_link_bin_path)/$$executable $(bin_link_path)/$$executable"; \
         ln -sf $(raw_binary_link_bin_path)/$$executable $(bin_link_path)/$$executable; \

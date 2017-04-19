@@ -23,13 +23,13 @@ all: executables
 libraries:
 	@for dir in $(LIBDIRS); do \
         echo "make all in $$dir..."; \
-        (cd $$dir; $(MAKE)); done
+        $(MAKE) -C $$dir || exit 1; done
 
 #-----------------------------------------------------------------------------
 executables: libraries
 	@for dir in $(EXEDIRS); do \
         echo "make all in $$dir..."; \
-        (cd $$dir; $(MAKE)); done
+        $(MAKE) -C $$dir || exit 1; done
 
 #-----------------------------------------------------------------------------
 install-headers:
@@ -38,7 +38,7 @@ install-headers:
 ifneq ($(ESPAINC), $(CURDIR)/include)
 	@for dir in $(LIBDIRS); do \
         echo "installing all in $$dir..."; \
-        (cd $$dir; $(MAKE) install-headers); done
+        $(MAKE) -C $$dir install-headers || exit 1; done
 else
 	echo "$(ESPAINC) is the same as the include directory. Include files already installed."
 endif
@@ -50,7 +50,7 @@ install-lib: libraries
 ifneq ($(ESPALIB), $(CURDIR)/lib)
 	@for dir in $(LIBDIRS); do \
         echo "installing all in $$dir..."; \
-        (cd $$dir; $(MAKE) install-lib); done
+        $(MAKE) -C $$dir install-lib || exit 1; done
 else
 	echo "$(ESPALIB) is the same as the lib directory. Libraries already installed."
 endif
