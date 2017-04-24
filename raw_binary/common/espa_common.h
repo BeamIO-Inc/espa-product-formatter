@@ -14,7 +14,7 @@ NOTES:
 #ifndef ESPA_COMMON_H_
 #define ESPA_COMMON_H_
 
-#define ESPA_COMMON_VERSION "1.11.1"
+#define ESPA_COMMON_VERSION "1.12.0"
 
 /* Set up default success/error defines */
 #define SUCCESS 0

@@ -1019,6 +1019,10 @@ int ias_angle_gen_read_ang
         return ERROR;
     }
 
+    /* Initialize the band present field to false */
+    for (index = 0; index < IAS_MAX_NBANDS; index++)
+        metadata->band_present[index] = FALSE;
+
     /* Read data */
     /* File information group */
     if (ias_angle_gen_read_ang_header(odl_data, metadata) != SUCCESS)
