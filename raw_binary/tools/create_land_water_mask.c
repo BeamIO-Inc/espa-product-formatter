@@ -286,7 +286,7 @@ int main (int argc, char** argv)
     out_bmeta->data_type = ESPA_UINT8;
     out_bmeta->nlines = nlines;
     out_bmeta->nsamps = nsamps;
-    strncpy (tmpstr, bmeta->short_name, 3);
+    strncpy (tmpstr, bmeta->short_name, 4);
     sprintf (out_bmeta->short_name, "%sLWMASK", tmpstr);
     strcpy (out_bmeta->long_name, "static land/water mask");
     out_bmeta->pixel_size[0] = bmeta->pixel_size[0];

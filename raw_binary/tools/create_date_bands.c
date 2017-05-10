@@ -304,7 +304,7 @@ int main (int argc, char** argv)
                 strcpy (out_bmeta->name, "combined_date");
                 strcpy (out_bmeta->category, "image");
                 out_bmeta->data_type = ESPA_UINT32;
-                strncpy (tmpstr, bmeta->short_name, 3);
+                strncpy (tmpstr, bmeta->short_name, 4);
                 sprintf (out_bmeta->short_name, "%sDATE", tmpstr);
                 strcpy (out_bmeta->long_name,
                     "doy and year (YEAR * 1000 + DOY)");
@@ -316,7 +316,7 @@ int main (int argc, char** argv)
                 strcpy (out_bmeta->name, "doy");
                 strcpy (out_bmeta->category, "image");
                 out_bmeta->data_type = ESPA_UINT16;
-                strncpy (tmpstr, bmeta->short_name, 3);
+                strncpy (tmpstr, bmeta->short_name, 4);
                 sprintf (out_bmeta->short_name, "%sDOY", tmpstr);
                 strcpy (out_bmeta->long_name, "day of year");
                 sprintf (tmp_ext, "doy.img");
@@ -329,7 +329,7 @@ int main (int argc, char** argv)
                 strcpy (out_bmeta->name, "year");
                 strcpy (out_bmeta->category, "image");
                 out_bmeta->data_type = ESPA_UINT16;
-                strncpy (tmpstr, bmeta->short_name, 3);
+                strncpy (tmpstr, bmeta->short_name, 4);
                 sprintf (out_bmeta->short_name, "%sYEAR", tmpstr);
                 strcpy (out_bmeta->long_name, "year");
                 sprintf (tmp_ext, "year.img");
