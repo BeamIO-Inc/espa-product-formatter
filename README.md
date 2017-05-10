@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.12.0 Release Notes
-Release Date: May 2017
+## ESPA-PRODUCT_FORMATTER Version 1.13.0 Release Notes
+Release Date: June 2017
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -10,7 +10,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.12.0]
+See git tag [version_1.13.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -105,7 +105,5 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Updated format conversion tools to handle the case where file extensions
-    are not present. 
-  * Fixed a bug in the L8 angle bands library to correctly handle the OLI-only
-    bands.
+  * Updated the XML short-name to contain a 4-digit instrument identified vs.
+    the current 3-digit identifier.

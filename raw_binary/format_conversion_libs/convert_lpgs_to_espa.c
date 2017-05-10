@@ -1132,27 +1132,27 @@ int read_lpgs_mtl
             bmeta[i].data_type = ESPA_UINT8;
             bmeta[i].fill_value = 0;
             if (!strcmp (gmeta->satellite, "LANDSAT_4"))
-                strcpy (bmeta[i].short_name, "LT4DN");
+                strcpy (bmeta[i].short_name, "LT04DN");
             else if (!strcmp (gmeta->satellite, "LANDSAT_5"))
-                strcpy (bmeta[i].short_name, "LT5DN");
+                strcpy (bmeta[i].short_name, "LT05DN");
         }
         else if (!strncmp (gmeta->instrument, "ETM", 3))
         {
             bmeta[i].data_type = ESPA_UINT8;
             bmeta[i].fill_value = 0;
-            strcpy (bmeta[i].short_name, "LE7DN");
+            strcpy (bmeta[i].short_name, "LE07DN");
         }
         else if (!strcmp (gmeta->instrument, "OLI_TIRS"))
         {
             bmeta[i].data_type = ESPA_UINT16;
             bmeta[i].fill_value = 0;
-            strcpy (bmeta[i].short_name, "LC8DN");
+            strcpy (bmeta[i].short_name, "LC08DN");
         }
         else if (!strcmp (gmeta->instrument, "OLI"))
         {
             bmeta[i].data_type = ESPA_UINT16;
             bmeta[i].fill_value = 0;
-            strcpy (bmeta[i].short_name, "LO8DN");
+            strcpy (bmeta[i].short_name, "LO08DN");
         }
 
         /* Set up the band names - use lower case 'b' versus upper case 'B'
