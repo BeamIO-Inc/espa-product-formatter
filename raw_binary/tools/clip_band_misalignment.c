@@ -1,8 +1,8 @@
 /*****************************************************************************
 FILE: clip_band_misalignment
   
-PURPOSE: Contains functions for clipping the mis-aligned bands in TM/ETM+
-products stored in the internal ESPA raw binary format.
+PURPOSE: Contains functions for clipping the mis-aligned bands in TM/ETM+, OLI,
+and OLI/TIRS products stored in the internal ESPA raw binary format.
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
 at the USGS EROS
@@ -30,13 +30,12 @@ NOTES:
 ******************************************************************************/
 void usage ()
 {
-    printf ("clip_band_misalignment clips the TM and ETM+ bands to handle the "
-            "band mis-alignment. Bands 1-7 and the thermal bands are clipped "
-            "so that they all have the same image boundaries. The band quality "
-            "band is updated to appropriately flag the fill pixels after this "
-            "band clipping.\n\n");
-    printf ("usage: clip_band_misalignment "
-            "--xml=output_xml_filename\n");
+    printf ("clip_band_misalignment clips the TM, ETM+, OLI, or OLI/TIRS bands "
+            "to handle the band mis-alignment. SWIR and the thermal bands are "
+            "clipped so that they all have the same image boundaries. The band "
+            "quality band is updated to appropriately flag the fill pixels "
+            "after this band clipping.\n\n");
+    printf ("usage: clip_band_misalignment --xml=output_xml_filename\n");
 
     printf ("\nwhere the following parameters are required:\n");
     printf ("    -xml: name of the input XML metadata file which follows "
@@ -152,7 +151,12 @@ NOTES:
 ******************************************************************************/
 int main (int argc, char** argv)
 {
-    char *xml_infile = NULL;     /* input XML filename */
+    char *xml_infile = NULL;           /* input XML filename */
+    Espa_internal_meta_t xml_metadata; /* XML metadata structure to be
+                                          populated by reading the XML
+                                          metadata file */
+    Espa_global_meta_t *gmeta = NULL;  /* pointer to the global metadata
+                                          structure */
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile) != SUCCESS)
@@ -160,11 +164,46 @@ int main (int argc, char** argv)
         exit (EXIT_FAILURE);
     }
 
-    /* Clip the bands */
-    if (clip_band_misalignment (xml_infile) != SUCCESS)
+    /* Validate the input metadata file */
+    if (validate_xml_file (xml_infile) != SUCCESS)
     {  /* Error messages already written */
         exit (EXIT_FAILURE);
     }
+
+    /* Initialize the metadata structure */
+    init_metadata_struct (&xml_metadata);
+
+    /* Parse the metadata file into our internal metadata structure; also
+       allocates space as needed for various pointers in the global and band
+       metadata */
+    if (parse_metadata (xml_infile, &xml_metadata) != SUCCESS)
+    {  /* Error messages already written */
+        exit (EXIT_FAILURE);
+    }
+    gmeta = &xml_metadata.global;
+
+    /* Clip the bands based on the instrument type */
+    /* Is this OLI or OLI/TIRS? */
+    if (!strncmp (gmeta->instrument, "OLI", 3))
+    {
+        if (clip_band_misalignment_landsat8 (&xml_metadata) != SUCCESS)
+        {  /* Error messages already written */
+            exit (EXIT_FAILURE);
+        }
+    }
+
+    /* Is this TM or ETM+? */
+    else if (!strcmp (gmeta->instrument, "TM") ||
+             !strcmp (gmeta->instrument, "ETM"))
+    {
+        if (clip_band_misalignment (&xml_metadata) != SUCCESS)
+        {  /* Error messages already written */
+            exit (EXIT_FAILURE);
+        }
+    }
+
+    /* Free the metadata structure */
+    free_metadata (&xml_metadata);
 
     /* Free the pointers */
     free (xml_infile);

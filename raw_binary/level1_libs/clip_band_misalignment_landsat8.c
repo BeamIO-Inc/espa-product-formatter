@@ -1,7 +1,7 @@
 /*****************************************************************************
-FILE: clip_band_misalignment.c
+FILE: clip_band_misalignment_landsat8.c
   
-PURPOSE: Contains functions for clipping the band mis-alignment in TM and ETM+
+PURPOSE: Contains functions for clipping the band mis-alignment in OLI/TIRS
 products.
 
 PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
@@ -22,10 +22,11 @@ NOTES:
 
 
 /******************************************************************************
-MODULE:  clip_band_misalignment
+MODULE:  clip_band_misalignment_landsat8
 
-PURPOSE: Clips bands 1-7 and the thermal band to clean up the band
-  misalignment.  Any pixel that is fill in one band will be fill in all bands.
+PURPOSE: Clips OLI and TIRS bands to provide a consistent boundary of image and
+fill data throughout the product.  Any pixel that is fill in one band will be
+fill in all bands.
 
 RETURN VALUE:
 Type = int
@@ -35,20 +36,20 @@ ERROR           Error clipping bands
 SUCCESS         Successfully clipped bands
 
 NOTES:
-  1. Bands 1-7 and the thermal bands will be clipped so that the alignment of
+  1. Bands 1-9 and the thermal bands will be clipped so that the alignment of
      all bands match.  The quality band will be updated to mark fill pixels due
      to the band clipping.
-  2. This only applies to TM and ETM+ products, thus any other sensors will
-     simply be returned as-is.
+  2. This only applies to OLI-only and combined OLI/TIRS products, thus any
+     other sensors will simply be returned as-is.
   3. This is meant to be run on the Level-1 raw binary dataset.
 ******************************************************************************/
-int clip_band_misalignment
+int clip_band_misalignment_landsat8
 (
     Espa_internal_meta_t *xml_metadata  /* I: XML metadata structure populated
                                               from an ESPA XML file */
 )
 {
-    char FUNC_NAME[] = "clip_band_misalignment";  /* function name */
+    char FUNC_NAME[] = "clip_band_misalignment_landsat8";  /* function name */
     char errmsg[STR_SIZE];    /* error message */
     char curr_band[STR_SIZE]; /* current band to process */
     int i;                    /* looping variable */
@@ -57,36 +58,38 @@ int clip_band_misalignment
     int bnd;                  /* current band to process */
     int nlines = -99;         /* number of lines in the bands */
     int nsamps = -99;         /* number of samples in the bands */
-    int band_options[NBAND_OPTIONS] = {1, 2, 3, 4, 5, 6, 61, 62, 7};
-                              /* various bands that will be used for clipping */
+    int band_options[NBAND_OPTIONS_L8] = {1, 2, 3, 4, 5, 6, 7, 9, 10, 11};
+                              /* various bands that will be used for clipping,
+                                 skip the pan band */
     bool fill;                /* is the current pixel fill */
-    uint8_t *tmp_file_buf = NULL; /* overall buffer for uint8 input band data */
-    uint8_t *file_buf[NBAND_OPTIONS]; /* buffer for uint8 input band data one
-                                         for each band */
+    uint16_t *tmp_file_buf = NULL; /* overall buffer for uint16 input band
+                                      data */
+    uint16_t *file_buf[NBAND_OPTIONS_L8]; /* buffer for uint16 input band data
+                                             one for each band */
     uint16_t *bqa_buf = NULL; /* buffer for band quality data */
     Espa_global_meta_t *gmeta = NULL; /* pointer to global metadata structure */
     Espa_band_meta_t *bmeta = NULL;   /* pointer to array of bands metadata */
-    FILE *fp_rb[NBAND_OPTIONS];  /* file pointer for the bands */
-    FILE *fp_bqa = NULL;         /* file pointer for the band quality band */
+    FILE *fp_rb[NBAND_OPTIONS_L8];    /* file pointer for the bands */
+    FILE *fp_bqa = NULL;              /* file pointer for band quality band */
 
     /* Set up the global and band metadata pointers */
     gmeta = &(xml_metadata->global);
     bmeta = xml_metadata->band;
 
-    /* Only process TM and ETM+ bands */
-    if (strcmp (gmeta->instrument, "TM") && strcmp (gmeta->instrument, "ETM"))
+    /* Only process OLI and OLI/TIRS combined bands */
+    if (strncmp (gmeta->instrument, "OLI", 3))
     {
-        sprintf (errmsg, "Only TM and ETM+ will be processed for band "
+        sprintf (errmsg, "Only OLI and OLI/TIRS will be processed for band "
             "misalignment.  All other instruments are passed back as-is.");
         error_handler (false, FUNC_NAME, errmsg);
         return (SUCCESS);
     }
 
-    /* Loop through the bands and open bands 1-7 and the thermal bands */
+    /* Loop through the bands and open bands 1-9 and the thermal bands */
     bnd_count = 0;
     for (i = 0; i < xml_metadata->nbands; i++)
     {
-        for (bnd = 0; bnd < NBAND_OPTIONS; bnd++)
+        for (bnd = 0; bnd < NBAND_OPTIONS_L8; bnd++)
         {
             /* Is the current band in the metadata one of our expected bands */
             sprintf (curr_band, "b%d", band_options[bnd]);
@@ -130,18 +133,12 @@ int clip_band_misalignment
         }
     }
 
-    /* Validate the band count TM - 7 bands and ETM+ - 8 bands */
-    if (!strcmp (gmeta->instrument, "TM") && (bnd_count != 7))
+    /* Validate the band count OLI-only - 8 bands and OLI/TIRS - 10 bands,
+       skipping pan band */
+    if (bnd_count != 8 && bnd_count != 10)
     {
-        sprintf (errmsg, "Expecting 7 TM bands, but only %d bands found.",
-            bnd_count);
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-    else if (!strcmp (gmeta->instrument, "ETM") && (bnd_count != 8))
-    {
-        sprintf (errmsg, "Expecting 8 ETM+ bands, but only %d bands found.",
-            bnd_count);
+        sprintf (errmsg, "Expecting 8 OLI bands or 10 OLI/TIRS bands (skipping "
+            "the pan band), but only %d bands were found.", bnd_count);
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
@@ -154,7 +151,6 @@ int clip_band_misalignment
         return (ERROR);
     }
 
-
     /* Make sure the quality band was found */
     if (fp_bqa == NULL)
     {
@@ -164,10 +160,10 @@ int clip_band_misalignment
     }
 
     /* Allocate one line of data for each band */
-    tmp_file_buf = calloc (nsamps * bnd_count, sizeof (uint8_t));
+    tmp_file_buf = calloc (nsamps * bnd_count, sizeof (uint16_t));
     if (tmp_file_buf == NULL)
     {
-        sprintf (errmsg, "Allocating memory for %d bands of uint8 data "
+        sprintf (errmsg, "Allocating memory for %d bands of uint16 data "
             "containing %d samples.", bnd_count, nsamps);
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
@@ -195,7 +191,8 @@ int clip_band_misalignment
         for (i = 0; i < bnd_count; i++)
         {
             /* Seek to the correct position to read the current line */
-            if (fseek (fp_rb[i], l * nsamps * sizeof (uint8_t), SEEK_SET) == -1)
+            if (fseek (fp_rb[i], l * nsamps * sizeof (uint16_t), SEEK_SET)
+                == -1)
             {   
                 sprintf (errmsg, "Not able to seek for line %d of raw binary "
                     "file %d", l, i);
@@ -204,7 +201,7 @@ int clip_band_misalignment
             }
 
             /* Read the line */
-            if (read_raw_binary (fp_rb[i], 1, nsamps, sizeof (uint8_t),
+            if (read_raw_binary (fp_rb[i], 1, nsamps, sizeof (uint16_t),
                 file_buf[i]) != SUCCESS)
             {   
                 sprintf (errmsg, "Reading line %d of raw binary file %d", l, i);
@@ -213,7 +210,8 @@ int clip_band_misalignment
             }
         }
 
-        /* Seek to the correct position to read the current line */
+        /* Read the band quality. Seek to the correct position to read the
+           current line. */
         if (fseek (fp_bqa, l * nsamps * sizeof (uint16_t), SEEK_SET) == -1)
         {   
             sprintf (errmsg, "Not able to seek for line %d of band quality "
@@ -265,7 +263,8 @@ int clip_band_misalignment
         for (i = 0; i < bnd_count; i++)
         {
             /* Seek to the correct position to write the current line */
-            if (fseek (fp_rb[i], l * nsamps * sizeof (uint8_t), SEEK_SET) == -1)
+            if (fseek (fp_rb[i], l * nsamps * sizeof (uint16_t), SEEK_SET)
+                == -1)
             {   
                 sprintf (errmsg, "Not able to seek for line %d of raw binary "
                     "file %d", l, i);
@@ -274,7 +273,7 @@ int clip_band_misalignment
             }
 
             /* Write the current line back out to the file */
-            if (write_raw_binary (fp_rb[i], 1, nsamps, sizeof (uint8_t),
+            if (write_raw_binary (fp_rb[i], 1, nsamps, sizeof (uint16_t),
                 file_buf[i]) != SUCCESS)
             {   
                 sprintf (errmsg, "Writing line %d of raw binary file %d", l, i);

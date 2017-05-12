@@ -107,3 +107,6 @@ be needed for your application or other espa product formatter libraries may nee
 ## Release Notes
   * Updated the XML short-name to contain a 4-digit instrument identified vs.
     the current 3-digit identifier.
+  * Added a function to clip the bands for OLI/TIRS. The clip_band_misalignment
+    tool determines if the scene is TM/ETM+ or OLI/TIRS and calls the
+    appropriate function for that instrument.

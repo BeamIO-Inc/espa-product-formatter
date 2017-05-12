@@ -23,6 +23,7 @@ INC = clip_band_misalignment.h generate_date_bands.h
 # Define the source code and object files
 SRC = \
       clip_band_misalignment.c  \
+      clip_band_misalignment_landsat8.c  \
       generate_date_bands.c
 OBJ = $(SRC:.c=.o)
 
