@@ -13,7 +13,7 @@ NOTES:
   1. The XML metadata format parsed or written via this library follows the
      ESPA internal metadata format found in ESPA Raw Binary Format v1.0.doc.
      The schema for the ESPA internal metadata format is available at
-     http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_0.xsd.
+     http://espa.cr.usgs.gov/schema/espa_internal_metadata_vX_X.xsd.
 *****************************************************************************/
 #include <getopt.h>
 #include "clip_band_misalignment.h"
@@ -35,7 +35,7 @@ void usage ()
             "clipped so that they all have the same image boundaries. The band "
             "quality band is updated to appropriately flag the fill pixels "
             "after this band clipping.\n\n");
-    printf ("usage: clip_band_misalignment --xml=output_xml_filename\n");
+    printf ("usage: clip_band_misalignment --xml=xml_filename\n");
 
     printf ("\nwhere the following parameters are required:\n");
     printf ("    -xml: name of the input XML metadata file which follows "
@@ -136,8 +136,8 @@ short get_args
 /******************************************************************************
 MODULE:  main
 
-PURPOSE:  Clips the band-misalignment for TM and ETM+ products.  Bands 1-7
-and the thermal bands are all clipped so that each band aligns.  The band
+PURPOSE:  Clips the band-misalignment for TM/ETM+, OLI, and OLI/TIRS products.
+SWIR and the thermal bands are all clipped so that each band aligns.  The band
 quality band is updated to update the fill pixels after the band clipping.
 
 RETURN VALUE:
