@@ -161,7 +161,7 @@ int write_envi_hdr
             hdr->pixel_size[1], proj_datum_str);
         fprintf (hdr_fptr,
             "coordinate system string = GEOGCS[\"%s\", DATUM[\"%s\", "
-            "SPHEROID[\"%s\",%g,%g]], PRIMEM[\"Greenwich\",0.0], "
+            "SPHEROID[\"%s\",%.11g,%.12g]], PRIMEM[\"Greenwich\",0.0], "
             "UNIT[\"Degree\",0.0174532925199433]]\n", geogcs_str, datum_str,
             spheroid_str, semi_major_axis, inv_flattening);
     }
@@ -188,7 +188,7 @@ int write_envi_hdr
             hdr->ul_corner[0], hdr->ul_corner[1], hdr->pixel_size[0],
             hdr->pixel_size[1], proj_datum_str);
         fprintf (hdr_fptr,
-            "projection info = {%d, %g, %g, %g, %g, %g, %g, %g, %g, "
+            "projection info = {%d, %.11g, %.11g, %g, %g, %g, %g, %g, %g, "
             "%s, Albers Conical Equal Area, units=Meters}\n",
             ENVI_ALBERS_PROJ, semi_major_axis, semi_minor_axis,
             hdr->proj_parms[5], hdr->proj_parms[4], hdr->proj_parms[6],
@@ -197,7 +197,7 @@ int write_envi_hdr
         fprintf (hdr_fptr,
             "coordinate system string = "
             "{PROJCS[\"Albers\",GEOGCS[\"%s\", DATUM[\"%s\", "
-            "SPHEROID[\"%s\",%g,%g]], PRIMEM[\"Greenwich\",0.0], "
+            "SPHEROID[\"%s\",%.11g,%.12g]], PRIMEM[\"Greenwich\",0.0], "
             "UNIT[\"Degree\",0.0174532925199433]], "
             "PROJECTION[\"Albers\"], PARAMETER[\"False_Easting\",%f], "
             "PARAMETER[\"False_Northing\",%f], "
@@ -218,7 +218,7 @@ int write_envi_hdr
             hdr->ul_corner[0], hdr->ul_corner[1], hdr->pixel_size[0],
             hdr->pixel_size[1], proj_datum_str);
         fprintf (hdr_fptr,
-            "projection info = {%d, %g, %g, %g, %g, %g, %g, %s, "
+            "projection info = {%d, %.11g, %.11g, %g, %g, %g, %g, %s, "
             "Polar Stereographic, units=Meters}\n", ENVI_PS_PROJ,
             semi_major_axis, semi_minor_axis, hdr->proj_parms[5],
             hdr->proj_parms[4], hdr->proj_parms[6], hdr->proj_parms[7],
@@ -226,7 +226,7 @@ int write_envi_hdr
         fprintf (hdr_fptr,
             "coordinate system string = "
             "{PROJCS[\"Stereographic_South_Pole\", "
-            "GEOGCS[\"%s\", DATUM[\"%s\", SPHEROID[\"%s\",%g,%g]], "
+            "GEOGCS[\"%s\", DATUM[\"%s\", SPHEROID[\"%s\",%.11g,%.12g]], "
             "PRIMEM[\"Greenwich\",0.0], UNIT[\"Degree\",0.0174532925199433]], "
             "PROJECTION[\"Stereographic_South_Pole\"], "
             "PARAMETER[\"False_Easting\",%f], "
