@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.13.1 Release Notes
-Release Date: August 2017
+## ESPA-PRODUCT_FORMATTER Version 1.13.2.b Release Notes
+Release Date: October 2017 (BRIDGE only)
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -10,7 +10,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.13.1]
+See git tag [version_1.13.2.b]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -105,6 +105,9 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Changed the print statements for the semi-major axis, semi-minor axis, and
+  * Reintroduced this bug which was fixed in v1.13.1 so that processing L8 ARD
+    Tiles will be consistent with existing L4-7 ARD Tiles which already have
+    the rounded (incorrect) WGS84 semi-major and -minor axes.
+    - Changed the print statements for the semi-major axis, semi-minor axis, and
     inverse flattening parameters.  The %g is truncating the semi-major axis
     for the Albers projection.
