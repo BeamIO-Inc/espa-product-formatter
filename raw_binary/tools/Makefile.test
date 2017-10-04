@@ -1,0 +1,75 @@
+#-----------------------------------------------------------------------------
+# Makefile
+# for raw binary tools
+#-----------------------------------------------------------------------------
+.PHONY: all install clean
+
+# Inherit from upper-level make.config
+TOP = ../..
+include $(TOP)/make.config
+
+#-----------------------------------------------------------------------------
+# Set up compile options
+CC    = gcc
+RM    = rm
+EXTRA = -Wall $(EXTRA_OPTIONS)
+
+# Define the include files
+INC =
+
+# Define the source code and object files
+SRC1 = test_read_gtif.c
+OBJ1 = $(SRC1:.c=.o)
+
+
+# Define include paths
+INCDIR  = -I. -I../include -I$(XML2INC) -I$(TIFFINC) -I$(GEOTIFF_INC)
+#          -I$(HDFINC) -I$(HDFEOS_INC) -I$(JBIGINC) -I$(ZLIBINC)
+NCFLAGS = $(EXTRA) $(INCDIR)
+          
+# Define the object libraries and paths
+MATHLIB = -lm
+
+LIB1   = \
+    -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
+    -L$(XML2LIB) -lxml2 \
+    -L$(TIFFLIB) -ltiff \
+    -L$(GEOTIFF_LIB) -lgeotiff \
+    -L$(HDFEOS_GCTPLIB) -lGctp \
+    -L$(JPEGLIB) -ljpeg \
+    -L$(JBIGLIB) -ljbig \
+    -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
+    $(MATHLIB)
+
+# Define C executables
+EXE1 = test_read_gtif
+ALL_EXES = $(EXE1)
+
+#-----------------------------------------------------------------------------
+all: $(ALL_EXES)
+
+$(EXE1): $(OBJ1) $(INC)
+	$(CC) $(NCFLAGS) -o $(EXE1) $(OBJ1) $(LIB1)
+
+
+#-----------------------------------------------------------------------------
+install: $(ALL_EXES)
+	install -d $(bin_link_path)
+	install -d $(raw_binary_bin_install_path)
+	install -m 755 $(ALL_EXES) $(raw_binary_bin_install_path) || exit 1
+	@for executable in $(ALL_EXES); do \
+        echo "ln -sf $(raw_binary_link_bin_path)/$$executable $(bin_link_path)/$$executable"; \
+        ln -sf $(raw_binary_link_bin_path)/$$executable $(bin_link_path)/$$executable; \
+        done
+
+#-----------------------------------------------------------------------------
+clean:
+	$(RM) -f *.o $(ALL_EXES)
+
+#-----------------------------------------------------------------------------
+$(OBJ1): $(INC)
+
+.c.o:
+	$(CC) $(NCFLAGS) -c $<
+

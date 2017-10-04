@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.13.1 Release Notes
-Release Date: August 2017
+## ESPA-PRODUCT_FORMATTER Version 1.14.0 Release Notes
+Release Date: November 2017
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -10,7 +10,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.13.1]
+See git tag [version_1.14.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -105,6 +105,8 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Changed the print statements for the semi-major axis, semi-minor axis, and
-    inverse flattening parameters.  The %g is truncating the semi-major axis
-    for the Albers projection.
+  * Created read/write routines which support reading Tiff files.
+  * Created a routine to write the Geolocation tags for the Tiff files to be
+    GeoTiff files.
+  * TODO: Created a generic read/write routine which calls either the raw binary or
+    the Tiff specific read/write routines.

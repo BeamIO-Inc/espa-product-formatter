@@ -20,4 +20,5 @@ raw_binary/tools/create_land_water_mask
 raw_binary/tools/espa_band_subset
 raw_binary/tools/espa_product_subset
 raw_binary/tools/clip_band_misalignment
+raw_binary/tools/test_read_gtif
 
