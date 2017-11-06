@@ -108,5 +108,3 @@ be needed for your application or other espa product formatter libraries may nee
   * Created read/write routines which support reading Tiff files.
   * Created a routine to write the Geolocation tags for the Tiff files to be
     GeoTiff files.
-  * TODO: Created a generic read/write routine which calls either the raw binary or
-    the Tiff specific read/write routines.
