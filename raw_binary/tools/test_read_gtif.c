@@ -1,5 +1,5 @@
 /*****************************************************************************
-FILE: test_read_ard.c
+FILE: test_read_gtif.c
   
 PURPOSE: Contains functions for reading/writing the ARD tiles as part of
 testing the GeoTiff/Tiff libraries.
@@ -30,14 +30,14 @@ NOTES:
 ******************************************************************************/
 void usage ()
 {
-    printf ("test_read_ard parses the XML, reads the Tiff files, and writes "
+    printf ("test_read_gtif parses the XML, reads the Tiff files, and writes "
             "back out the GeoTiff test files to duplicate each band.\n\n");
-    printf ("usage: test_read_ard --xml=xml_filename\n");
+    printf ("usage: test_read_gtif --xml=xml_filename\n");
 
     printf ("\nwhere the following parameters are required:\n");
     printf ("    -xml: name of the input XML metadata file which follows "
             "the ESPA internal raw binary schema\n");
-    printf ("\nExample: test_read_ard "
+    printf ("\nExample: test_read_gtif "
             "--xml=LE07_L1TP_022033_20140228_20160905_01_T1.xml\n");
 }
 
@@ -148,7 +148,7 @@ NOTES:
 ******************************************************************************/
 int main (int argc, char** argv)
 {
-    char FUNC_NAME[] = "test_read_ard"; /* function name */
+    char FUNC_NAME[] = "test_read_gtif"; /* function name */
     char errmsg[STR_SIZE];             /* error message */
     char outname[STR_SIZE];            /* output band name */
     char *xml_infile = NULL;           /* input XML filename */
