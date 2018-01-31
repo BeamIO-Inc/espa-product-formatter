@@ -45,7 +45,7 @@ void usage ()
     printf ("    -xml: name of the input XML metadata file which follows "
             "the ESPA internal raw binary schema\n");
     printf ("\nExample: create_land_water_mask "
-            "--xml=LC80470272013287LGN00.xml\n");
+            "--xml=LC08_L1TP_047027_20131014_20170308_01_T1.xml\n");
 }
 
 

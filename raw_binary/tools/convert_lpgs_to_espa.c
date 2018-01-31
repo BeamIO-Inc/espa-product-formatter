@@ -43,7 +43,7 @@ void usage ()
             "be removed.  The _MTL.txt file will remain along with the "
             "gap directory for ETM+ products.\n");
     printf ("\nExample: convert_lpgs_to_espa "
-            "--mtl=LE70230282011250EDC00_MTL.txt\n");
+            "--mtl=LE07_L1TP_022033_20140228_20161028_01_T1_MTL.txt\n");
 }
 
 

@@ -72,12 +72,12 @@ void usage ()
             "writing each of the band angles\n\n");
 
     printf ("\nExample: create_angle_bands "
-            "--xml=LC80470272013287LGN00.xml\n");
+            "--xml=LC08_L1TP_047027_20131014_20170308_01_T1.xml\n");
     printf ("This writes a single band file for each of the bands for the "
             "solar azimuth/zenith and the satellite azimuth/zenith angles.\n");
 
     printf ("\nExample: create_angle_bands "
-            "--xml=LC80470272013287LGN00.xml --average\n");
+            "--xml=LC08_L1TP_047027_20131014_20170308_01_T1.xml --average\n");
     printf ("This writes an average band file for the solar azimuth/zenith "
             "and the satellite azimuth/zenith angles.\n");
 }
