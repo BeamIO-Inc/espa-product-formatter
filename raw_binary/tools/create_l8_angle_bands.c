@@ -64,7 +64,7 @@ void usage ()
             "ESPA internal raw binary schema\n");
 
     printf ("\nExample: create_l8_angle_bands "
-            "--xml=LC80470272013287LGN00.xml\n");
+            "--xml=LC08_L1TP_047027_20131014_20170308_01_T1.xml\n");
     printf ("This writes a band file for band 4 for each of the solar "
             "azimuth/zenith and the satellite azimuth/zenith angles.\n");
 }
