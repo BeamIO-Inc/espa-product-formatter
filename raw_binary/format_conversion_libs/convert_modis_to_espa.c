@@ -1573,6 +1573,14 @@ int read_modis_hdf
             else if (!strncmp (basename, "MOD13", 5) ||
                 !strncmp (basename, "MYD13", 5))
                 strcpy (bmeta[nmodis_bands].product, "spectral_indices");
+            else
+            {
+                sprintf (errmsg, "Unsupported MODIS product.  Currently only "
+                    "M[O|Y]D09, M[O|Y]D11, and M[O|Y]D13 products are "
+                    "supported: %s", basename);
+                error_handler (true, FUNC_NAME, errmsg);
+                return (ERROR);
+            }
 
             strncpy (bmeta[nmodis_bands].short_name, basename, 7);
             bmeta[nmodis_bands].short_name[7] = '\0';
@@ -2009,6 +2017,8 @@ int convert_modis_to_espa
 {
     char FUNC_NAME[] = "convert_modis_to_espa";  /* function name */
     char errmsg[STR_SIZE];   /* error message */
+    char *cptr = NULL;       /* pointer to .hdf extention in the filename */
+    int count;               /* number of chars copied in snprintf */
     Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
                                 populated by reading the MTL metadata file */
 
@@ -2023,6 +2033,21 @@ int convert_modis_to_espa
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
+
+    /* Add the product ID which is pulled from the MODIS HDF filename
+       ({product_id}.hdf) */
+    count = snprintf (xml_metadata.global.product_id,
+        sizeof (xml_metadata.global.product_id), "%s", modis_hdf_file);
+    if (count < 0 || count >= sizeof (xml_metadata.global.product_id))
+    {
+        sprintf (errmsg, "Overflow of xml_metadata.global.product_id string");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
+    /* Strip off .hdf filename extension to get the actual product name */
+    cptr = strrchr (xml_metadata.global.product_id, '.');
+    *cptr = '\0';
 
     /* Write the metadata from our internal metadata structure to the output
        XML filename */

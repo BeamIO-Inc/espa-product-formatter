@@ -38,7 +38,8 @@ void usage ()
             "[--del_src_files]\n");
 
     printf ("\nwhere the following parameters are required:\n");
-    printf ("    -hdf: name of the input MODIS HDF file\n");
+    printf ("    -hdf: name of the input MODIS HDF file (MOD09/MYD09, "
+            "MOD11/MYD11, MOD13/MYD13)\n");
     printf ("    -del_src_files: if specified the source HDF file will "
             "be removed.\n");
     printf ("\nExample: convert_modis_to_espa "

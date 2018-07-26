@@ -69,7 +69,11 @@ enum Espa_geographic_type
    the ESPA internal metadata file */
 typedef struct
 {
+#ifdef ESPA_USE_CPP_CLASS_VAL
+    int espa_class;               /* class value */
+#else
     int class;                    /* class value */
+#endif
     char description[STR_SIZE];   /* class description */
 } Espa_class_t;
 
@@ -170,7 +174,7 @@ typedef struct
     double pixel_size[2];        /* pixel size x, y */
     char pixel_units[STR_SIZE];  /* units for pixel size (meters, degrees) */
     char data_units[STR_SIZE];   /* units of data stored in this band */
-    float valid_range[2];        /* min, max valid value for this band */
+    double valid_range[2];       /* min, max valid value for this band */
     double rad_gain;             /* gain values for TOA radiance conversion */
     double rad_bias;             /* bias values for TOA radiance conversion */
     double refl_gain;            /* gain values for TOA reflectance conversion*/
