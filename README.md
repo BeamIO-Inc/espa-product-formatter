@@ -110,3 +110,5 @@ be needed for your application or other espa product formatter libraries may nee
 
 ## Release Notes
   * Modified to support MODIS (verify support for MOD09GA) and VIIRS products
+  * Expanded the K1 and K2 thermal constants to be written to the XML file
+    with 4 decimal digits versus 2 decimal digits
