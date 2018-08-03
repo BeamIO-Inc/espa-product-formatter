@@ -23,6 +23,7 @@ See git tag [version_1.16.0]
   * HDF4 libraries (4.2.5 or most current) -- https://www.hdfgroup.org/ftp/HDF/releases/
   * HDF5 libraries (1.8.13 or most current) -- https://www.hdfgroup.org/ftp/HDF5/releases/
   * HDF-EOS2 libraries (2.18 or most current) -- ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release/
+  * HDF-EOS5 libraries (1.16 or most current) -- ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos5/latest_release/
   * NetCDF libraries (4.1.1 or most current) -- http://www.unidata.ucar.edu/downloads/netcdf/index.jsp
   * CURL libraries (7.48.0 or most current) -- https://curl.haxx.se/download
   * IDN libraries (1.32 or most current) -- ftp://ftp.gnu.org/gnu/libidn
@@ -52,6 +53,8 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
     export HDF5LIB="path_to_HDF5_libraries"
     export HDFEOS_INC="path_to_HDFEOS2_include_files"
     export HDFEOS_LIB="path_to_HDFEOS2_libraries"
+    export HDFEOS5_LIB="path_to_HDFEOS5_libraries"
+    export HDFEOS5_INC="path_to_HDFEOS5_include_files"
     export NCDF4INC="path_to_NETCDF_include_files"
     export NCDF4LIB="path_to_NETCDF_libraries"
     export JPEGINC="path_to_JPEG_include_files"
@@ -98,7 +101,17 @@ be needed for your application or other espa product formatter libraries may nee
  -L$(XML2LIB) -lxml2 \
  -L$(HDFEOS_LIB) -lhdfeos -L$(HDFEOS_GCTPLIB) -lGctp \
  -L$(HDFLIB) -lmfhdf -ldf -L$(JPEGLIB) -ljpeg -L$(JBIGLIB) -ljbig \
- -L$(ZLIBLIB) -lz -lm
+ -L$(ZLIBLIB) -lz \
+ -L$(LZMALIB) -llzma -lm
+```
+
+```
+ -L$(ESPALIB) -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
+ -L$(XML2LIB) -lxml2 \
+ -L$(HDFEOS5_LIB) -lhe5_hdfeos -lGctp \
+ -L$(HDF5LIB) -lhdf5 -lhdf5_hl \
+ -L$(ZLIBLIB) -lz \
+ -L$(LZMALIB) -llzma -lm
 ```
 
 ### Verification Data
@@ -111,7 +124,8 @@ be needed for your application or other espa product formatter libraries may nee
 ## Release Notes
   * Modified to support MODIS (verify support for MOD09GA).
   * Added support for VIIRS VNP09GA surface reflectance products.  Only the
-  * 500m image bands are ingested (SurfReflect_I1_1, SurfReflect_I2_1,
-    SurfReflect_I3_1).
+    500m image bands are ingested (SurfReflect_I1_1, SurfReflect_I2_1,
+    SurfReflect_I3_1). NOTE: This update requires HDF5 and HDF-EOS5 for
+    reading the VIIRS products.
   * Expanded the K1 and K2 thermal constants to be written to the XML file
     with 4 decimal digits versus 2 decimal digits
