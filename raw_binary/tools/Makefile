@@ -60,14 +60,19 @@ OBJ13 = $(SRC13:.c=.o)
 SRC14 = create_l8_angle_bands.c
 OBJ14 = $(SRC14:.c=.o)
 
+SRC15 = convert_viirs_to_espa.c
+OBJ15 = $(SRC15:.c=.o)
+
 
 # Define include paths
 INCDIR  = -I. -I../include -I$(XML2INC) -I$(TIFFINC) -I$(GEOTIFF_INC) \
           -I$(HDFINC) -I$(HDFEOS_INC) -I$(JBIGINC) -I$(ZLIBINC)
 NETCDF_INCDIR = -I. -I../include -I$(XML2INC) -I$(HDF5INC) -I$(NCDF4INC)
+HDF5_INCDIR  = -I. -I../include -I$(XML2INC) -I$(HDF5INC) -I$(HDFEOS5_INC)
           
 NCFLAGS = $(EXTRA) $(INCDIR)
 NETCDF_NCFLAGS = $(EXTRA) $(NETCDF_INCDIR)
+HDF5_NCFLAGS = $(EXTRA) $(HDF5_INCDIR)
 
 # Define the object libraries and paths
 MATHLIB = -lm
@@ -214,6 +219,16 @@ LIB14   = \
     -L$(LZMALIB) -llzma \
     $(MATHLIB)
 
+LIB15   = \
+    -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
+    -L$(HDFEOS5_LIB) -lhe5_hdfeos \
+    -L$(HDFEOS5_LIB) -lGctp \
+    -L$(HDF5LIB) -lhdf5 -lhdf5_hl \
+    -L$(XML2LIB) -lxml2 \
+    -L$(ZLIBLIB) -lz \
+    -L$(LZMALIB) -llzma \
+    $(MATHLIB)
+
 # Define C executables
 EXE1 = convert_lpgs_to_espa
 EXE2 = convert_espa_to_hdf
@@ -229,7 +244,8 @@ EXE11 = clip_band_misalignment
 EXE12 = convert_espa_to_netcdf
 EXE13 = create_landsat_angle_bands
 EXE14 = create_l8_angle_bands
-ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11) $(EXE12) $(EXE13) $(EXE14)
+EXE15 = convert_viirs_to_espa
+ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11) $(EXE12) $(EXE13) $(EXE14) $(EXE15)
 
 #-----------------------------------------------------------------------------
 all: $(ALL_EXES)
@@ -276,6 +292,9 @@ $(EXE13): $(OBJ13) $(INC)
 $(EXE14): $(OBJ14) $(INC)
 	$(CC) $(NCFLAGS) -o $(EXE14) $(OBJ14) $(LIB14)
 
+$(EXE15): $(OBJ15) $(INC)
+	$(CC) $(HDF5_NCFLAGS) -o $(EXE15) $(OBJ15) $(LIB15)
+
 #-----------------------------------------------------------------------------
 install: $(ALL_EXES)
 	install -d $(bin_link_path)
@@ -305,6 +324,9 @@ $(OBJ11): $(INC)
 $(OBJ12): $(INC)
 $(OBJ13): $(INC)
 $(OBJ14): $(INC)
+
+$(OBJ15): $(INC)
+	$(CC) $(HDF5_NCFLAGS) -c convert_viirs_to_espa.c
 
 .c.o:
 	$(CC) $(NCFLAGS) -c $<

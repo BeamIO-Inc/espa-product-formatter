@@ -20,7 +20,8 @@ EXTRA = -Wall $(EXTRA_OPTIONS)
 # Define the include files
 INC = convert_lpgs_to_espa.h convert_espa_to_hdf.h convert_espa_to_netcdf.h \
       espa_hdf.h espa_hdf_eos.h convert_espa_to_gtif.h espa_geoloc.h \
-      convert_modis_to_espa.h convert_espa_to_raw_binary_bip.h
+      convert_modis_to_espa.h convert_viirs_to_espa.h \
+      convert_espa_to_raw_binary_bip.h
 
 # Define the source code and object files
 SRC = \
@@ -48,6 +49,12 @@ OBJ_NETCDF = $(SRC_NETCDF:.c=.o)
 NETCDF_INCDIR = -I. -I../include -I$(XML2INC) -I$(HDF5INC) -I$(NCDF4INC)
 NETCDF_NCFLAGS = $(EXTRA) $(NETCDF_INCDIR)
 
+# Make separate HDF5 definitions since HDF4 interferes with them.
+SRC_HDF5 = convert_viirs_to_espa.c
+OBJ_HDF5 = $(SRC_HDF5:.c=.o)
+HDF5_INCDIR = -I. -I../include -I$(XML2INC) -I$(HDF5INC) -I$(HDFEOS5_INC)
+HDF5_NCFLAGS = $(EXTRA) $(HDF5_INCDIR)
+
 # Define the object libraries and paths
 # Not used in this library only directory
 #EXLIB   =
@@ -60,9 +67,10 @@ ARCHIVE = lib_espa_format_conversion.a
 #-----------------------------------------------------------------------------
 all: $(ARCHIVE)
 
-$(ARCHIVE): $(OBJ) $(INC) $(OBJ_NETCDF)
+$(ARCHIVE): $(OBJ) $(INC) $(OBJ_NETCDF) $(OBJ_HDF5)
 	$(AR) $(ARCHIVE) $(OBJ)
 	$(AR) $(ARCHIVE) $(OBJ_NETCDF)
+	$(AR) $(ARCHIVE) $(OBJ_HDF5)
 	install -d ../lib
 	install -d ../include
 	install -m 644 $(ARCHIVE) ../lib
@@ -98,6 +106,9 @@ $(OBJ): $(INC)
 
 $(OBJ_NETCDF): $(SRC_NETCDF)
 	$(CC) $(NETCDF_NCFLAGS) -c $<
+
+$(OBJ_HDF5): $(SRC_HDF5)
+	$(CC) $(HDF5_NCFLAGS) -c $<
 
 .c.o:
 	$(CC) $(NCFLAGS) -c $<

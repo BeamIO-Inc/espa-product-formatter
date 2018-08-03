@@ -109,6 +109,9 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Modified to support MODIS (verify support for MOD09GA) and VIIRS products
+  * Modified to support MODIS (verify support for MOD09GA).
+  * Added support for VIIRS VNP09GA surface reflectance products.  Only the
+  * 500m image bands are ingested (SurfReflect_I1_1, SurfReflect_I2_1,
+    SurfReflect_I3_1).
   * Expanded the K1 and K2 thermal constants to be written to the XML file
     with 4 decimal digits versus 2 decimal digits

@@ -12,6 +12,7 @@ raw_binary/tools/convert_espa_to_hdf
 raw_binary/tools/convert_espa_to_netcdf
 raw_binary/tools/convert_lpgs_to_espa
 raw_binary/tools/convert_modis_to_espa
+raw_binary/tools/convert_viirs_to_espa
 raw_binary/tools/create_date_bands
 raw_binary/tools/create_angle_bands
 raw_binary/tools/create_landsat_angle_bands
