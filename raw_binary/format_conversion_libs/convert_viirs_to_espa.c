@@ -27,116 +27,7 @@ NOTES:
 #include <math.h>
 #include <ctype.h>
 #include "convert_viirs_to_espa.h"
-
-/******************************************************************************
-MODULE:  doy_to_month_day
-
-PURPOSE: Convert the DOY to month and day.
-
-RETURN VALUE:
-Type = int
-Value           Description
------           -----------
-ERROR           Error converting from DOY to month and day
-SUCCESS         Successfully converted from the DOY to the month and day
-
-NOTES:
-******************************************************************************/
-int doy_to_month_day
-(
-    int year,            /* I: year of the DOY to be converted */
-    int doy,             /* I: DOY to be converted */
-    int *month,          /* O: month of the DOY */
-    int *day             /* O: day of the DOY */
-)
-{
-    char FUNC_NAME[] = "doy_to_month_day";  /* function name */
-    char errmsg[STR_SIZE];    /* error message */
-    bool leap;                /* is this a leap year? */
-    int i;                    /* looping variable */
-    int nday_lp[12] = {31, 29, 31, 30,  31,  30,  31,  31,  30,  31,  30,  31};
-        /* number of days in each month (for leap year) */
-    int idoy_lp[12] = { 1, 32, 61, 92, 122, 153, 183, 214, 245, 275, 306, 336};
-        /* starting DOY for each month (for leap year) */
-    int nday[12] = {31, 28, 31, 30,  31,  30,  31,  31,  30,  31,  30,  31};
-        /* number of days in each month (with Feb being a leap year) */
-    int idoy[12] = { 1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335};
-        /* starting DOY for each month */
-
-    /* Is this a leap year? */
-    leap = (bool) (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
-
-    /* Determine which month the DOY falls in */
-    *month = 0;
-    if (leap)
-    {  /* leap year -- start with February */
-        for (i = 1; i < 12; i++)
-        {
-            if (idoy_lp[i] > doy)
-            {
-                *month = i;
-                *day = doy - idoy_lp[i-1] + 1;
-                break;
-            }
-        }
-
-        /* if the month isn't set, then it's a December scene */
-        if (*month == 0)
-        {
-            *month = 12;
-            *day = doy - idoy_lp[11] + 1;
-        }
-    }
-    else
-    {  /* non leap year -- start with February */
-        for (i = 1; i < 12; i++)
-        {
-            if (idoy[i] > doy)
-            {
-                *month = i;
-                *day = doy - idoy[i-1] + 1;
-                break;
-            }
-        }
-
-        /* if the month isn't set, then it's a December scene */
-        if (*month == 0)
-        {
-            *month = 12;
-            *day = doy - idoy[11] + 1;
-        }
-    }
-
-    /* Validate the month and day */
-    if (*month < 1 || *month > 12)
-    {
-        sprintf (errmsg, "Invalid month: %d\n", *month);
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-
-    if (leap)
-    {  /* leap year */
-        if (*day < 1 || *day > nday_lp[(*month)-1])
-        {
-            sprintf (errmsg, "Invalid day: %d-%d-%d\n", year, *month, *day);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-    }
-    else
-    {  /* non leap year */
-        if (*day < 1 || *day > nday[(*month)-1])
-        {
-            sprintf (errmsg, "Invalid day: %d-%d-%d\n", year, *month, *day);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-    }
-
-    /* Successful conversion */
-    return (SUCCESS);
-}
+#include "doy_to_month_day.h"
 
 
 /******************************************************************************
@@ -562,7 +453,7 @@ int read_viirs_500m_grid_meta
     int grid_dims[MAX_VIIRS_BANDS][2];  /* x,y dimensions of current band */
 
     Img_coord_float_t img;        /* image coordinates for current pixel */
-    Geo_coord_t geo;              /* geodetic coordinates (note radians) */
+    Geo_coord_t geo;              /* geodetic coordinates (radians) */
     Space_def_t geoloc_def;       /* geolocation space information */
     Geoloc_t *geoloc_map = NULL;  /* geolocation mapping information */
     Espa_global_meta_t *gmeta = &metadata->global;  /* pointer to the global
@@ -712,7 +603,7 @@ int read_viirs_500m_grid_meta
                     return (ERROR);
                 }
 
-                /* Get the data type class determine the properties of the
+                /* Get the data type class and determine the properties of the
                    datatype */
                 t_class = H5Tget_class (dtype_id);
                 if (t_class < 0)
@@ -764,6 +655,7 @@ int read_viirs_500m_grid_meta
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+                data_type[nviirs_bands] = ESPA_INT16;
 
                 /* Close the datatype */
                 status = H5Tclose (dtype_id);
@@ -793,17 +685,16 @@ int read_viirs_500m_grid_meta
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
-                else if (ndims != 2)
+                else if (ndims != MAX_VIIRS_DIMS)
                 {
                     sprintf (errmsg, "Dataset is expected to be a 2-D dataset, "
                         "however is has %d dimensions", ndims);
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
-                data_type[nviirs_bands] = ESPA_INT16;
                 printf ("    ndims is %d (2D expected)\n", ndims);
 
-                /* Determine the number of dimensions as the size of each
+                /* Determine the number of dimensions and the size of each
                    dimension */
                 status = H5Sget_simple_extent_dims (dspace_id, dims, NULL);
                 if (status < 0)

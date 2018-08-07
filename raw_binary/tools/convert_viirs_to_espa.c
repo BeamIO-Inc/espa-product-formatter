@@ -69,14 +69,14 @@ short get_args
 (
     int argc,             /* I: number of cmd-line args */
     char *argv[],         /* I: string of cmd-line args */
-    char **hdf_infile,    /* O: address of input VIIRS HDF filename */
+    char **hdf_infile,    /* O: address of input VIIRS HDF5 filename */
     char **xml_outfile,   /* O: address of output XML filename */
     bool *del_src         /* O: should source files be removed? */
 )
 {
     int c;                           /* current argument index */
     int option_index;                /* index for the command-line option */
-    char *cptr = NULL;               /* pointer to .hdf in HDF filename */
+    char *cptr = NULL;               /* pointer to .h5 in HDF5 filename */
     char errmsg[STR_SIZE];           /* error message */
     char FUNC_NAME[] = "get_args";   /* function name */
     static int del_flag = 0;         /* flag for removing the source files */
@@ -112,7 +112,7 @@ short get_args
                 return (ERROR);
                 break;
 
-            case 'i':  /* VIIRS HDF infile */
+            case 'i':  /* VIIRS HDF5 infile */
                 *hdf_infile = strdup (optarg);
                 break;
      
@@ -126,7 +126,7 @@ short get_args
         }
     }
 
-    /* Make sure the input HDF file was specified */
+    /* Make sure the input HDF5 file was specified */
     if (*hdf_infile == NULL)
     {
         sprintf (errmsg, "VIIRS HDF5 input file is a required argument");
@@ -135,7 +135,7 @@ short get_args
         return (ERROR);
     }
 
-    /* Generate the XML filename from the HDF filename.  Find the .hdf and
+    /* Generate the XML filename from the HDF5 filename.  Find the .h5 and
        change that to .xml. */
     *xml_outfile = strdup (*hdf_infile);
     cptr = strrchr (*xml_outfile, '.');
@@ -173,7 +173,7 @@ NOTES:
 ******************************************************************************/
 int main (int argc, char** argv)
 {
-    char *hdf_infile = NULL;      /* input VIIRS HDF filename */
+    char *hdf_infile = NULL;      /* input VIIRS HDF5 filename */
     char *xml_outfile = NULL;     /* output XML filename */
     bool del_src = false;         /* should source files be removed? */
 
@@ -183,7 +183,7 @@ int main (int argc, char** argv)
         exit (EXIT_FAILURE);
     }
 
-    /* Convert the VIIRS HDF and data to ESPA raw binary and XML */
+    /* Convert the VIIRS HDF5 and data to ESPA raw binary and XML */
     if (convert_viirs_to_espa (hdf_infile, xml_outfile, del_src) != SUCCESS)
     {  /* Error messages already written */
         exit (EXIT_FAILURE);

@@ -31,6 +31,7 @@ SRC = \
       espa_hdf_eos.c                   \
       convert_espa_to_gtif.c           \
       convert_modis_to_espa.c          \
+      doy_to_month_day.c               \
       espa_geoloc.c                    \
       convert_espa_to_raw_binary_bip.c
 
