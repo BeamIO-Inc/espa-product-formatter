@@ -223,11 +223,14 @@ LIB15   = \
     -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
     -L$(HDFEOS5_LIB) -lhe5_hdfeos \
     -L$(HDFEOS5_LIB) -lGctp \
-    -L$(HDF5LIB) -lhdf5 -lhdf5_hl \
+    -L$(HDF5LIB) -lhdf5_hl -lhdf5 \
     -L$(XML2LIB) -lxml2 \
+    -L$(SZIPLIB) -lsz \
     -L$(ZLIBLIB) -lz \
     -L$(LZMALIB) -llzma \
-    $(MATHLIB)
+    $(MATHLIB) \
+    -lpthread \
+    -ldl
 
 # Define C executables
 EXE1 = convert_lpgs_to_espa
