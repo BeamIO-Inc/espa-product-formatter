@@ -48,7 +48,7 @@ int doy_to_month_day
     leap = (bool) (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
 
     /* Validate the DOY */
-    if (doy <= 0 || doy > 336)
+    if (doy <= 0 || doy > 366)
     {
         sprintf (errmsg, "Invalid DOY value (1-366): %d", doy);
         error_handler (true, FUNC_NAME, errmsg);

@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.16.0 Release Notes
-Release Date: November 2018
+## ESPA-PRODUCT_FORMATTER Version 1.16.1 Release Notes
+Release Date: December 2018
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -14,7 +14,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.16.0]
+See git tag [version_1.16.1]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -122,10 +122,5 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Modified to support MODIS (verify support for MOD09GA).
-  * Added support for VIIRS VNP09GA surface reflectance products.  Only the
-    500m image bands are ingested (SurfReflect_I1_1, SurfReflect_I2_1,
-    SurfReflect_I3_1). NOTE: This update requires HDF5 and HDF-EOS5 for
-    reading the VIIRS products.
-  * Expanded the K1 and K2 thermal constants to be written to the XML file
-    with 4 decimal digits versus 2 decimal digits
+  * Fixed a bug introduced in the last version for supporting MODIS products
+    which cuts the DOY off at 336 vs. 366.
