@@ -54,6 +54,7 @@ int convert_espa_to_gtif
     char *cptr = NULL;          /* pointer to empty space in the band name */
     int i;                      /* looping variable for each band */
     int count;                  /* number of chars copied in snprintf */
+    int status = SUCCESS;       /* status for multi-threaded area */
     Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
                                    populated by reading the XML metadata file */
 
@@ -78,6 +79,9 @@ int convert_espa_to_gtif
        The filenames will have the GeoTIFF base name followed by _ and the
        band name of each band in the XML file.  Blank spaced in the band name
        will be replaced with underscores. */
+#ifdef _OPENMP
+    #pragma omp parallel for private (i, count, gtif_band, cptr, gdal_cmd, errmsg, tmpfile, hdr_file)
+#endif
     for (i = 0; i < xml_metadata.nbands; i++)
     {
         /* Determine the output GeoTIFF band name */
@@ -87,7 +91,7 @@ int convert_espa_to_gtif
         {
             sprintf (errmsg, "Overflow of gtif_file string");
             error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
+            status = ERROR;
         }
 
         /* Loop through this filename and replace any occurances of blank
@@ -119,14 +123,14 @@ int convert_espa_to_gtif
         {
             sprintf (errmsg, "Overflow of gdal_cmd string");
             error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
+            status = ERROR;
         }
 
         if (system (gdal_cmd) == -1)
         {
             sprintf (errmsg, "Running gdal_translate: %s", gdal_cmd);
             error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
+            status = ERROR;
         }
 
         /* Remove the {gtif_name}.tif.aux.xml file since it's not needed and
@@ -137,12 +141,12 @@ int convert_espa_to_gtif
         {
             sprintf (errmsg, "Overflow of tmpfile string");
             error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
+            status = ERROR;
         }
         unlink (tmpfile);
 
         /* Remove the source file if specified */
-        if (del_src)
+        if (del_src && status != ERROR)
         {
             /* .img file */
             printf ("  Removing %s\n", xml_metadata.band[i].file_name);
@@ -151,7 +155,7 @@ int convert_espa_to_gtif
                 sprintf (errmsg, "Deleting source file: %s",
                     xml_metadata.band[i].file_name);
                 error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
+                status = ERROR;
             }
 
             /* .hdr file */
@@ -161,7 +165,7 @@ int convert_espa_to_gtif
             {
                 sprintf (errmsg, "Overflow of hdr_file string");
                 error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
+                status = ERROR;
             }
 
             cptr = strrchr (hdr_file, '.');
@@ -171,13 +175,16 @@ int convert_espa_to_gtif
             {
                 sprintf (errmsg, "Deleting source file: %s", hdr_file);
                 error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
+                status = ERROR;
             }
         }
 
         /* Update the XML file to use the new GeoTIFF band name */
         strcpy (xml_metadata.band[i].file_name, gtif_band);
     }
+
+    if (status == ERROR)
+        return (ERROR);
 
     /* Remove the source XML if specified */
     if (del_src)

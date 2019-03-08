@@ -1,4 +1,4 @@
-## ESPA-PRODUCT_FORMATTER Version 1.16.1 Release Notes
+## ESPA-PRODUCT_FORMATTER Version 1.17.0 Release Notes
 Release Date: March 2019
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
@@ -14,7 +14,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.16.1]
+See git tag [version_1.17.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -122,5 +122,5 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Fixed a bug introduced in the last version for supporting MODIS products
-    which cuts the DOY off at 336 vs. 366.
+  * Added multi-threading for converting the ESPA products to GeoTIFF to speed
+    up the GeoTIFF conversions.
