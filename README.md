@@ -124,3 +124,5 @@ be needed for your application or other espa product formatter libraries may nee
 ## Release Notes
   * Added multi-threading for converting the ESPA products to GeoTIFF to speed
     up the GeoTIFF conversions.
+  * Corrected a bug in the angle bands, water mask, and date bands short name
+    by NULL-terminating the temporary string.

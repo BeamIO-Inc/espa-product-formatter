@@ -341,7 +341,8 @@ int main (int argc, char** argv)
                 snprintf (tmpfile, sizeof (tmpfile),
                     "%s_b%d_solar_zenith.img", outfile, curr_band);
                 sprintf (out_bmeta->name, "solar_zenith_band%d", curr_band);
-                strncpy (tmpstr, bmeta->short_name, 4);
+                strncpy (tmpstr, bmeta[curr_bndx].short_name, 4);
+                tmpstr[4] = '\0';
                 sprintf (out_bmeta->short_name, "%sSOLZEN", tmpstr);
                 sprintf (out_bmeta->long_name,
                     "band %d solar zenith angles", curr_band);
@@ -353,7 +354,8 @@ int main (int argc, char** argv)
                     "%s_b%d_solar_azimuth.img", outfile, curr_band);
                 sprintf (out_bmeta->name, "solar_azimuth_band%d",
                     curr_band);
-                strncpy (tmpstr, bmeta->short_name, 4);
+                strncpy (tmpstr, bmeta[curr_bndx].short_name, 4);
+                tmpstr[4] = '\0';
                 sprintf (out_bmeta->short_name, "%sSOLAZ", tmpstr);
                 sprintf (out_bmeta->long_name,
                     "band %d solar azimuth angles", curr_band);
@@ -365,7 +367,8 @@ int main (int argc, char** argv)
                     "%s_b%d_sensor_zenith.img", outfile, curr_band);
                 sprintf (out_bmeta->name, "sensor_zenith_band%d",
                     curr_band);
-                strncpy (tmpstr, bmeta->short_name, 4);
+                strncpy (tmpstr, bmeta[curr_bndx].short_name, 4);
+                tmpstr[4] = '\0';
                 sprintf (out_bmeta->short_name, "%sSENZEN", tmpstr);
                 sprintf (out_bmeta->long_name,
                     "band %d sensor zenith angles", curr_band);
@@ -377,7 +380,8 @@ int main (int argc, char** argv)
                     "%s_b%d_sensor_azimuth.img", outfile, curr_band);
                 sprintf (out_bmeta->name, "sensor_azimuth_band%d",
                     curr_band);
-                strncpy (tmpstr, bmeta->short_name, 4);
+                strncpy (tmpstr, bmeta[curr_bndx].short_name, 4);
+                tmpstr[4] = '\0';
                 sprintf (out_bmeta->short_name, "%sSENAZ", tmpstr);
                 sprintf (out_bmeta->long_name,
                     "band %d sensor azimuth angles", curr_band);
