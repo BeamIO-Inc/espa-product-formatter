@@ -29,11 +29,11 @@ NOTES:
    but the schema version will contain the major and minor version number
    (i.e. 1.2) */
 #define LIBXML_SCHEMAS_ENABLED
-#define ESPA_SCHEMA_VERSION "2.0"
+#define ESPA_SCHEMA_VERSION "2.1"
 #define ESPA_NS "http://espa.cr.usgs.gov/v2"
 #define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v2"
-#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v2_0.xsd"
-#define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v2_0.xsd"
+#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v2_1.xsd"
+#define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v2_1.xsd"
 
 /* Data types */
 enum Espa_data_type
@@ -150,6 +150,11 @@ typedef struct
     /* MODIS products */
     int htile;                    /* MODIS horizontal tile number */
     int vtile;                    /* MODIS vertical tile number */
+
+    /* Sentinel products */
+    float view_zenith;           /* view zenith angle (degrees) */
+    float view_azimuth;          /* view azimuth angle (degrees) */
+    char view_units[STR_SIZE];   /* degrees */
 } Espa_global_meta_t;
 
 typedef struct

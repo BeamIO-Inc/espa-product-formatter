@@ -1,0 +1,44 @@
+/*****************************************************************************
+FILE: parse_sentinel_metadata.h
+  
+PURPOSE: Contains prototypes for parsing the Sentinel metadata and populating
+the ESPA internal metadata
+
+PROJECT:  Land Satellites Data System Science Research and Development (LSRD)
+at the USGS EROS
+
+LICENSE TYPE:  NASA Open Source Agreement Version 1.3
+
+NOTES:
+*****************************************************************************/
+
+#ifndef PARSE_SENTINEL_METADATA_H
+#define PARSE_SENTINEL_METADATA_H
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <libxml/xmlreader.h>
+#include <libxml/xmlschemastypes.h>
+#include "error_handler.h"
+#include "espa_metadata.h"
+
+int parse_sentinel_tile_metadata
+(
+    char *metafile,                 /* I: input Sentinel tile metadata file */
+    Espa_internal_meta_t *metadata  /* I: input metadata structure which has
+                                          been initialized via
+                                          init_metadata_struct */
+);
+
+int parse_sentinel_product_metadata
+(
+    char *metafile,                 /* I: Sentinel product metadata file */
+    Espa_internal_meta_t *metadata  /* I: input metadata structure which has
+                                          been initialized via
+                                          init_metadata_struct */
+);
+
+#endif

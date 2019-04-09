@@ -19,8 +19,8 @@ EXTRA = -Wall $(EXTRA_OPTIONS)
 
 # Define the include files
 INC = envi_header.h espa_metadata.h meta_stack.h parse_metadata.h \
-      raw_binary_io.h tiff_io.h write_metadata.h subset_metadata.h \
-      gctp_defines.h
+      parse_sentinel_metadata.h raw_binary_io.h tiff_io.h write_metadata.h \
+      subset_metadata.h gctp_defines.h
 
 # Define the source code and object files
 SRC = \
@@ -28,6 +28,7 @@ SRC = \
       espa_metadata.c  \
       meta_stack.c     \
       parse_metadata.c \
+      parse_sentinel_metadata.c \
       raw_binary_io.c  \
       tiff_io.c  \
       write_metadata.c \

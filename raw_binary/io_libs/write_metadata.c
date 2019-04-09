@@ -106,6 +106,12 @@ int write_metadata
         "        <solar_angles zenith=\"%f\" azimuth=\"%f\" units=\"%s\"/>\n",
         gmeta->solar_zenith, gmeta->solar_azimuth, gmeta->solar_units);
 
+    if (fabs (gmeta->view_azimuth - ESPA_FLOAT_META_FILL) > ESPA_EPSILON &&
+        fabs (gmeta->view_zenith - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
+        fprintf (fptr,
+        "        <view_angles zenith=\"%f\" azimuth=\"%f\" units=\"%s\"/>\n",
+        gmeta->view_zenith, gmeta->view_azimuth, gmeta->view_units);
+
     if (fabs (gmeta->earth_sun_dist - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
         fprintf (fptr,
         "        <earth_sun_distance>%f</earth_sun_distance>\n",
@@ -718,6 +724,9 @@ void print_metadata_struct
     printf ("  solar_zenith: %f\n", metadata->global.solar_zenith);
     printf ("  solar_azimuth: %f\n", metadata->global.solar_azimuth);
     printf ("  solar_units: %s\n", metadata->global.solar_units);
+    printf ("  view_zenith: %f\n", metadata->global.view_zenith);
+    printf ("  view_azimuth: %f\n", metadata->global.view_azimuth);
+    printf ("  view_units: %s\n", metadata->global.view_units);
     printf ("  earth_sun_dist: %f\n", metadata->global.earth_sun_dist);
     printf ("  wrs_system: %d\n", metadata->global.wrs_system);
     printf ("  wrs_path: %d\n", metadata->global.wrs_path);

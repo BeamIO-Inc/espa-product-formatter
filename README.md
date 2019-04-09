@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.17.0 Release Notes
-Release Date: March 2019
+## ESPA-PRODUCT_FORMATTER Version 1.18.0 Release Notes
+Release Date: May 2019
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -14,7 +14,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.17.0]
+See git tag [version_1.18.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -33,12 +33,14 @@ See git tag [version_1.17.0]
   * JBIG libraries -- http://www.cl.cam.ac.uk/~mgk25/jbigkit/
   * LZMA libraries -- http://www.7-zip.org/sdk.html
   * SZIP libraries -- http://www.compressconsult.com/szip/
+  * Openjpeg libraries and tools -- http://www.openjpeg.org/
   * Land/water static polygon -- http://edclpdsftp.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz
 
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
 
 ### Installation
   * Install dependent libraries.  Many of these come standard with the Linux distribution.
+  * Add the location of the opj_decompress (from openjpeg) tool to the PATH.
   * Set up environment variables.  Can create an environment shell file or add the following to your bash shell.  For C shell, use 'setenv VAR "directory"'.  Note: If the HDF library was configured and built with szip support, then the user will also need to add an environment variable for SZIP include (SZIPINC) and library (SZIPLIB) files.
   ```
     export HDFEOS_GCTPINC="path_to_HDF-EOS_GCTP_include_files"
@@ -122,7 +124,6 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Added multi-threading for converting the ESPA products to GeoTIFF to speed
-    up the GeoTIFF conversions.
-  * Corrected a bug in the angle bands, water mask, and date bands short name
-    by NULL-terminating the temporary string.
+  * Added support for Sentinel-2 Level-1C products.
+  * Added view angles (similar to the solar angles) to the schema and output
+    XML file, in support of the Sentinel-2 products.

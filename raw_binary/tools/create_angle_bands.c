@@ -606,7 +606,7 @@ int main (int argc, char** argv)
                     count = snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_solar_zenith.img", outfile);
                     sprintf (out_bmeta->name, "avg_solar_zenith_band");
-                    strncpy (tmpstr, bmeta[curr_bndx].short_name, 4);
+                    strncpy (tmpstr, bmeta[0].short_name, 4);
                     tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSOLZEN", tmpstr);
                     sprintf (out_bmeta->long_name,
@@ -618,7 +618,7 @@ int main (int argc, char** argv)
                     count = snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_solar_azimuth.img", outfile);
                     sprintf (out_bmeta->name, "avg_solar_azimuth_band");
-                    strncpy (tmpstr, bmeta[curr_bndx].short_name, 4);
+                    strncpy (tmpstr, bmeta[0].short_name, 4);
                     tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSOLAZ", tmpstr);
                     sprintf (out_bmeta->long_name,
@@ -630,7 +630,7 @@ int main (int argc, char** argv)
                     count = snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_sensor_zenith.img", outfile);
                     sprintf (out_bmeta->name, "avg_sensor_zenith_band");
-                    strncpy (tmpstr, bmeta[curr_bndx].short_name, 4);
+                    strncpy (tmpstr, bmeta[0].short_name, 4);
                     tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSENZEN", tmpstr);
                     sprintf (out_bmeta->long_name,
@@ -642,7 +642,7 @@ int main (int argc, char** argv)
                     count = snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_sensor_azimuth.img", outfile);
                     sprintf (out_bmeta->name, "avg_sensor_azimuth_band");
-                    strncpy (tmpstr, bmeta[curr_bndx].short_name, 4);
+                    strncpy (tmpstr, bmeta[0].short_name, 4);
                     tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSENAZ", tmpstr);
                     sprintf (out_bmeta->long_name,

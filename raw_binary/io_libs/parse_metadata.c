@@ -1046,6 +1046,36 @@ int add_global_metadata
             xmlFree (attr_val);
         }
     }
+    else if (xmlStrEqual (cur_node->name, (const xmlChar *) "view_angles"))
+    {
+        /* Handle the element attributes */
+        for (attr = cur_node->properties; attr != NULL; attr = attr->next)
+        {
+            attr_val = xmlGetProp (cur_node, attr->name);
+            if (xmlStrEqual (attr->name, (const xmlChar *) "zenith"))
+                gmeta->view_zenith = atof ((const char *) attr_val);
+            else if (xmlStrEqual (attr->name, (const xmlChar *) "azimuth"))
+                gmeta->view_azimuth = atof ((const char *) attr_val);
+            else if (xmlStrEqual (attr->name, (const xmlChar *) "units"))
+            {
+                count = snprintf (gmeta->view_units,
+                    sizeof (gmeta->view_units), "%s", (const char *) attr_val);
+                if (count < 0 || count >= sizeof (gmeta->view_units))
+                {
+                    sprintf (errmsg, "Overflow of gmeta->view_units string");
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+            }
+            else
+            {
+                sprintf (errmsg, "WARNING: unknown attribute for element "
+                    "(%s): %s\n", cur_node->name, attr->name);
+                error_handler (false, FUNC_NAME, errmsg);
+            }
+            xmlFree (attr_val);
+        }
+    }
     else if (xmlStrEqual (cur_node->name,
         (const xmlChar *) "earth_sun_distance"))
     {

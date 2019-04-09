@@ -20,8 +20,8 @@ EXTRA = -Wall $(EXTRA_OPTIONS)
 # Define the include files
 INC = convert_lpgs_to_espa.h convert_espa_to_hdf.h convert_espa_to_netcdf.h \
       espa_hdf.h espa_hdf_eos.h convert_espa_to_gtif.h espa_geoloc.h \
-      convert_modis_to_espa.h convert_viirs_to_espa.h \
-      convert_espa_to_raw_binary_bip.h
+      convert_modis_to_espa.h convert_sentinel_to_espa.h \
+      convert_viirs_to_espa.h convert_espa_to_raw_binary_bip.h
 
 # Define the source code and object files
 SRC = \
@@ -31,6 +31,7 @@ SRC = \
       espa_hdf_eos.c                   \
       convert_espa_to_gtif.c           \
       convert_modis_to_espa.c          \
+      convert_sentinel_to_espa.c       \
       doy_to_month_day.c               \
       espa_geoloc.c                    \
       convert_espa_to_raw_binary_bip.c

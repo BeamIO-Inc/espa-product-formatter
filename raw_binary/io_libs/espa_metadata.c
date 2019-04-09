@@ -160,6 +160,9 @@ void init_metadata_struct
     gmeta->solar_zenith = ESPA_FLOAT_META_FILL;
     gmeta->solar_azimuth = ESPA_FLOAT_META_FILL;
     strcpy (gmeta->solar_units, ESPA_STRING_META_FILL);
+    gmeta->view_zenith = ESPA_FLOAT_META_FILL;
+    gmeta->view_azimuth = ESPA_FLOAT_META_FILL;
+    strcpy (gmeta->view_units, ESPA_STRING_META_FILL);
     gmeta->earth_sun_dist = ESPA_FLOAT_META_FILL;
     gmeta->wrs_system = ESPA_INT_META_FILL;
     gmeta->wrs_path = ESPA_INT_META_FILL;

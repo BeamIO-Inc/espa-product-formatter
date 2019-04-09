@@ -147,6 +147,18 @@ int subset_metadata_by_product
         return (ERROR);
     }
 
+    outmeta->global.view_zenith = inmeta->global.view_zenith;
+    outmeta->global.view_azimuth = inmeta->global.view_azimuth;
+
+    count = snprintf (outmeta->global.view_units,
+        sizeof (outmeta->global.view_units), "%s", inmeta->global.view_units);
+    if (count < 0 || count >= sizeof (outmeta->global.view_units))
+    {
+        sprintf (errmsg, "Overflow of outmeta->global.view_units string");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
     outmeta->global.earth_sun_dist = inmeta->global.earth_sun_dist;
     outmeta->global.wrs_system = inmeta->global.wrs_system;
     outmeta->global.wrs_path = inmeta->global.wrs_path;
@@ -628,6 +640,17 @@ int subset_metadata_by_band
     if (count < 0 || count >= sizeof (outmeta->global.solar_units))
     {
         sprintf (errmsg, "Overflow of outmeta->global.solar_units string");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
+    outmeta->global.view_zenith = inmeta->global.view_zenith;
+    outmeta->global.view_azimuth = inmeta->global.view_azimuth;
+    count = snprintf (outmeta->global.view_units,
+        sizeof (outmeta->global.view_units), "%s", inmeta->global.view_units);
+    if (count < 0 || count >= sizeof (outmeta->global.view_units))
+    {
+        sprintf (errmsg, "Overflow of outmeta->global.view_units string");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
