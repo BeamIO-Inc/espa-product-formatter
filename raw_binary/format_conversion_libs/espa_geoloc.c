@@ -391,14 +391,22 @@ bool get_geoloc_info
     Espa_global_meta_t *gmeta=&xml_metadata->global;  /* global metadata */
 
     /* Use 'band1' band-related metadata for the reflectance information for
-       Landsat (Level 1 products).  If band1 isn't available then just use the
-       first band in the XML file (for MODIS and others). */
+       Landsat (Level 1 products).  Use 'B02' band-related metadata for the
+       Sentinel-2 products, since it is the 10m band and all bands are converted
+       to 10m.  If band1 isn't available then just use the first band in the
+       XML file (for MODIS and others). */
     for (i = 0; i < xml_metadata->nbands; i++)
     {
         if (!strcmp (xml_metadata->band[i].name, "band1") &&
             !strncmp (xml_metadata->band[i].product, "L1", 2))
         {
             /* this is the index we'll use for Landsat band info */
+            refl_indx = i;
+        }
+        else if (!strcmp (xml_metadata->band[i].name, "B02") &&
+            !strncmp (xml_metadata->band[i].product, "MSIL1C", 2))
+        {
+            /* this is the index we'll use for Sentinel-2 band info */
             refl_indx = i;
         }
     }
