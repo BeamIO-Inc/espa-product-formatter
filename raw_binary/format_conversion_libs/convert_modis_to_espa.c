@@ -1135,7 +1135,7 @@ int read_modis_hdf
 
     /* Use the HDF filename to determine the horizontal and vertical tile
        numbers.  Example - MOD09A1.A2013241.h08v05.005.2013252120055.hdf */
-    if (strncpy (htile, &basename[19], 2) == NULL)
+    if (strncpy (htile, &basename[18], 2) == NULL)
     {
         sprintf (errmsg, "Error pulling the horizontal tile number from the "
             "base filename: %s", basename);
@@ -1145,7 +1145,7 @@ int read_modis_hdf
     htile[2] = '\0';
     gmeta->htile = atoi (htile);
 
-    if (strncpy (vtile, &basename[22], 2) == NULL)
+    if (strncpy (vtile, &basename[21], 2) == NULL)
     {
         sprintf (errmsg, "Error pulling the vertical tile number from the "
             "base filename: %s", basename);

@@ -127,3 +127,5 @@ be needed for your application or other espa product formatter libraries may nee
   * Added support for Sentinel-2 Level-1C products.
   * Added view angles (similar to the solar angles) to the schema and output
     XML file, in support of the Sentinel-2 products.
+  * Fixed a bug in the MODIS support of obtaining the tile number from the file
+    name to populate the htile, vtile in the global XML file.
