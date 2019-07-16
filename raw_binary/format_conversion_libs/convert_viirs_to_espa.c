@@ -1278,6 +1278,13 @@ int convert_viirs_to_espa
 
     /* Strip off .h5 filename extension to get the actual product name */
     cptr = strrchr (xml_metadata.global.product_id, '.');
+    if (cptr == NULL)
+    {
+        sprintf (errmsg, "Error with xml_metadata.global.product_id string. "
+            "It is expected to contain h5 as the extension.");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
     *cptr = '\0';
 
     /* Write the metadata from our internal metadata structure to the output
