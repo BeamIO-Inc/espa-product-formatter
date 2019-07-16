@@ -1,5 +1,5 @@
 ## ESPA-PRODUCT_FORMATTER Version 1.18.0 Release Notes
-Release Date: May 2019
+Release Date: July 2019
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
