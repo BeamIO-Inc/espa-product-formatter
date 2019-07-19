@@ -132,3 +132,10 @@ be needed for your application or other espa product formatter libraries may nee
     file extension to .xml.
   * Fixed a bug in the MODIS support of obtaining the tile number from the file
     name to populate the htile, vtile in the global XML file.
+  * Modified the angle band routines to detect if the angle bands have been
+    previously generated.  If so, then the bands are not regenerated.  This
+    is a fix for calling LaSRC followed by LaORCA and having two different
+    listings of the angle bands in the XML file.  When converting the ESPA
+    format to another format, both listings will attempt to be converted.  The
+    second listing could fail if remove source files is used for the conversion
+    because the files are removed after converting the first listing.

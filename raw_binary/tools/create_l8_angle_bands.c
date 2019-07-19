@@ -255,6 +255,25 @@ int main (int argc, char** argv)
     bmeta = xml_metadata.band;
     gmeta = &xml_metadata.global;
 
+    /* If the angle bands already exist in the XML file, then don't generate
+       them again */
+    for (i = 0; i < xml_metadata.nbands; i++)
+    {
+        if (!strcmp (bmeta[i].product, "angle_bands"))
+        {
+            sprintf (errmsg, "Angle bands already exist in %s. They will not "
+                "be regenerated.", xml_infile);
+            error_handler (false, FUNC_NAME, errmsg);
+
+            /* Free the input XML metadata */
+            free_metadata (&xml_metadata);
+            free (xml_infile);
+    
+            /* Successful completion */
+            exit (SUCCESS);
+        }
+    }
+
     /* Determine the angle coefficient filename and the output file basename */
     strcpy (ang_infile, xml_infile);
     cptr = strchr (ang_infile, '.');
