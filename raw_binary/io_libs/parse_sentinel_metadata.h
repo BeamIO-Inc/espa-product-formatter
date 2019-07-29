@@ -25,6 +25,9 @@ NOTES:
 #include "error_handler.h"
 #include "espa_metadata.h"
 
+/* number of sentinel resolutions - 10m, 20m, 60m */
+#define NUM_SENTINEL_RES 3
+
 int parse_sentinel_tile_metadata
 (
     char *metafile,                 /* I: input Sentinel tile metadata file */

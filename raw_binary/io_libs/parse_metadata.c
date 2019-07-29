@@ -2225,16 +2225,13 @@ int parse_xml_into_struct
 
             /* Print out the name of the element */
             xmlAttrPtr attr;     /* pointer to the element attributes */
-            //printf ("node type: Element, name: %s\n", cur_node->name);
 
             /* Print out the attribute properties for this element */
             for (attr = cur_node->properties; attr != NULL; attr = attr->next)
             {
                 xmlChar *v = xmlGetProp (cur_node, attr->name);
-                //printf (" @%s=%s ", attr->name, v);
                 xmlFree (v);
             }
-            //printf ("\n"); fflush (stdout);
 
             /* If we are IN the global metadata (don't process the actual
                global_metadata element) then consume this node and add the
@@ -2285,8 +2282,10 @@ int parse_xml_into_struct
         }
         else if (cur_node->type == XML_TEXT_NODE) 
         {
+#ifdef DEBUG
             /* Print out the text for the element */
             //printf ("   node type: Text, content: %s\n", cur_node->content);
+#endif
         }
 
         /* Parse the children of this node if they haven't been consumed
@@ -2314,7 +2313,6 @@ int parse_xml_into_struct
                 error_handler (true, FUNC_NAME, errmsg);
                 return (ERROR);
             }
-            //printf ("***Popped %s\n", curr_stack_element); fflush (stdout);
 
             if (!strcmp (curr_stack_element, "global_metadata"))
                 global_metadata = false;
@@ -2393,7 +2391,7 @@ int parse_metadata
         switch (nodeType)
         {
             case XML_READER_TYPE_ELEMENT:
-            {  /* Node is an element (ex. <global_metadata> */
+            {  /* Node is an element (ex. <global_metadata>) */
                 xmlNodePtr node=NULL;
                 if (doc==NULL)
                 {

@@ -62,7 +62,7 @@ int rename_jp2
         /* Set up the band metadata pointer */
         bmeta = &xml_metadata->band[i];
 
-        /* Rename the current JP2 filename to {product_id}_bandname.jp2 */
+        /* Rename the current JP2 filename to {product_id}_{bandname}.jp2 */
         sprintf (newfile, "%s_%s.jp2", gmeta->product_id, sentinel_bands[i]);
         if (rename (bmeta->file_name, newfile))
         {
@@ -84,7 +84,7 @@ int rename_jp2
         }
     }
 
-    /* Successful conversion */
+    /* Successful rename */
     return (SUCCESS);
 }
 
@@ -173,7 +173,7 @@ int convert_jp2_to_img
             return (ERROR);
         }
 
-        /* Create the ENVI header file this band */
+        /* Create the ENVI header file for this band */
         if (create_envi_struct (bmeta, gmeta, &envi_hdr) != SUCCESS)
         {
             sprintf (errmsg, "Creating the ENVI header structure for this "

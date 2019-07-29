@@ -39,6 +39,13 @@ NOTES:
 /* maximum number of grids for each file */
 #define MAX_MODIS_GRIDS 10
 
+/* defines for starting locations of elements in the filename
+   Example - MOD09A1.A2013241.h08v05.005.2013252120055.hdf */
+#define START_YEAR 9
+#define START_DOY 13
+#define START_HTILE 18
+#define START_VTILE 21
+
 /* Prototypes */
 int read_modis_hdf
 (

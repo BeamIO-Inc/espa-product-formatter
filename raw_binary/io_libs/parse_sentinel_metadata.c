@@ -18,6 +18,7 @@ NOTES:
      MTD_TL.xml) can be found in the S2_MSI_Product_Specification.pdf file.
 *****************************************************************************/
 #include "espa_metadata.h"
+#include "parse_sentinel_metadata.h"
 
 
 /******************************************************************************
@@ -213,8 +214,8 @@ int add_tile_geocoding_metadata
     xmlChar *attr_val = NULL;     /* attribute value */
     int count;                    /* number of chars copied in snprintf */
     int index;                    /* index for nrows/ncols arrays */
-    int ulx[3], uly[3];           /* UL x/y for the 10m, 20m, and 60m
-                                     resolutions, respectively */
+    int ulx[NUM_SENTINEL_RES];    /* ULx for sentinel resolutions */
+    int uly[NUM_SENTINEL_RES];    /* ULy for sentinel resolutions */
 
     /* Process the siblings in the Geocoding element */
     for (cur_node = a_node->children; cur_node;
@@ -391,7 +392,7 @@ int add_tile_geocoding_metadata
 
     /* The global metadata only supports one set of corner coordinates. It
        is expected the center of the corners will be the same, so we will use
-       use the projection corners for the 10m resolution. */
+       the projection corners for the 10m resolution. */
     gmeta->proj_info.ul_corner[0] = ulx[0];
     gmeta->proj_info.ul_corner[1] = uly[0];
     gmeta->proj_info.lr_corner[0] = ulx[0] + ncols[0] * 10.0;
@@ -652,8 +653,8 @@ int parse_sentinel_tile_metadata
     int nodeType;             /* node type (element, text, attribute, etc.) */
     int top_of_stack;         /* top of the stack */
     int count;                /* number of chars copied in snprintf */
-    int nrows[3], ncols[3];   /* number of rows and columns for the 10m, 20m,
-                                 and 60m resolutions, respectively */
+    int nrows[NUM_SENTINEL_RES]; /* num rows for each sentinel resolution */
+    int ncols[NUM_SENTINEL_RES]; /* num columns for each sentinel resolution */
     char **stack = NULL;      /* stack to keep track of elements in the tree */
     Espa_band_meta_t *bmeta;  /* band metadata pointer to all bands */
 
@@ -840,7 +841,6 @@ int parse_sentinel_tile_metadata
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }
-        //print_element_names (xmlDocGetRootElement (doc));
 
         /* Parse the tile XML document into our ESPA internal metadata
            structure */
@@ -1296,23 +1296,27 @@ int parse_sentinel_product_xml_into_struct
                 skip_child = true;
             }
 
+#ifdef DEBUG
             /* Print out the name of the element */
-            //xmlAttrPtr attr;     /* pointer to the element attributes */
-            //printf ("node type: Element, name: %s\n", cur_node->name);
+            xmlAttrPtr attr;     /* pointer to the element attributes */
+            printf ("node type: Element, name: %s\n", cur_node->name);
 
             /* Print out the attribute properties for this element */
-            //for (attr = cur_node->properties; attr != NULL; attr = attr->next)
-            //{
-            //    xmlChar *v = xmlGetProp (cur_node, attr->name);
-            //    printf (" @%s=%s ", attr->name, v);
-            //    xmlFree (v);
-            //}
-            //printf ("\n"); fflush (stdout);
+            for (attr = cur_node->properties; attr != NULL; attr = attr->next)
+            {
+                xmlChar *v = xmlGetProp (cur_node, attr->name);
+                printf (" @%s=%s ", attr->name, v);
+                xmlFree (v);
+            }
+            printf ("\n"); fflush (stdout);
+#endif
         }
         else if (cur_node->type == XML_TEXT_NODE) 
         {
+#ifdef DEBUG
             /* Print out the text for the element */
-            //printf ("   node type: Text, content: %s\n", cur_node->content);
+            printf ("   node type: Text, content: %s\n", cur_node->content);
+#endif
         }
 
         /* Parse the children of this node if they haven't been consumed
@@ -1418,7 +1422,7 @@ int parse_sentinel_product_metadata
         switch (nodeType)
         {
             case XML_READER_TYPE_ELEMENT:
-            {  /* Node is an element (ex. <global_metadata> */
+            {  /* Node is an element (ex. <global_metadata>) */
                 xmlNodePtr node=NULL;
                 if (doc==NULL)
                 {

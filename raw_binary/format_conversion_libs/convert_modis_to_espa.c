@@ -1095,7 +1095,7 @@ int read_modis_hdf
 
     /* Use the HDF filename to determine the acquisition date as yyyyddd.
        Example - MOD09A1.A2013241.h08v05.005.2013252120055.hdf */
-    if (strncpy (yearstr, &basename[9], 4) == NULL)
+    if (strncpy (yearstr, &basename[START_YEAR], 4) == NULL)
     {
         sprintf (errmsg, "Error pulling the acquisition year from the base "
             "filename: %s", basename);
@@ -1105,7 +1105,7 @@ int read_modis_hdf
     yearstr[4] = '\0';
     acq_year = atoi (yearstr);
 
-    if (strncpy (doystr, &basename[13], 3) == NULL)
+    if (strncpy (doystr, &basename[START_DOY], 3) == NULL)
     {
         sprintf (errmsg, "Error pulling the acquisition DOY from the base "
             "filename: %s", basename);
@@ -1134,8 +1134,8 @@ int read_modis_hdf
     }
 
     /* Use the HDF filename to determine the horizontal and vertical tile
-       numbers.  Example - MOD09A1.A2013241.h08v05.005.2013252120055.hdf */
-    if (strncpy (htile, &basename[18], 2) == NULL)
+       numbers */
+    if (strncpy (htile, &basename[START_HTILE], 2) == NULL)
     {
         sprintf (errmsg, "Error pulling the horizontal tile number from the "
             "base filename: %s", basename);
@@ -1145,7 +1145,7 @@ int read_modis_hdf
     htile[2] = '\0';
     gmeta->htile = atoi (htile);
 
-    if (strncpy (vtile, &basename[21], 2) == NULL)
+    if (strncpy (vtile, &basename[START_VTILE], 2) == NULL)
     {
         sprintf (errmsg, "Error pulling the vertical tile number from the "
             "base filename: %s", basename);
