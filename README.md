@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.18.0 Release Notes
-Release Date: July 2019
+## ESPA-PRODUCT_FORMATTER Version 1.18.1 Release Notes
+Release Date: October 2019
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
 
@@ -14,7 +14,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.18.0]
+See git tag [version_1.18.1]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -124,18 +124,7 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Added support for Sentinel-2 Level-1C products.
-  * Added view angles (similar to the solar angles) to the schema and output
-    XML file, in support of the Sentinel-2 products.
-  * Fixed a bug when using strdup to copy the HDF5 VIIRS filename to the
-    output XML filename, then blowing past the memory by changing the .h5
-    file extension to .xml.
-  * Fixed a bug in the MODIS support of obtaining the tile number from the file
-    name to populate the htile, vtile in the global XML file.
-  * Modified the angle band routines to detect if the angle bands have been
-    previously generated.  If so, then the bands are not regenerated.  This
-    is a fix for calling LaSRC followed by LaORCA and having two different
-    listings of the angle bands in the XML file.  When converting the ESPA
-    format to another format, both listings will attempt to be converted.  The
-    second listing could fail if remove source files is used for the conversion
-    because the files are removed after converting the first listing.
+  * Cleaned up some warning codes flagged after migrating to a newer system.
+  * Fixed a bug in parse_sentinel_metadata.c.  Prodtype is a character
+    pointer and not an array, therefore the pointer must be dereferenced
+    when used as an argument in sizeof.

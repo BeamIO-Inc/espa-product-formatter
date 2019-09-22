@@ -4291,7 +4291,6 @@ short OdlValidElement (char *text, char *message_fname,
     char *message = NULL;
     char element_prompt[TB_MAXLINE + 1];
     char *save_units = 0;
-    char *first_blank = {NULL};
     char *first_char = {NULL};
     char *last_char = {NULL};
     char *units_start = {NULL};
@@ -4307,7 +4306,6 @@ short OdlValidElement (char *text, char *message_fname,
 
     single_quote = (char *) strchr(text+1, (int) '\'');
     double_quote = (char *) strchr(text+1, (int) '"');
-    first_blank  = (char *) strchr(text+1, (int) ' ');
     first_char = text;
     last_char = (char *) LastChar(text);
 
@@ -5844,12 +5842,12 @@ char *OdlTempFname()
 {
     FILE *fptr = {NULL};
     char *fname = {NULL};
-    char temp_str  [TB_MAXPATH + TB_MAXFNAME];
     char base_name [TB_MAXPATH + TB_MAXFNAME];
 
     (void)strcpy(base_name, "tmp.tmp");
 
 #ifdef SUN_UNIX
+    char temp_str  [TB_MAXPATH + TB_MAXFNAME];
     (void)tmpnam(temp_str);
     (void)strcpy( base_name, temp_str);  /* Bug fix 11/2/94 SM                     */
                                    /* Was:    (void)sprintf(base_name, "~/%s.tmp", */
@@ -5857,11 +5855,13 @@ char *OdlTempFname()
 #endif
 
 #if (defined( VAX) || defined( ALPHA_VMS))
+    char temp_str  [TB_MAXPATH + TB_MAXFNAME];
     (void)tmpnam(temp_str);
     (void)sprintf(base_name, "sys$login:%s.tmp", temp_str);
 #endif
 
 #ifdef MAC_THINK
+    char temp_str  [TB_MAXPATH + TB_MAXFNAME];
     (void)tmpnam(temp_str);
     (void)sprintf(base_name, "%s.tmp", temp_str);
 #endif

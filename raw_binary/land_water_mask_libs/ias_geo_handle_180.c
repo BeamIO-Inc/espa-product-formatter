@@ -254,7 +254,6 @@ static void add_once_around_to_dms
     double easy_soln; /* simple approach */
 
     double angle;  /* used in calculating tdeg, tmin, and tsec */
-    int status;
 
     /* First, we try a simple approach in which we simply add 360 degrees to
        the input value.  If we didn't cross zero, then we are done; that will
@@ -268,9 +267,9 @@ static void add_once_around_to_dms
         return;
     }
 
-    status = ias_geo_convert_dms2deg(*lon, &angle, "DEGREES");
+    ias_geo_convert_dms2deg(*lon, &angle, "DEGREES");
     angle += determine_once_around(DEGREE);
-    status = ias_geo_convert_deg2dms(angle, lon, "DEGREES");
+    ias_geo_convert_deg2dms(angle, lon, "DEGREES");
     
 }
 

@@ -1173,7 +1173,7 @@ int parse_sentinel_product_xml_into_struct
 
                 /* Copy the content of the child node into the value for this
                    field */
-                count = snprintf (prodtype, sizeof (prodtype), "%s",
+                count = snprintf (prodtype, sizeof (*prodtype), "%s",
                     (const char *) child_node->content);
                 if (count < 0 || count >= sizeof (prodtype))
                 {

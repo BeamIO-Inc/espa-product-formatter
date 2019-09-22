@@ -215,7 +215,6 @@ int landsat_per_pixel_angles
                                            status */
         int curr_tmp_percent;           /* Percentage for current line */
         double *height = NULL;          /* Height to evaluate */
-        angle_frame_TYPE frame;         /* Output image frame info. */
         size_t angle_size;              /* Number of elements in angle array */
 
         /* Check if this band is in the user-specified list of bands to be
@@ -295,17 +294,6 @@ int landsat_per_pixel_angles
                 return ERROR;
             }
         }
-
-        /* Establish the output image file frame */
-        frame.band_number =
-            xxx_get_user_band(metadata.band_metadata[band_index].band_number);
-        frame.num_lines = num_lines;
-        frame.num_samps = num_samps;
-        frame.projection.code = metadata.projection.code;
-        frame.projection.zone = metadata.projection.zone;
-        frame.pixel_size = metadata.band_metadata[band_index].pixel_size;
-        frame.ul_corner.x = metadata.corners.upleft.x;
-        frame.ul_corner.y = metadata.corners.upleft.y;
 
         /* Loop through the L1T lines and samples */
         tmp_percent = 0;

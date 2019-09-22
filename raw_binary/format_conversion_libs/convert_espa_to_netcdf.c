@@ -638,7 +638,6 @@ int create_netcdf_metadata
     int x_varid;                  /* x coordinate variable ID */
     int y_varid;                  /* y coordinate variable ID */
     int dimids[2];                /* array for the dimension IDs */
-    int dims[2];                  /* array for dimension sizes; only 2D prods */
     float *xdims = NULL;          /* coordinate values for the x-dimension */
     float *ydims = NULL;          /* coordinate values for the y-dimension */
     int x;                        /* loop index */
@@ -690,8 +689,6 @@ int create_netcdf_metadata
         /* Define the dimensions for this band */
         nlines = xml_metadata->band[i].nlines;
         nsamps = xml_metadata->band[i].nsamps;
-        dims[0] = nlines;
-        dims[1] = nsamps;
 
         /* Determine the NetCDF data type */
         switch (xml_metadata->band[i].data_type)

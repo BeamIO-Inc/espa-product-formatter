@@ -321,7 +321,7 @@ int main (int argc, char** argv)
         band_indx = etm_band_indx;
         strcpy (band_list, etm_list);
     }
-    else
+    else if (process_l45)
     {
         landsat_bands = tm_bands;
         landsat_nbands = tm_nbands;
