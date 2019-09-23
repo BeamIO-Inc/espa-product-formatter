@@ -309,6 +309,7 @@ int convert_sentinel_to_espa
         bmeta = &xml_metadata.band[i];
         strcpy (bmeta->product, "MSIL1C");
         strcpy (bmeta->name, sentinel_bands[i]);
+        strcpy (bmeta->short_name, "S2MSI1C");
         strcpy (bmeta->category, "image");
         bmeta->data_type = ESPA_UINT16;
         bmeta->fill_value = 0;
@@ -321,8 +322,10 @@ int convert_sentinel_to_espa
             sentinel_band_nums[i]);
 
         /* Sentinel XML files don't indicate the application used to process
-           the original image files, so set to "not available" */
-        strcpy (bmeta->app_version, "not available");
+           the original image files, so instead we will use the name of the
+           current application used for conversion. */
+        sprintf (bmeta->app_version, "convert_sentinel_to_espa_%s",
+            ESPA_COMMON_VERSION);
     }
 
     /* Rename the current Sentinel JP2 bands to a new filename (using the
