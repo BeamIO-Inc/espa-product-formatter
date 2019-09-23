@@ -126,5 +126,5 @@ be needed for your application or other espa product formatter libraries may nee
 ## Release Notes
   * Cleaned up some warning codes flagged after migrating to a newer system.
   * Fixed a bug in parse_sentinel_metadata.c.  Prodtype is a character
-    pointer and not an array, therefore the pointer must be dereferenced
-    when used as an argument in sizeof.
+    pointer and not an array, therefore using the size of the pointer is not
+    valid when used as an argument in sizeof.
