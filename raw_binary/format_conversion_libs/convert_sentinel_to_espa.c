@@ -309,7 +309,6 @@ int convert_sentinel_to_espa
         bmeta = &xml_metadata.band[i];
         strcpy (bmeta->product, "MSIL1C");
         strcpy (bmeta->name, sentinel_bands[i]);
-        strcpy (bmeta->short_name, "S2MSI1C");
         strcpy (bmeta->category, "image");
         bmeta->data_type = ESPA_UINT16;
         bmeta->fill_value = 0;
