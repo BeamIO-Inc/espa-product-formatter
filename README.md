@@ -128,3 +128,5 @@ be needed for your application or other espa product formatter libraries may nee
   * Fixed a bug in parse_sentinel_metadata.c.  Prodtype is a character
     pointer and not an array, therefore using the size of the pointer is not
     valid when used as an argument in sizeof.
+  * Added a script for unpackaging the Sentinel-2 product bundles so they are
+    in the proper format for ingesting via convert_sentinel_to_espa.
