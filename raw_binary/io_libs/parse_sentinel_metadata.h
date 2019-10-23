@@ -39,9 +39,11 @@ int parse_sentinel_tile_metadata
 int parse_sentinel_product_metadata
 (
     char *metafile,                 /* I: Sentinel product metadata file */
-    Espa_internal_meta_t *metadata  /* I: input metadata structure which has
+    Espa_internal_meta_t *metadata, /* I/O: input metadata structure which has
                                           been initialized via
                                           init_metadata_struct */
+    char *prodtype,                 /* O: product type for all bands */
+    float *scale_factor             /* O: scale factor for all bands */
 );
 
 #endif

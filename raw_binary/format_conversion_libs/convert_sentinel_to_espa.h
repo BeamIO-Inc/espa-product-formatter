@@ -26,8 +26,8 @@ NOTES:
 #include "parse_sentinel_metadata.h"
 
 /* Defines */
-/* number of Sentinel bands in an L1C product */
-#define NUM_SENTINEL_BANDS 14
+/* number of Sentinel bands in an L1C product; ignore TCI */
+#define NUM_SENTINEL_BANDS 13
 
 /* Prototypes */
 int convert_sentinel_to_espa

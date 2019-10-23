@@ -875,7 +875,6 @@ int parse_sentinel_tile_metadata
             case 2:  /* b3 */
             case 3:  /* b4 */
             case 7:  /* b8 */
-            case 13: /* TCI band */
                 bmeta->nlines = nrows[0];
                 bmeta->nsamps = ncols[0];
                 bmeta->pixel_size[0] = 10.0;
@@ -915,123 +914,6 @@ int parse_sentinel_tile_metadata
 
 
 /******************************************************************************
-MODULE:  add_product_granule_metadata
-
-PURPOSE: Add the current product granule-based information to the metadata
-structure and process the children of this node.
-
-RETURN VALUE:
-Type = int
-Value           Description
------           -----------
-ERROR           Error parsing the product granule-based metadata
-SUCCESS         Successful parse of the product granule-based metadata
-
-NOTES:
-1. This MTD_MSIL1C.xml Sentinel product XML file does not provide the
-   nlines, nsamps for the bands.
-******************************************************************************/
-int add_product_granule_metadata
-(
-    xmlNode *a_node,            /* I: pointer to the element node to process */
-    Espa_global_meta_t *gmeta,  /* I: global metadata structure */
-    int nbands,                 /* I: number of bands allocated in bmeta */
-    Espa_band_meta_t *bmeta     /* I: band metadata pointer to all bands */
-)
-{
-    char FUNC_NAME[] = "add_product_granule_metadata";   /* function name */
-    char errmsg[STR_SIZE];        /* error message */
-    char tmpfile[STR_SIZE];       /* temporary string for the filename */
-    char *cptr = NULL;            /* pointer to image filename */
-    int cur_band = 0;             /* current band being processed in the
-                                     bands metadata section */
-    xmlNode *cur_node = NULL;     /* pointer to the current node */
-    xmlNode *child_node = NULL;   /* pointer to the child node */
-    int count;                    /* number of chars copied in snprintf */
-
-    /* Process the siblings in the Granule element */
-    for (cur_node = a_node->children; cur_node;
-         cur_node = xmlNextElementSibling (cur_node))
-    {
-        /* Look for the IMAGE_FILE elements and store them as the band name,
-           which will then need to get cleaned up later */
-        if (xmlStrEqual (cur_node->name, (const xmlChar *) "IMAGE_FILE"))
-        {
-            /* If we have more bands than were allocated, then we have an
-               issue */
-            if (cur_band >= nbands)
-            {
-                sprintf (errmsg, "Number of bands consumed already "
-                    "reached the total number of bands allocated for this "
-                    "XML file (%d).", nbands);
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            /* Expect the child node to be a text node containing the value
-               of this field */
-            child_node = cur_node->children;
-            if (child_node == NULL || child_node->type != XML_TEXT_NODE)
-            {
-                sprintf (errmsg, "Processing Granule metadata element: %s.",
-                    cur_node->name);
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            /* Copy contents of the node into the file_name value for the
-               current band */
-            count = snprintf (tmpfile, sizeof (tmpfile), "%s",
-                (const char *) child_node->content);
-            if (count < 0 || count >= sizeof (tmpfile))
-            {
-                sprintf (errmsg, "Overflow of tmpfile string");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            /* Strip the tile name of the directory/band and use that for the
-               product ID; only need to do for the first band. */
-            if (cur_band == 0)
-            {
-                strncpy (gmeta->product_id, &tmpfile[8], 34);
-                gmeta->product_id[34] = '\0';
-            }
-
-            /* Grab the image filename for this band from the tmpfile string */
-            cptr = strrchr (tmpfile, '/');
-            if (cptr == NULL)
-            {
-                sprintf (errmsg, "Unsuspected format for the filename. "
-                    "Expected GRANULE/L1C_{blah}/IMG_DATA/{image_filename} "
-                    "however no directory separator ('/') was found in the "
-                    "filename: %s.", tmpfile);
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-            cptr++;
-
-            count = snprintf (bmeta[cur_band].file_name,
-                sizeof (bmeta[cur_band].file_name), "%s.jp2",
-                (const char *) cptr);
-            if (count < 0 || count >= sizeof (bmeta[cur_band].file_name))
-            {
-                sprintf (errmsg, "Overflow of bmeta[%d].file_name string",
-                    cur_band);
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            /* Increment the band count */
-            cur_band++;
-        }
-    }  /* end for cur_node */
-
-    return (SUCCESS);
-}
-
-
-/******************************************************************************
 MODULE:  parse_sentinel_product_xml_into_struct
 
 PURPOSE: Parse the Sentinel L1C product XML document(MTD_MSIL1C.xml) data
@@ -1063,9 +945,7 @@ int parse_sentinel_product_xml_into_struct
     char errmsg[STR_SIZE];       /* error message */
     char *curr_stack_element = NULL;  /* element popped from the stack */
     xmlNode *cur_node = NULL;    /* pointer to the current node */
-    xmlNode *sib_node = NULL;    /* pointer to the sibling node */
     xmlNode *child_node = NULL;  /* pointer to the child node */
-    static int nbands = 0;       /* number of bands in the XML structure */
     int count;                   /* number of chars copied in snprintf */
     float ul[2], ur[2];          /* UL and UR lat/long corner points */
     float ll[2], lr[2];          /* LL and LR lat/long corner points */
@@ -1204,6 +1084,7 @@ int parse_sentinel_product_xml_into_struct
                 *scale_factor = atof ((const char *) child_node->content);
             }
 
+// GAIL THIS IS GOOD (CHECK THIS - there are lots of points!)
             /* Process the global footprint and store it as the corner UL/LR
                as well as the bounding coordinates */
             else if (xmlStrEqual (cur_node->name,
@@ -1258,42 +1139,6 @@ int parse_sentinel_product_xml_into_struct
                     gmeta->bounding_coords[ESPA_SOUTH] = ll[0];
                 else
                     gmeta->bounding_coords[ESPA_SOUTH] = lr[0];
-            }
-
-            /* Process the granule metadata. Count the number of band elements
-               in this structure, then allocate memory for the nbands. */
-            else if (xmlStrEqual (cur_node->name, (const xmlChar *) "Granule"))
-            {
-                /* Count the number of siblings which are band elements */
-                nbands = 0;
-                for (sib_node = cur_node->children; sib_node;
-                     sib_node = xmlNextElementSibling (sib_node))
-                {
-                    /* If this is an IMAGE_FILE element then count it */
-                    if (xmlStrEqual (sib_node->name,
-                        (const xmlChar *) "IMAGE_FILE"))
-                        nbands++;
-                }
-
-                /* Allocate band metadata */
-                if (allocate_band_metadata (metadata, nbands) != SUCCESS)
-                {   /* Error messages already printed */
-                    return (ERROR);
-                }
-
-                /* Add the image filenames to the band metadata */
-                if (add_product_granule_metadata (cur_node, gmeta, nbands,
-                    metadata->band))
-                {
-                    sprintf (errmsg, "Consuming Granule image file elements "
-                        "'%s'.", cur_node->name);
-                    error_handler (true, FUNC_NAME, errmsg);
-                    return (ERROR);
-                }
-
-                /* Skip processing the children of this node, since they
-                   will be handled by the global metadata parser */
-                skip_child = true;
             }
 
 #ifdef DEBUG
@@ -1375,14 +1220,15 @@ NOTES:
 int parse_sentinel_product_metadata
 (
     char *metafile,                 /* I: Sentinel product metadata file */
-    Espa_internal_meta_t *metadata  /* I: input metadata structure which has
+    Espa_internal_meta_t *metadata, /* I/O: input metadata structure which has
                                           been initialized via
                                           init_metadata_struct */
+    char *prodtype,                 /* O: product type for all bands */
+    float *scale_factor             /* O: scale factor for all bands */
 )
 {
     char FUNC_NAME[] = "parse_sentinel_product_metadata";  /* function name */
     char errmsg[STR_SIZE];    /* error message */
-    char prodtype[STR_SIZE];  /* product type string for all bands */
     xmlTextReaderPtr reader;  /* reader for the XML file */
     xmlDocPtr doc = NULL;     /* document tree pointer */
     xmlNodePtr current=NULL;  /* pointer to the current node */
@@ -1391,9 +1237,7 @@ int parse_sentinel_product_metadata
     int nodeType;             /* node type (element, text, attribute, etc.) */
     int top_of_stack;         /* top of the stack */
     int count;                /* number of chars copied in snprintf */
-    float scale_factor;       /* scale factor for all bands */
     char **stack = NULL;      /* stack to keep track of elements in the tree */
-    Espa_band_meta_t *bmeta;  /* band metadata pointer to all bands */
 
     /* Establish the reader for this metadata file */
     reader = xmlNewTextReaderFilename (metafile);
@@ -1472,7 +1316,6 @@ int parse_sentinel_product_metadata
                 if (xmlTextReaderHasAttributes (reader))
                 {
                     /* Get the number of attributes and then process each one */
-                    int i;
                     int n_att = xmlTextReaderAttributeCount (reader);
                     for (i = 0; i < n_att; i++)
                     {
@@ -1582,7 +1425,7 @@ int parse_sentinel_product_metadata
 
         /* Parse the XML document into our ESPA internal metadata structure */
         if (parse_sentinel_product_xml_into_struct (xmlDocGetRootElement(doc),
-            metadata, &top_of_stack, stack, prodtype, &scale_factor))
+            metadata, &top_of_stack, stack, prodtype, scale_factor))
         {
             sprintf (errmsg, "Parsing the product metadata file into the "
                 "internal metadata structure.");
@@ -1599,15 +1442,6 @@ int parse_sentinel_product_metadata
     xmlFreeTextReader (reader);
     xmlCleanupParser();
     xmlMemoryDump();
-
-    /* The product type and scale factor need to be added to the band metadata
-       for each of the bands */
-    for (i = 0; i < metadata->nbands; i++)
-    {
-        bmeta = &metadata->band[i];
-        strcpy (bmeta->short_name, prodtype);
-        bmeta->scale_factor = 1.0 / scale_factor;
-    }
 
     return (SUCCESS);
 }
