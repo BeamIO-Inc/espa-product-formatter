@@ -1,7 +1,7 @@
 ## ESPA-PRODUCT_FORMATTER Version 1.19.0 Release Notes
 Release Date: November 2019
 
-The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8.
+The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8, Sentinel-2 L1C, and limited MODIS products.
 
 ### Support Information
 This project is unsupported software provided by the U.S. Geological Survey (USGS) Earth Resources Observation and Science (EROS) Land Satellite Data Systems (LSDS) Project. For questions regarding products produced by this source code, please contact us at custserv@usgs.gov.
@@ -130,4 +130,4 @@ be needed for your application or other espa product formatter libraries may nee
     valid when used as an argument in sizeof.
   * Added a script for unpackaging the Sentinel-2 product bundles so they are
     in the proper format for ingesting via convert_sentinel_to_espa.
-  * Updated the metadata library to use the version 2.1 schema. 
+  * Updated the python metadata library to use the version 2.1 schema. 
