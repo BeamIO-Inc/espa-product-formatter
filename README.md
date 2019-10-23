@@ -130,3 +130,4 @@ be needed for your application or other espa product formatter libraries may nee
     valid when used as an argument in sizeof.
   * Added a script for unpackaging the Sentinel-2 product bundles so they are
     in the proper format for ingesting via convert_sentinel_to_espa.
+  * Updated the metadata library to use the version 2.1 schema. 
