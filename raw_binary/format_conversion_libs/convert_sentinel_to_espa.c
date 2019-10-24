@@ -14,6 +14,10 @@ NOTES:
      metadata format found in ESPA Raw Binary Format v1.0.doc.  The schema for
      the ESPA internal metadata format is available at
      http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_x.xsd.
+  2. Sentinel-2 data has an older file/packaging format (prior to October 2016)
+     as well as the latest format.  Both are supported by this application.
+     Only S2A data will be in the old format, since S2B didn't come online
+     until March of 2017.
 *****************************************************************************/
 #include <unistd.h>
 #include <ctype.h>
@@ -93,19 +97,93 @@ ERROR           Error renaming the JP2 files
 SUCCESS         Successfully renamed the JP2 files
 
 NOTES:
+The ESPA Sentinel filename convention (for both old and new S2 formats) is as
+follows: S2X_MSI_L1C_TTTTTT_ YYYYMMDD_yyyymmdd_CC_TX
+
+Where:
+  * X = A or B
+  * TTTTTT = Sentinel tile number (ex. T10TFR)
+  * YYYYMMDD = Acquisition year, month, day
+  * yyyymmdd = Processing year, month, day
+  * CC = ESPA-Identified Collection number (01, 02, etc.)
+  * TX = ESPA-Identified Collection category ("T1" = Tier 1, "T2" = Tier 2)
+
+Example: S2A_MSI_L1C_T10TFR_20180816_20180903_01_T1
+
 ******************************************************************************/
 int rename_jp2
 (
     Espa_internal_meta_t *xml_metadata /* I: valid ESPA metadata structure */
 )
 {
+    const int TILE_CHARS=6;  /* number of chars in the S2 tile name */
+    const int YEAR_CHARS=4;  /* number of chars in the year string */
+    const int MONTH_CHARS=2; /* number of chars in the month string */
+    const int DAY_CHARS=2;   /* number of chars in the day string */
+    const int DATE_CHARS=YEAR_CHARS+MONTH_CHARS+DAY_CHARS;
+                             /* number of chars in the date string */
+    static char ESPA_S2_COLLECTION[] = "01";  /* collection number */
+    static char ESPA_S2_TIER[] = "T1";        /* tier number */
     char FUNC_NAME[] = "rename_jp2";  /* function name */
-    char errmsg[STR_SIZE];    /* error message */
-    char newfile[STR_SIZE];   /* name of the new Sentinel file */
-    int i;                    /* looping variable for bands in XML file */
-    int count;                /* number of chars copied in snprintf */
+    char errmsg[STR_SIZE];      /* error message */
+    char newfile[STR_SIZE];     /* name of the new Sentinel file */
+    char acq_date[DATE_CHARS+1];  /* acquisition date */
+    char prod_date[DATE_CHARS+1]; /* production date */
+    char s2_tile[TILE_CHARS+1]; /* Sentinel tile */
+    char year[YEAR_CHARS+1];    /* acquisition or production year */
+    char month[MONTH_CHARS+1];  /* acquisition or production month */
+    char day[DAY_CHARS+1];      /* acquisition or production day */
+    char sat_x;                 /* A or B Sentinel satellite */
+    int i;                      /* looping variable for bands in XML file */
+    int count;                  /* number of chars copied in snprintf */
     Espa_band_meta_t *bmeta = NULL;  /* pointer to band metadata */
     Espa_global_meta_t *gmeta = &xml_metadata->global;  /* global metadata */
+
+    /* Get the satellite letter - A or B */
+    sat_x = gmeta->satellite[strlen(gmeta->satellite)-1];
+
+    /* Get the tile number, which is in different locations depending on
+       whether this is an old or new Sentinel-2 product */
+    if (!strncmp (gmeta->product_id, "S2", 2))
+    { /* old S2 format
+         (Ex. S2A_OPER_MSI_L1C_TL_SGS__20151231T122251_A002735_T34MFS) */
+        strncpy (s2_tile,
+                 &gmeta->product_id[strlen(gmeta->product_id)-TILE_CHARS],
+                 TILE_CHARS);
+    }
+    else
+    { /* new S2 format (Ex. T10TFR_20180816T185921) */
+        strncpy (s2_tile, gmeta->product_id, TILE_CHARS);
+    }
+    s2_tile[TILE_CHARS] = '\0';
+
+    /* Get the acquisition date, but remove the dashes */
+    strncpy (year, gmeta->acquisition_date, YEAR_CHARS);
+    year[YEAR_CHARS] = '\0';
+
+    strncpy (month, &gmeta->acquisition_date[YEAR_CHARS+1], MONTH_CHARS);
+    month[MONTH_CHARS] = '\0';
+
+    strncpy (day, &gmeta->acquisition_date[YEAR_CHARS+MONTH_CHARS+2],
+        DAY_CHARS);
+    day[DAY_CHARS] = '\0';
+    sprintf (acq_date, "%s%s%s", year, month, day);
+
+    /* Get the production date, but remove the dashes */
+    strncpy (year, gmeta->level1_production_date, YEAR_CHARS);
+    year[YEAR_CHARS] = '\0';
+
+    strncpy (month, &gmeta->level1_production_date[YEAR_CHARS+1], MONTH_CHARS);
+    month[MONTH_CHARS] = '\0';
+
+    strncpy (day, &gmeta->level1_production_date[YEAR_CHARS+MONTH_CHARS+2],
+        DAY_CHARS);
+    day[DAY_CHARS] = '\0';
+    sprintf (prod_date, "%s%s%s", year, month, day);
+
+    /* Generate the new product ID */
+    sprintf (gmeta->product_id, "S2%c_MSI_L1C_%s_%s_%s_%s_%s", sat_x, s2_tile,
+        acq_date, prod_date, ESPA_S2_COLLECTION, ESPA_S2_TIER);
 
     /* Loop through the bands in the metadata file and convert each one to
        the ESPA format */
@@ -290,6 +368,7 @@ int convert_sentinel_to_espa
     char espa_xml_file[STR_SIZE];     /* output ESPA XML metadata filename */
     char jp2_file[STR_SIZE];          /* jp2 image file to delete */
     char sentinel_xml_file[STR_SIZE]; /* current Sentinel XML filename */
+    char orig_bandname[STR_SIZE];     /* original band1 filename */
     char prodtype[STR_SIZE];          /* product type string for all bands */
     char *b1_name = NULL;             /* band 1 Sentinel-2 filename */
     char *cptr = NULL;                /* pointer to the file extension */
@@ -401,6 +480,14 @@ int convert_sentinel_to_espa
             ESPA_COMMON_VERSION);
     }
 
+    /* If the source data is going to get removed, then save the band 1
+       filename before it is renamed */
+    if (del_src)
+    {
+        bmeta = &xml_metadata.band[0];
+        strcpy (orig_bandname, bmeta->file_name);
+    }
+
     /* Rename the current Sentinel JP2 bands to a new filename (using the
        product_id) to be used by ESPA */
     if (rename_jp2 (&xml_metadata) != SUCCESS)
@@ -440,6 +527,7 @@ int convert_sentinel_to_espa
         /* Remove the image band */
         for (i = 0; i < xml_metadata.nbands; i++)
         {
+            /* Point to the band metadata for this band */
             bmeta = &xml_metadata.band[i];
 
             /* Remove the .jp2 files */
@@ -464,11 +552,9 @@ int convert_sentinel_to_espa
             }
         }
 
-        /* Remove the TCI jp2 band; only exists in the new S2 format so don't
-           error check if it fails. Use the B01 filename as the basis for
-           determining the TCI filename. */
-        bmeta = &xml_metadata.band[0];
-        count = snprintf (jp2_file, sizeof (jp2_file), "%s", bmeta->file_name);
+        /* Remove the TCI jp2 band, which retains its original filename. Only
+           exists in the new S2 format so don't error check if it fails. */
+        count = snprintf (jp2_file, sizeof (jp2_file), "%s", orig_bandname);
         if (count < 0 || count >= sizeof (jp2_file))
         {
             sprintf (errmsg, "Overflow of jp2_file string");

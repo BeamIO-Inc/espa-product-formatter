@@ -177,7 +177,7 @@ class S2SAFE():
         shutil.copy(mtd_xmlname, espa_temp)
 
         # determine the name of the {product_id} directory under GRANULE
-        granule_dir = '{}/GRANULE'.format(s2dir)
+        granule_dir = 'GRANULE'
         found = False
         gran_dirs = glob.glob('{}/*'.format(granule_dir))
         for tmpdir in gran_dirs:
@@ -255,7 +255,7 @@ class S2SAFE():
         # move the contents of the temp directory to the top level directory
         filelist = glob.glob('{}/*'.format(espa_temp))
         for myfile in filelist:
-            shutil.copy(myfile, s2dir)
+            shutil.copy(myfile, os.getcwd())
 
         # remove the temp directory
         shutil.rmtree(espa_temp)
