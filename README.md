@@ -130,7 +130,7 @@ be needed for your application or other espa product formatter libraries may nee
     valid when used as an argument in sizeof.
   * Added a script for unpackaging the Sentinel-2 product bundles so they are
     in the proper format for ingesting via convert_sentinel_to_espa.
-  * Updated the python metadata library to use the version 2.1 schema. 
+  * Updated the python metadata library to use the version 2.2 schema. 
   * Modified the unpackage script to support both old and new Sentinel-2
     package formats.
   * Developed a filename convention for ESPA's version of the Sentinel-2

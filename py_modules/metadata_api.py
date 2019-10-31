@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Generated Wed Oct 23 08:02:05 2019 by generateDS.py version 2.12b.
+# Generated Thu Oct 31 15:50:00 2019 by generateDS.py version 2.12b.
 #
 # Generated with the ESPA modified version of generateDS.py
 # See espa google code project.
@@ -3421,7 +3421,7 @@ class percent_coverage(GeneratedsSuper):
 class band(GeneratedsSuper):
     subclass = None
     superclass = None
-    def __init__(self, product=None, source=None, name=None, category=None, data_type=None, nlines=None, nsamps=None, fill_value=None, saturate_value=None, scale_factor=None, add_offset=None, short_name=None, long_name=None, file_name=None, pixel_size=None, resample_method=None, data_units=None, valid_range=None, radiance=None, reflectance=None, thermal_const=None, bitmap_description=None, class_values=None, qa_description=None, percent_coverage=None, app_version=None, production_date=None):
+    def __init__(self, product=None, source=None, name=None, category=None, data_type=None, nlines=None, nsamps=None, fill_value=None, saturate_value=None, scale_factor=None, add_offset=None, short_name=None, long_name=None, file_name=None, pixel_size=None, resample_method=None, data_units=None, valid_range=None, radiance=None, reflectance=None, thermal_const=None, bitmap_description=None, class_values=None, qa_description=None, percent_coverage=None, app_version=None, level1_filename=None, production_date=None):
         self.product = _cast(None, product)
         self.source = _cast(None, source)
         self.name = _cast(None, name)
@@ -3448,6 +3448,7 @@ class band(GeneratedsSuper):
         self.qa_description = qa_description
         self.percent_coverage = percent_coverage
         self.app_version = app_version
+        self.level1_filename = level1_filename
         if isinstance(production_date, basestring):
             initvalue_ = datetime_.datetime.strptime(production_date, '%Y-%m-%dT%H:%M:%S')
         else:
@@ -3489,6 +3490,8 @@ class band(GeneratedsSuper):
     def set_percent_coverage(self, percent_coverage): self.percent_coverage = percent_coverage
     def get_app_version(self): return self.app_version
     def set_app_version(self, app_version): self.app_version = app_version
+    def get_level1_filename(self): return self.level1_filename
+    def set_level1_filename(self, level1_filename): self.level1_filename = level1_filename
     def get_production_date(self): return self.production_date
     def set_production_date(self, production_date): self.production_date = production_date
     def get_product(self): return self.product
@@ -3536,6 +3539,7 @@ class band(GeneratedsSuper):
             self.qa_description is not None or
             self.percent_coverage is not None or
             self.app_version is not None or
+            self.level1_filename is not None or
             self.production_date is not None
         ):
             return True
@@ -3644,6 +3648,9 @@ class band(GeneratedsSuper):
         if self.app_version is not None:
             showIndent(outfile, level, pretty_print)
             outfile.write('<%sapp_version>%s</%sapp_version>%s' % (namespace_, self.gds_format_string(quote_xml(self.app_version).encode(ExternalEncoding), input_name='app_version'), namespace_, eol_))
+        if self.level1_filename is not None:
+            showIndent(outfile, level, pretty_print)
+            outfile.write('<%slevel1_filename>%s</%slevel1_filename>%s' % (namespace_, self.gds_format_string(quote_xml(self.level1_filename).encode(ExternalEncoding), input_name='level1_filename'), namespace_, eol_))
         if self.production_date is not None:
             showIndent(outfile, level, pretty_print)
             outfile.write('<%sproduction_date>%s</%sproduction_date>%s' % (namespace_, self.gds_format_datetime(self.production_date, input_name='production_date'), namespace_, eol_))
@@ -3768,6 +3775,9 @@ class band(GeneratedsSuper):
         if self.app_version is not None:
             showIndent(outfile, level)
             outfile.write('app_version=%s,\n' % quote_python(self.app_version).encode(ExternalEncoding))
+        if self.level1_filename is not None:
+            showIndent(outfile, level)
+            outfile.write('level1_filename=%s,\n' % quote_python(self.level1_filename).encode(ExternalEncoding))
         if self.production_date is not None:
             showIndent(outfile, level)
             outfile.write('production_date=model_.GeneratedsSuper.gds_parse_datetime("%s"),\n' % self.gds_format_datetime(self.production_date, input_name='production_date'))
@@ -3904,6 +3914,10 @@ class band(GeneratedsSuper):
             app_version_ = child_.text
             app_version_ = self.gds_validate_string(app_version_, node, 'app_version')
             self.app_version = app_version_
+        elif nodeName_ == 'level1_filename':
+            level1_filename_ = child_.text
+            level1_filename_ = self.gds_validate_string(level1_filename_, node, 'level1_filename')
+            self.level1_filename = level1_filename_
         elif nodeName_ == 'production_date':
             sval_ = child_.text
             dval_ = self.gds_parse_datetime(sval_)
@@ -4675,7 +4689,7 @@ def validate_xml(rootObj, xmlns=None, xmlns_xsi=None, schema_uri=None):
 
 # ESPA - Added a module method to allow exporting from the module level with
 #        validation
-def export(outFile, rootObj, xmlns='http://espa.cr.usgs.gov/v2', xmlns_xsi='http://www.w3.org/2001/XMLSchema-instance', schema_uri='http://espa.cr.usgs.gov/schema/espa_internal_metadata_v2_1.xsd'):
+def export(outFile, rootObj, xmlns='http://espa.cr.usgs.gov/v2', xmlns_xsi='http://www.w3.org/2001/XMLSchema-instance', schema_uri='http://espa.cr.usgs.gov/schema/espa_internal_metadata_v2_2.xsd'):
     ns_def = build_ns_def(xmlns, xmlns_xsi, schema_uri)
 
     rootObj.set_version('2.35.0')
