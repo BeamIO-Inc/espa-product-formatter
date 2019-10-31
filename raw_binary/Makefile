@@ -14,7 +14,8 @@ LIBDIRS = common \
           per_pixel_angles_libs \
           land_water_mask_libs/GCTP3 \
           land_water_mask_libs
-EXEDIRS = tools
+EXEDIRS = tools \
+		  scripts
 
 #-----------------------------------------------------------------------------
 all: executables
