@@ -17,8 +17,67 @@ NOTES:
   3. The information on the Sentinel-2 L1C metadata files (MTD_MSIL1C.xml and
      MTD_TL.xml) can be found in the S2_MSI_Product_Specification.pdf file.
 *****************************************************************************/
+#include "dirent.h"
 #include "espa_metadata.h"
 #include "parse_sentinel_metadata.h"
+
+
+/******************************************************************************
+MODULE:  find_file
+
+PURPOSE: Read the current directory and look for the current file
+
+RETURN VALUE:
+Type = bool
+Value           Description
+-----           -----------
+false           Error reading the directory and finding the file
+true            Filename was successfully found
+
+NOTES:
+******************************************************************************/
+bool find_file
+(
+    char *basefile    /* I: base filename to check for existence (no file
+                            extension) */
+)
+{
+    char FUNC_NAME[] = "find_file";  /* function name */
+    char errmsg[STR_SIZE];           /* error message */
+    char myfile[STR_SIZE];           /* full filename to search for */
+    bool retval;                     /* value to designate if file was found */
+    DIR *dr = NULL;                  /* ptr to current directory */
+    struct dirent *de = NULL;        /* ptr for directory entry */
+
+    /* Add the .jp2 file extension to the filename to determine if it exists */
+    sprintf (myfile, "%s.jp2", basefile);
+
+    /* Open the current directory */
+    dr = opendir(".");
+    if (dr == NULL)
+    {
+        sprintf (errmsg, "Could not open current directory");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (false);
+    }
+
+    /* Loop through the files in the directory */
+    retval = false;
+    while ((de = readdir (dr)) != NULL)
+    {
+        /* Is this the file we are looking for? */
+        if (strstr (de->d_name, myfile))
+        {
+            retval = true;
+            break;
+        }
+    }
+
+    /* Close the directory */
+    closedir (dr);
+
+    return (retval);
+}
 
 
 /******************************************************************************
@@ -938,6 +997,9 @@ int parse_sentinel_product_xml_into_struct
     int *top_of_stack,                /* I: pointer to top of the stack */
     char **stack,                     /* I: stack to use for parsing */
     char *prodtype,                   /* O: product type string for all bands */
+    char *proc_ver,                   /* O: processing version for all bands */
+    char *l1_filename,                /* O: initial level-1 filename to be
+                                            used for all band names */
     float *scale_factor               /* O: scale factor for all bands */
 )
 {
@@ -951,6 +1013,10 @@ int parse_sentinel_product_xml_into_struct
     float ll[2], lr[2];          /* LL and LR lat/long corner points */
     bool skip_child;             /* boolean to specify the children of this
                                     node should not be processed */
+    static bool found_img_file = false;  /* has the initial IMAGE_FILE element
+                                    been found in the product XML file? */
+    static bool found_img_id = false;   /* has the initial IMAGE_ID element
+                                    been found in the product XML file? */
     Espa_global_meta_t *gmeta = &metadata->global;
                                  /* global metadata structure */
 
@@ -1055,12 +1121,106 @@ int parse_sentinel_product_xml_into_struct
                    field */
                 count = snprintf (prodtype, STR_SIZE, "%s",
                     (const char *) child_node->content);
-                if (count < 0 || count >= sizeof (prodtype))
+                if (count < 0 || count >= STR_SIZE)
                 {
                     sprintf (errmsg, "Overflow of prodtype string");
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
+            }
+
+            /* Process the processing baseline version and save it for adding
+               to the band metadata as part of the application version */
+            else if (xmlStrEqual (cur_node->name,
+                (const xmlChar *) "PROCESSING_BASELINE"))
+            {
+                /* Expect the child node to be a text node containing the
+                   value of this field */
+                child_node = cur_node->children;
+                if (child_node == NULL || child_node->type != XML_TEXT_NODE)
+                {
+                    sprintf (errmsg, "Processing product metadata element: %s.",
+                        cur_node->name);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+
+                /* Copy the content of the child node into the value for this
+                   field */
+                count = snprintf (proc_ver, STR_SIZE, "%s",
+                    (const char *) child_node->content);
+                if (count < 0 || count >= STR_SIZE)
+                {
+                    sprintf (errmsg, "Overflow of processing baseline string");
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+            }
+
+            /* Process the first IMAGE_FILE and save it for identifying the
+               original Level-1 filenames in the band metadata. This is only
+               available in the new S2 products. */
+            else if (!found_img_file &&
+                xmlStrEqual (cur_node->name, (const xmlChar *) "IMAGE_FILE"))
+            {
+                /* Expect the child node to be a text node containing the
+                   value of this field */
+                found_img_file = true;
+                child_node = cur_node->children;
+                if (child_node == NULL || child_node->type != XML_TEXT_NODE)
+                {
+                    sprintf (errmsg, "Processing product metadata element: %s.",
+                        cur_node->name);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+
+                /* Copy the content of the child node into the value for this
+                   field */
+                count = snprintf (l1_filename, STR_SIZE, "%s",
+                    (const char *) child_node->content);
+                if (count < 0 || count >= STR_SIZE)
+                {
+                    sprintf (errmsg, "Overflow of image file string");
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+            }
+
+            /* Process the first valid IMAGE_ID for this tile and save it for
+               identifying the original Level-1 filenames in the band metadata.
+               This is only available in the old S2 products, and there are
+               multiple tiles listed in the product. Thus the tile ID needs
+               to be validated as the correct tile. */
+            else if (!found_img_id &&
+                xmlStrEqual (cur_node->name, (const xmlChar *) "IMAGE_ID"))
+            {
+                /* Expect the child node to be a text node containing the
+                   value of this field */
+                child_node = cur_node->children;
+                if (child_node == NULL || child_node->type != XML_TEXT_NODE)
+                {
+                    sprintf (errmsg, "Processing product metadata element: %s.",
+                        cur_node->name);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+
+                /* Copy the content of the child node into the value for this
+                   field */
+                count = snprintf (l1_filename, STR_SIZE, "%s",
+                    (const char *) child_node->content);
+                if (count < 0 || count >= STR_SIZE)
+                {
+                    sprintf (errmsg, "Overflow of image ID string");
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+
+                /* Is this the correct image name for the current tile? Check
+                   to see if it exists in the current directory. */
+                if (find_file (l1_filename))
+                    found_img_id = true;
             }
 
             /* Process the quantification value and store it as the scale
@@ -1169,7 +1329,8 @@ int parse_sentinel_product_xml_into_struct
         if (!skip_child)
         {
             if (parse_sentinel_product_xml_into_struct (cur_node->children,
-                metadata, top_of_stack, stack, prodtype, scale_factor))
+                metadata, top_of_stack, stack, prodtype, proc_ver, l1_filename,
+                scale_factor))
             {
                 sprintf (errmsg, "Parsing the children of this element '%s'.",
                     cur_node->name);
@@ -1224,6 +1385,9 @@ int parse_sentinel_product_metadata
                                           been initialized via
                                           init_metadata_struct */
     char *prodtype,                 /* O: product type for all bands */
+    char *proc_ver,                 /* O: processing version for all bands */
+    char *l1_filename,              /* O: initial level-1 filename to be used
+                                          for all band names */
     float *scale_factor             /* O: scale factor for all bands */
 )
 {
@@ -1425,7 +1589,8 @@ int parse_sentinel_product_metadata
 
         /* Parse the XML document into our ESPA internal metadata structure */
         if (parse_sentinel_product_xml_into_struct (xmlDocGetRootElement(doc),
-            metadata, &top_of_stack, stack, prodtype, scale_factor))
+            metadata, &top_of_stack, stack, prodtype, proc_ver, l1_filename,
+            scale_factor))
         {
             sprintf (errmsg, "Parsing the product metadata file into the "
                 "internal metadata structure.");

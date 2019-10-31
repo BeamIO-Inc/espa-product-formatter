@@ -265,6 +265,7 @@ int allocate_band_metadata
         bmeta[i].k2_const = ESPA_FLOAT_META_FILL;
         strcpy (bmeta[i].qa_desc, ESPA_STRING_META_FILL);
         strcpy (bmeta[i].app_version, ESPA_STRING_META_FILL);
+        strcpy (bmeta[i].l1_filename, ESPA_STRING_META_FILL);
         strcpy (bmeta[i].production_date, ESPA_STRING_META_FILL);
     }
 

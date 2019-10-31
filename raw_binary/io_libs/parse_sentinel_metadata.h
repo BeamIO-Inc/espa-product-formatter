@@ -43,6 +43,9 @@ int parse_sentinel_product_metadata
                                           been initialized via
                                           init_metadata_struct */
     char *prodtype,                 /* O: product type for all bands */
+    char *proc_ver,                 /* O: processing version for all bands */
+    char *l1_filename,              /* O: initial level-1 filename to be used
+                                          for all band names */
     float *scale_factor             /* O: scale factor for all bands */
 );
 

@@ -410,10 +410,18 @@ int write_metadata
         }
 
         fprintf (fptr,
-            "            <app_version>%s</app_version>\n"
+            "            <app_version>%s</app_version>\n",
+            bmeta[i].app_version);
+
+        if (strcmp (bmeta[i].l1_filename, ESPA_STRING_META_FILL))
+            fprintf (fptr,
+                "            <level1_filename>%s</level1_filename>\n",
+                bmeta[i].l1_filename);
+
+        fprintf (fptr,
             "            <production_date>%s</production_date>\n"
             "        </band>\n",
-            bmeta[i].app_version, bmeta[i].production_date);
+            bmeta[i].production_date);
     }
 
     /* Finish it off */
@@ -671,10 +679,18 @@ int append_metadata
         }
 
         fprintf (fptr,
-            "            <app_version>%s</app_version>\n"
+            "            <app_version>%s</app_version>\n",
+            bmeta[i].app_version);
+
+        if (strcmp (bmeta[i].l1_filename, ESPA_STRING_META_FILL))
+            fprintf (fptr,
+                "            <level1_filename>%s</level1_filename>\n",
+                bmeta[i].l1_filename);
+
+        fprintf (fptr,
             "            <production_date>%s</production_date>\n"
             "        </band>\n",
-            bmeta[i].app_version, bmeta[i].production_date);
+            bmeta[i].production_date);
     }
 
     /* Finish it off */
@@ -709,11 +725,11 @@ void print_metadata_struct
     int i, j;                                   /* looping variables */
 
     /* Print the metadata structure to stdout */
-    printf ("DEBUG Metadata structure:\n");
+    printf ("INFO Metadata structure:\n");
     printf ("  namespace: %s\n", metadata->meta_namespace);
     printf ("  nbands: %d\n", metadata->nbands);
 
-    printf ("DEBUG Global Metadata structure:\n");
+    printf ("INFO Global Metadata structure:\n");
     printf ("  data_provider: %s\n", metadata->global.data_provider);
     printf ("  satellite: %s\n", metadata->global.satellite);
     printf ("  instrument: %s\n", metadata->global.instrument);
@@ -820,7 +836,7 @@ void print_metadata_struct
         metadata->global.orientation_angle);
     printf ("\n");
 
-    printf ("DEBUG Bands Metadata structure:\n");
+    printf ("INFO Bands Metadata structure:\n");
     printf ("  %d bands are represented in this structure\n", metadata->nbands);
     for (i = 0; i < metadata->nbands; i++)
     {
@@ -909,6 +925,7 @@ void print_metadata_struct
             }
         }
         printf ("    app_version: %s\n", metadata->band[i].app_version);
+        printf ("    level1_filename: %s\n", metadata->band[i].l1_filename);
         printf ("    production_date: %s\n", metadata->band[i].production_date);
         printf ("\n");
     }

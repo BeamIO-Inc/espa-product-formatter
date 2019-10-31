@@ -487,6 +487,16 @@ int subset_metadata_by_product
             return (ERROR);
         }
 
+        count = snprintf (outmeta->band[iband].l1_filename,
+            sizeof (outmeta->band[iband].l1_filename), "%s",
+            inmeta->band[i].l1_filename);
+        if (count < 0 || count >= sizeof (outmeta->band[iband].l1_filename))
+        {
+            sprintf (errmsg, "Overflow of outmeta->band[iband].l1_filename");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
+
         count = snprintf (outmeta->band[iband].production_date,
             sizeof (outmeta->band[iband].production_date), "%s",
             inmeta->band[i].production_date);
@@ -988,6 +998,16 @@ int subset_metadata_by_band
         if (count < 0 || count >= sizeof (outmeta->band[iband].app_version))
         {
             sprintf (errmsg, "Overflow of outmeta->band[iband].app_version");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
+
+        count = snprintf (outmeta->band[iband].l1_filename,
+            sizeof (outmeta->band[iband].l1_filename), "%s",
+            inmeta->band[j].l1_filename);
+        if (count < 0 || count >= sizeof (outmeta->band[iband].l1_filename))
+        {
+            sprintf (errmsg, "Overflow of outmeta->band[iband].l1_filename");
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }

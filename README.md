@@ -131,3 +131,8 @@ be needed for your application or other espa product formatter libraries may nee
   * Added a script for unpackaging the Sentinel-2 product bundles so they are
     in the proper format for ingesting via convert_sentinel_to_espa.
   * Updated the python metadata library to use the version 2.1 schema. 
+  * Modified the unpackage script to support both old and new Sentinel-2
+    package formats.
+  * Developed a filename convention for ESPA's version of the Sentinel-2
+    products and the conversion of Sentinel to ESPA writes the output bands
+    using this filename convention.

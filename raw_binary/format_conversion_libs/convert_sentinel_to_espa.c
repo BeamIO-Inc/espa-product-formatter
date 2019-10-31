@@ -39,7 +39,7 @@ MODULE:  read_dir
 PURPOSE: Read the current directory and look for the band 1 Sentinel-2 file.
 
 RETURN VALUE:
-Type = int
+Type = char *
 Value           Description
 -----           -----------
 NULL            Error reading the directory and successful find of band 1
@@ -105,10 +105,8 @@ Where:
   * TTTTTT = Sentinel tile number (ex. T10TFR)
   * YYYYMMDD = Acquisition year, month, day
   * yyyymmdd = Processing year, month, day
-  * CC = ESPA-Identified Collection number (01, 02, etc.)
-  * TX = ESPA-Identified Collection category ("T1" = Tier 1, "T2" = Tier 2)
 
-Example: S2A_MSI_L1C_T10TFR_20180816_20180903_01_T1
+Example: S2A_MSI_L1C_T10TFR_20180816_20180903
 
 ******************************************************************************/
 int rename_jp2
@@ -122,8 +120,6 @@ int rename_jp2
     const int DAY_CHARS=2;   /* number of chars in the day string */
     const int DATE_CHARS=YEAR_CHARS+MONTH_CHARS+DAY_CHARS;
                              /* number of chars in the date string */
-    static char ESPA_S2_COLLECTION[] = "01";  /* collection number */
-    static char ESPA_S2_TIER[] = "T1";        /* tier number */
     char FUNC_NAME[] = "rename_jp2";  /* function name */
     char errmsg[STR_SIZE];      /* error message */
     char newfile[STR_SIZE];     /* name of the new Sentinel file */
@@ -182,8 +178,8 @@ int rename_jp2
     sprintf (prod_date, "%s%s%s", year, month, day);
 
     /* Generate the new product ID */
-    sprintf (gmeta->product_id, "S2%c_MSI_L1C_%s_%s_%s_%s_%s", sat_x, s2_tile,
-        acq_date, prod_date, ESPA_S2_COLLECTION, ESPA_S2_TIER);
+    sprintf (gmeta->product_id, "S2%c_MSI_L1C_%s_%s_%s", sat_x, s2_tile,
+        acq_date, prod_date);
 
     /* Loop through the bands in the metadata file and convert each one to
        the ESPA format */
@@ -370,6 +366,10 @@ int convert_sentinel_to_espa
     char sentinel_xml_file[STR_SIZE]; /* current Sentinel XML filename */
     char orig_bandname[STR_SIZE];     /* original band1 filename */
     char prodtype[STR_SIZE];          /* product type string for all bands */
+    char proc_ver[STR_SIZE];          /* processing ver string for all bands */
+    char l1_filename[STR_SIZE];       /* original level-1 filename for the
+                                         initial band to be used as base for
+                                         all bands */
     char *b1_name = NULL;             /* band 1 Sentinel-2 filename */
     char *cptr = NULL;                /* pointer to the file extension */
     float scale_factor;               /* scale factor for all bands */
@@ -391,7 +391,7 @@ int convert_sentinel_to_espa
        available in this XML file. */
     strcpy (sentinel_xml_file, "MTD_MSIL1C.xml");
     if (parse_sentinel_product_metadata (sentinel_xml_file, &xml_metadata,
-        prodtype, &scale_factor) != SUCCESS)
+        prodtype, proc_ver, l1_filename, &scale_factor) != SUCCESS)
     {
         sprintf (errmsg, "Reading Sentinel product XML file: %s",
             sentinel_xml_file);
@@ -422,8 +422,12 @@ int convert_sentinel_to_espa
     snprintf (gmeta->product_id, sizeof (gmeta->product_id), "%s",
         (const char *) b1_name);
     
-    /* The filename, product type, and scale factor need to be added to the
-       band metadata for each of the bands */
+    /* Strip the band from the level-1 filename to get the basename */
+    cptr = strrchr (l1_filename, '_');
+    *cptr = '\0';
+
+    /* The filename, product type, app version, and scale factor need to be
+       added to the band metadata for each of the bands */
     for (i = 0; i < xml_metadata.nbands; i++)
     {
         bmeta = &xml_metadata.band[i];
@@ -431,6 +435,13 @@ int convert_sentinel_to_espa
             (const char *) b1_name, sentinel_bands[i]);
         strcpy (bmeta->short_name, prodtype);
         bmeta->scale_factor = 1.0 / scale_factor;
+        snprintf (bmeta->l1_filename, sizeof (bmeta->l1_filename), "%s_%s",
+            (const char *) l1_filename, sentinel_bands[i]);
+
+        /* Sentinel-2 XML files contain the processing baseline version, so
+           that will be used to keep track of the ESA PDGS version number */
+        sprintf (bmeta->app_version, "ESA Payload Data Ground Segment v%s",
+            proc_ver);
     }
 
     /* Read the Sentinel MTD_TL tile XML file and populate our internal ESPA
@@ -472,12 +483,6 @@ int convert_sentinel_to_espa
         strcpy (bmeta->production_date, gmeta->level1_production_date);
         sprintf (bmeta->long_name, "band %s top-of-atmosphere reflectance",
             sentinel_band_nums[i]);
-
-        /* Sentinel XML files don't indicate the application used to process
-           the original image files, so instead we will use the name of the
-           current application used for conversion. */
-        sprintf (bmeta->app_version, "convert_sentinel_to_espa_%s",
-            ESPA_COMMON_VERSION);
     }
 
     /* If the source data is going to get removed, then save the band 1

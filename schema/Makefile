@@ -14,7 +14,8 @@ SCHEMAS = espa_internal_metadata_v1_0.xsd \
           espa_internal_metadata_v1_2.xsd \
           espa_internal_metadata_v1_3.xsd \
           espa_internal_metadata_v2_0.xsd \
-          espa_internal_metadata_v2_1.xsd
+          espa_internal_metadata_v2_1.xsd \
+          espa_internal_metadata_v2_2.xsd
 
 all:
 

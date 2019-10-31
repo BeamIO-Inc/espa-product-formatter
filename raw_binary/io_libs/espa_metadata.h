@@ -29,11 +29,11 @@ NOTES:
    but the schema version will contain the major and minor version number
    (i.e. 1.2) */
 #define LIBXML_SCHEMAS_ENABLED
-#define ESPA_SCHEMA_VERSION "2.1"
+#define ESPA_SCHEMA_VERSION "2.2"
 #define ESPA_NS "http://espa.cr.usgs.gov/v2"
 #define ESPA_SCHEMA_LOCATION "http://espa.cr.usgs.gov/v2"
-#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v2_1.xsd"
-#define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v2_1.xsd"
+#define ESPA_SCHEMA "http://espa.cr.usgs.gov/schema/espa_internal_metadata_v2_2.xsd"
+#define LOCAL_ESPA_SCHEMA "/usr/local/espa-product-formatter/schema/espa_internal_metadata_v2_2.xsd"
 
 /* Data types */
 enum Espa_data_type
@@ -201,6 +201,9 @@ typedef struct
                                     as classes */
     char app_version[STR_SIZE];  /* version of the application which produced
                                     the current band */
+    char l1_filename[STR_SIZE];  /* original level-1 filename, for the case
+                                    where the filenames have been renamed
+                                    (i.e. Sentinel-2) */
     char production_date[STR_SIZE];  /* date the band was produced */
 } Espa_band_meta_t;
 
