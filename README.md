@@ -18,12 +18,12 @@ See git tag [version_1.19.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
-  * TIFF libraries (3.8.2 or most current) -- ftp://ftp.remotesensing.org/pub/libtiff/
-  * GeoTIFF libraries (1.2.5 or most current) -- ftp://ftp.remotesensing.org/pub/geotiff/libgeotiff/
+  * TIFF libraries (3.8.2 or most current) -- http://www.libtiff.org/
+  * GeoTIFF libraries (1.2.5 or most current) -- https://trac.osgeo.org/geotiff/
   * HDF4 libraries (4.2.5 or most current) -- https://www.hdfgroup.org/ftp/HDF/releases/
   * HDF5 libraries (1.8.13 or most current) -- https://www.hdfgroup.org/ftp/HDF5/releases/
-  * HDF-EOS2 libraries (2.18 or most current) -- ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos/latest_release/
-  * HDF-EOS5 libraries (1.16 or most current) -- ftp://edhs1.gsfc.nasa.gov/edhs/hdfeos5/latest_release/
+  * HDF-EOS2 libraries (2.18 or most current) -- https://hdfeos.org/software/library.php
+  * HDF-EOS5 libraries (1.16 or most current) -- https://hdfeos.org/software/library.php
   * NetCDF libraries (4.1.1 or most current) -- http://www.unidata.ucar.edu/downloads/netcdf/index.jsp
   * CURL libraries (7.48.0 or most current) -- https://curl.haxx.se/download
   * IDN libraries (1.32 or most current) -- ftp://ftp.gnu.org/gnu/libidn
