@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.19.0 Release Notes
-Release Date: November 2019
+## ESPA-PRODUCT_FORMATTER Version 1.20.0 Release Notes
+Release Date: May 2020
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8, Sentinel-2 L1C, and limited MODIS products.
 
@@ -14,7 +14,7 @@ espa-product-formatter source code
 
     git clone https://github.com/USGS-EROS/espa-product-formatter.git
 
-See git tag [version_1.19.0]
+See git tag [version_1.20.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -124,15 +124,8 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Cleaned up some warning codes flagged after migrating to a newer system.
-  * Fixed a bug in parse_sentinel_metadata.c.  Prodtype is a character
-    pointer and not an array, therefore using the size of the pointer is not
-    valid when used as an argument in sizeof.
-  * Added a script for unpackaging the Sentinel-2 product bundles so they are
-    in the proper format for ingesting via convert_sentinel_to_espa.
-  * Updated the python metadata library to use the version 2.2 schema. 
-  * Modified the unpackage script to support both old and new Sentinel-2
-    package formats.
-  * Developed a filename convention for ESPA's version of the Sentinel-2
-    products and the conversion of Sentinel to ESPA writes the output bands
-    using this filename convention.
+  * Removed the py_modules/metadata_api in lieu of the metadata library being
+    used in espa-python-library.
+  * Removed the tools/generateDS code since that is what generates the
+    metadata_api handling.
+  * Converted the scripts to utilize Python 3, since Python 2.x is obsolete.
