@@ -12,7 +12,7 @@ This software is preliminary or provisional and is subject to revision. It is be
 ### Downloads
 espa-product-formatter source code
 
-    git clone https://github.com/USGS-EROS/espa-product-formatter.git
+    git clone https://eroslab.cr.usgs.gov/lsrd/espa-product-formatter.git
 
 See git tag [version_1.20.0]
 
@@ -93,6 +93,11 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
   Note: if the HDF library was configured and built with szip support, then the user will also need to add "-L$(SZIPLIB) -lsz" at the end of the library defines in the Makefiles.  The user should also add "-I$(SZIPINC)" to the include directory defines in the Makefile.
 
   Note: on some platforms, the JBIG library may be needed for the XML library support, if it isn't already installed.  If so, then the JBIGLIB environment variable needs to point to the location of the JBIG library.
+
+* Set your ESPA_SCHEMA environment variable to point to the location of the latest schema in the schema directory.
+  ```
+    export ESPA_SCHEMA="path_to_schema"
+   ```
 
 ### Linking these libraries for other applications
 The following is an example of how to link these libraries into your
