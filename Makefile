@@ -3,7 +3,7 @@
 #
 # Project Name: product formatter
 #-----------------------------------------------------------------------------
-.PHONY: check-environment all install clean all-raw-binary install-raw-binary clean-raw-binary rpms schema-rpm
+.PHONY: check-environment all install clean all-raw-binary install-raw-binary clean-raw-binary rpms schema-rpm build test deploy login
 
 include make.config
 
@@ -11,6 +11,17 @@ DIR_RAW_BINARY = raw_binary
 DIR_PYTHON = py_modules
 DIR_SCHEMA = schema
 
+#-----------------------------------------------------------------------------
+# ESPA Standard Makefile targets
+#
+#-----------------------------------------------------------------------------
+build:
+
+tests:
+
+deploy: login
+
+#-----------------------------------------------------------------------------
 all: all-raw-binary
 
 install: check-environment install-raw-binary install-python install-schema
@@ -53,3 +64,10 @@ ifndef PREFIX
     $(error Environment variable PREFIX is not defined)
 endif
 
+#-----------------------------------------------------------------------------
+login:
+	@$(if $(and $(CI_REGISTRY_USER), $(CI_REGISTRY_PASSWORD)), \
+          docker login  -u $(CI_REGISTRY_USER) \
+                        -p $(CI_REGISTRY_PASSWORD) \
+                         $(CI_REGISTRY), \
+          docker login)
