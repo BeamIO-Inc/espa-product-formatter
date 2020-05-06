@@ -16,6 +16,9 @@ stages:
   - deploy
   - release
 
+before_script:
+  - apk add make git
+
 build:
   stage: build
   script:
