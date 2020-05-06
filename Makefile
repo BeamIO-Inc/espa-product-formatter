@@ -11,28 +11,30 @@ DIR_RAW_BINARY = raw_binary
 DIR_PYTHON = py_modules
 DIR_SCHEMA = schema
 
-BRANCH     := $(or $(CI_COMMIT_REF_NAME), $(shell git rev-parse --abbrev-ref HEAD))
-BRANCH     := $(shell echo $(BRANCH) | tr / -)
-SHORT_HASH := `git rev-parse --short HEAD`
-VERSION    := $(shell cat version.txt)
-REPO_TAG   := $(VERSION)-$(SHORT_HASH)
+IMAGE_BASE  := $(or $(CI_REGISTRY_IMAGE), lsrd/espa-product-formatter)
+BRANCH      := $(or $(CI_COMMIT_REF_NAME), $(shell git rev-parse --abbrev-ref HEAD))
+BRANCH      := $(shell echo $(BRANCH) | tr / -)
+SHORT_HASH  := `git rev-parse --short HEAD`
+VERSION     := $(shell cat version.txt)
+REPO_TAG    := $(VERSION)-$(SHORT_HASH)
+IMAGE_TAG   := $(IMAGE_BASE):product_formatter-$(SHORT_HASH)-$(VERSION)
+IMAGE_LATEST:= $(IMAGE_BASE):product_formatter-latest
 
 #-----------------------------------------------------------------------------
 # ESPA Standard Makefile targets
 #
 #-----------------------------------------------------------------------------
-build:
+build: login
+	@docker build -t $(IMAGE_TAG) .
+	@docker push $(IMAGE_TAG)
 
-tests:
+tests: login
+	@docker run --rm $(IMAGE_TAG) /bin/bash /source/test_image.sh
 
 deploy: login
-ifeq ("$(BRANCH)", "master")
-	@echo "master branch update, creating tag: $(REPO_TAG)"
-	git tag $(REPO_TAG)
-	git push origin $(REPO_TAG)
-else
-	@echo "not the master branch, no new tag will be created"
-endif
+	@docker pull $(IMAGE_TAG)
+	@docker tag $(IMAGE_TAG) $(IMAGE_LATEST)
+	docker push $(IMAGE_LATEST)
 
 #-----------------------------------------------------------------------------
 all: all-raw-binary
