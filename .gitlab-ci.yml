@@ -1,0 +1,65 @@
+image: docker:19.03.1
+
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  GIT_SSL_NO_VERIFY: "1"
+  PREFIX: /usr/local
+
+services:
+  - docker:19.03.1-dind
+
+stages:
+  - build
+  - test
+  - deploy
+  - release
+
+build:
+  stage: build
+  script:
+    - make build
+  except:
+    - tags
+  tags:
+    - docker
+    - eros
+    - lsrd
+
+test:
+  stage: test
+  script:
+    - make tests
+  except:
+    - tags
+  tags:
+    - docker
+    - eros
+    - lsrd
+
+deploy:
+  stage: deploy
+  script:
+    - make deploy
+  except:
+    - tags
+  tags:
+    - docker
+    - eros
+    - lsrd
+
+release:
+  stage: release
+  script:
+    - chmod +x ./bin/release.sh
+    - ./bin/release.sh
+  only:
+    - master
+  tags:
+    - docker
+    - eros
+    - lsrd
+
+after_script:
+  - make clean
