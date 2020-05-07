@@ -3,7 +3,7 @@
 #
 # Project Name: product formatter
 #-----------------------------------------------------------------------------
-.PHONY: check-environment all install clean all-raw-binary install-raw-binary clean-raw-binary rpms schema-rpm build test deploy login
+.PHONY: check-environment all install clean all-raw-binary install-raw-binary clean-raw-binary rpms schema-rpm build tests deploy login
 
 include make.config
 
