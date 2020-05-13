@@ -36,9 +36,6 @@ OBJ5 = $(SRC5:.c=.o)
 SRC6 = convert_modis_to_espa.c
 OBJ6 = $(SRC6:.c=.o)
 
-SRC7 = create_angle_bands.c
-OBJ7 = $(SRC7:.c=.o)
-
 SRC8 = create_land_water_mask.c
 OBJ8 = $(SRC8:.c=.o)
 
@@ -53,12 +50,6 @@ OBJ11 = $(SRC11:.c=.o)
 
 SRC12 = convert_espa_to_netcdf.c
 OBJ12 = $(SRC12:.c=.o)
-
-SRC13 = create_landsat_angle_bands.c
-OBJ13 = $(SRC13:.c=.o)
-
-SRC14 = create_l8_angle_bands.c
-OBJ14 = $(SRC14:.c=.o)
 
 SRC15 = convert_viirs_to_espa.c
 OBJ15 = $(SRC15:.c=.o)
@@ -145,22 +136,15 @@ LIB6   = \
     -L$(SZIPLIB) -lsz \
     $(MATHLIB)
 
-LIB7   = \
-    -L../lib -l_espa_raw_binary -l_espa_common \
-    -L$(XML2LIB) -lxml2 \
-    -l_espa_band_angles -l_espa_l8_ang -l_espa_landsat_ang \
-    -L$(ZLIBLIB) -lz \
-    -L$(LZMALIB) -llzma \
-    $(MATHLIB)
-
 LIB8   = \
     -L../lib -l_espa_raw_binary -l_espa_common \
-    -l_espa_land_water_mask -l_espa_l8_ang \
+    -l_espa_land_water_mask \
     -L$(XML2LIB) -lxml2 \
     -lgctp3 \
     -L$(ZLIBLIB) -lz \
     -L$(LZMALIB) -llzma \
     $(MATHLIB)
+##    -l_espa_land_water_mask -l_espa_l8_ang \
 
 LIB9   = \
     -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
@@ -206,22 +190,6 @@ LIB12   = \
     -lrt \
     -ldl
 
-LIB13   = \
-    -L../lib -l_espa_raw_binary -l_espa_common \
-    -L$(XML2LIB) -lxml2 \
-    -l_espa_band_angles -l_espa_landsat_ang \
-    -L$(ZLIBLIB) -lz \
-    -L$(LZMALIB) -llzma \
-    $(MATHLIB)
-
-LIB14   = \
-    -L../lib -l_espa_raw_binary -l_espa_common \
-    -L$(XML2LIB) -lxml2 \
-    -l_espa_band_angles -l_espa_l8_ang \
-    -L$(ZLIBLIB) -lz \
-    -L$(LZMALIB) -llzma \
-    $(MATHLIB)
-
 LIB15   = \
     -L../lib -l_espa_format_conversion -l_espa_raw_binary -l_espa_common \
     -L$(HDFEOS5_LIB) -lhe5_hdfeos \
@@ -255,17 +223,14 @@ EXE3 = convert_espa_to_gtif
 EXE4 = espa_band_subset
 EXE5 = espa_product_subset
 EXE6 = convert_modis_to_espa
-EXE7 = create_angle_bands
 EXE8 = create_land_water_mask
 EXE9 = convert_espa_to_bip
 EXE10 = create_date_bands
 EXE11 = clip_band_misalignment
 EXE12 = convert_espa_to_netcdf
-EXE13 = create_landsat_angle_bands
-EXE14 = create_l8_angle_bands
 EXE15 = convert_viirs_to_espa
 EXE16 = convert_sentinel_to_espa
-ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) $(EXE10) $(EXE11) $(EXE12) $(EXE13) $(EXE14) $(EXE15) $(EXE16)
+ALL_EXES = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE8) $(EXE9) $(EXE10) $(EXE11) $(EXE12) $(EXE15) $(EXE16)
 
 #-----------------------------------------------------------------------------
 all: $(ALL_EXES)
@@ -288,9 +253,6 @@ $(EXE5): $(OBJ5) $(INC)
 $(EXE6): $(OBJ6) $(INC)
 	$(CC) $(NCFLAGS) -o $(EXE6) $(OBJ6) $(LIB6)
 
-$(EXE7): $(OBJ7) $(INC)
-	$(CC) $(NCFLAGS) -o $(EXE7) $(OBJ7) $(LIB7)
-
 $(EXE8): $(OBJ8) $(INC)
 	$(CC) $(NCFLAGS) -o $(EXE8) $(OBJ8) $(LIB8)
 
@@ -305,12 +267,6 @@ $(EXE11): $(OBJ11) $(INC)
 
 $(EXE12): $(OBJ12) $(INC)
 	$(CC) $(NETCDF_NCFLAGS) -o $(EXE12) $(OBJ12) $(LIB12)
-
-$(EXE13): $(OBJ13) $(INC)
-	$(CC) $(NCFLAGS) -o $(EXE13) $(OBJ13) $(LIB13)
-
-$(EXE14): $(OBJ14) $(INC)
-	$(CC) $(NCFLAGS) -o $(EXE14) $(OBJ14) $(LIB14)
 
 $(EXE15): $(OBJ15) $(INC)
 	$(CC) $(HDF5_NCFLAGS) -o $(EXE15) $(OBJ15) $(LIB15)
@@ -339,14 +295,11 @@ $(OBJ3): $(INC)
 $(OBJ4): $(INC)
 $(OBJ5): $(INC)
 $(OBJ6): $(INC)
-$(OBJ7): $(INC)
 $(OBJ8): $(INC)
 $(OBJ9): $(INC)
 $(OBJ10): $(INC)
 $(OBJ11): $(INC)
 $(OBJ12): $(INC)
-$(OBJ13): $(INC)
-$(OBJ14): $(INC)
 $(OBJ16): $(INC)
 
 $(OBJ15): $(INC)

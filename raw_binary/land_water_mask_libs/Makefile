@@ -17,7 +17,7 @@ AR    = ar rcsv
 EXTRA = -Wall $(EXTRA_OPTIONS)
 
 # Define the include files
-INC = ias_lw_geo.h generate_land_water_mask.h
+INC = ias_lw_geo.h ias_types.h ias_structures.h ias_math.h ias_const.h ias_logging.h config.h generate_land_water_mask.h
 
 # Define the source code and object files
 SRC = \
@@ -32,7 +32,8 @@ SRC = \
       ias_geo_handle_180.c                \
       ias_geo_projection_transformation.c \
       ias_geo_shape_file.c                \
-      ias_geo_shape_mask.c
+      ias_geo_shape_mask.c                \
+      ias_logging.c
 OBJ = $(SRC:.c=.o)
 
 # Define include paths

@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.20.0 Release Notes
-Release Date: May 2020
+## ESPA-PRODUCT_FORMATTER Version 2.0.0 Release Notes
+Release Date: TBD 2020
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8, Sentinel-2 L1C, and limited MODIS products.
 
@@ -14,7 +14,7 @@ espa-product-formatter source code
 
     git clone https://eroslab.cr.usgs.gov/lsrd/espa-product-formatter.git
 
-See git tag [version_1.20.0]
+See git tag [version_2.0.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -129,6 +129,13 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
+  * Support Collection 02 products.  Collection 01 support is no longer
+    available.
+  * Use the per-pixel angle bands delivered with the Level-1 Collection 02
+    products vs. generating our own from the angle coefficient file. Therefore
+    the tools for creating the per-pixel angle bands are removed as are the
+    per-pixel angle libraries.
+  * Removed support for pre-collection tags while reading the MTL file.
   * Removed the py_modules/metadata_api in lieu of the metadata library being
     used in espa-python-library.
   * Removed the tools/generateDS code since that is what generates the

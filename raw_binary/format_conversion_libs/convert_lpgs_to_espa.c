@@ -11,9 +11,9 @@ LICENSE TYPE:  NASA Open Source Agreement Version 1.3
 
 NOTES:
   1. The XML metadata format written via this library follows the ESPA internal
-     metadata format found in ESPA Raw Binary Format v1.0.doc.  The schema for
+     metadata format found in ESPA Raw Binary Format vx.y.doc.  The schema for
      the ESPA internal metadata format is available at
-     http://espa.cr.usgs.gov/schema/espa_internal_metadata_v1_0.xsd.
+     http://espa.cr.usgs.gov/schema/espa_internal_metadata_vx.y.xsd.
 *****************************************************************************/
 #include <unistd.h>
 #include <math.h>
@@ -52,8 +52,8 @@ int read_lpgs_mtl
 {
     char FUNC_NAME[] = "read_lpgs_mtl";  /* function name */
     char errmsg[STR_SIZE];    /* error message */
-    char category[STR_SIZE][MAX_LPGS_BANDS]; /* band category - qa, image */
-    char band_num[STR_SIZE][MAX_LPGS_BANDS]; /* band number for band name */
+    char category[MAX_LPGS_BANDS][STR_SIZE]; /* band category - qa, image */
+    char band_num[MAX_LPGS_BANDS][STR_SIZE]; /* band number for band name */
     int i;                    /* looping variable */
     int count;                /* number of chars copied in snprintf */
     int band_count = 0;       /* count of the bands processed so we don't have
@@ -66,6 +66,7 @@ int read_lpgs_mtl
     bool refl_gain_bias_available; /* are TOA reflectance gain/bias values and
                                  K1/K2 constants available in the MTL file? */
     bool thermal[MAX_LPGS_BANDS]; /* is this band a thermal band? */
+    bool all_bands_read = false;  /* all filenames been read from MTL file? */
     FILE *mtl_fptr=NULL;      /* file pointer to the MTL metadata file */
     Espa_global_meta_t *gmeta = &metadata->global;  /* pointer to the global
                                                        metadata structure */
@@ -81,8 +82,6 @@ int read_lpgs_mtl
     Geo_bounds_t bounds;     /* image boundary for the scene */
     double ur_corner[2];     /* geographic UR lat, long */
     double ll_corner[2];     /* geographic LL lat, long */
-    char *cptr = NULL;       /* pointer to the '_' in the band name */
-    char product_id[STR_SIZE]; /* LPGS product ID */
     char band_fname[MAX_LPGS_BANDS][STR_SIZE];  /* filenames for each band */
     int band_min[MAX_LPGS_BANDS];  /* minimum value for each band */
     int band_max[MAX_LPGS_BANDS];  /* maximum value for each band */
@@ -132,10 +131,8 @@ int read_lpgs_mtl
         {
             tokenptr = strtok (NULL, seperator);
 
-            /* Process each token; in some cases we are supporting both the
-               old and the new LPGS metadata tags */
-            if (!strcmp (label, "PROCESSING_SOFTWARE_VERSION") ||
-                !strcmp (label, "PROCESSING_SOFTWARE"))
+            /* Process each token */
+            if (!strcmp (label, "PROCESSING_SOFTWARE_VERSION"))
             {
                 count = snprintf (tmp_bmeta.app_version,
                     sizeof (tmp_bmeta.app_version), "%s", tokenptr);
@@ -146,8 +143,7 @@ int read_lpgs_mtl
                     return (ERROR);
                 }
             }
-            else if (!strcmp (label, "DATA_TYPE") ||
-                     !strcmp (label, "PRODUCT_TYPE"))
+            else if (!strcmp (label, "PROCESSING_LEVEL"))
             {
                 count = snprintf (tmp_bmeta.product, sizeof (tmp_bmeta.product),
                     "%s", tokenptr);
@@ -158,19 +154,26 @@ int read_lpgs_mtl
                     return (ERROR);
                 }
             }
+            else if (!strcmp (label, "LANDSAT_PRODUCT_ID"))
+            {
+                count = snprintf (gmeta->product_id, sizeof (gmeta->product_id),
+                    "%s", tokenptr);
+                if (count < 0 || count >= sizeof (gmeta->product_id))
+                {
+                    sprintf (errmsg, "Overflow of gmeta->product_id string");
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+            }
             else if (!strcmp (label, "SPACECRAFT_ID"))
             {
-                if (strcmp (tokenptr, "LANDSAT_8") == 0 ||
-                    strcmp (tokenptr, "Landsat8") == 0)
+                if (!strcmp (tokenptr, "LANDSAT_8"))
                     strcpy (gmeta->satellite, "LANDSAT_8");
-                else if (strcmp (tokenptr, "LANDSAT_7") == 0 ||
-                    strcmp (tokenptr, "Landsat7") == 0)
+                else if (!strcmp (tokenptr, "LANDSAT_7"))
                     strcpy (gmeta->satellite, "LANDSAT_7");
-                else if (strcmp (tokenptr, "LANDSAT_5") == 0 ||
-                         strcmp (tokenptr, "Landsat5") == 0)
+                else if (!strcmp (tokenptr, "LANDSAT_5"))
                     strcpy (gmeta->satellite, "LANDSAT_5");
-                else if (strcmp (tokenptr, "LANDSAT_4") == 0 ||
-                         strcmp (tokenptr, "Landsat4") == 0)
+                else if (!strcmp (tokenptr, "LANDSAT_4"))
                     strcpy (gmeta->satellite, "LANDSAT_4");
                 else
                 {
@@ -191,8 +194,7 @@ int read_lpgs_mtl
                     return (ERROR);
                 }
             }
-            else if (!strcmp (label, "DATE_ACQUIRED") ||
-                     !strcmp (label, "ACQUISITION_DATE"))
+            else if (!strcmp (label, "DATE_ACQUIRED"))
             {
                 count = snprintf (gmeta->acquisition_date,
                     sizeof (gmeta->acquisition_date), "%s", tokenptr);
@@ -203,8 +205,7 @@ int read_lpgs_mtl
                     return (ERROR);
                 }
             }
-            else if (!strcmp (label, "SCENE_CENTER_TIME") ||
-                     !strcmp (label, "SCENE_CENTER_SCAN_TIME"))
+            else if (!strcmp (label, "SCENE_CENTER_TIME"))
             {
                 count = snprintf (gmeta->scene_center_time,
                     sizeof (gmeta->scene_center_time), "%s", tokenptr);
@@ -215,8 +216,7 @@ int read_lpgs_mtl
                     return (ERROR);
                 }
             }
-            else if (!strcmp (label, "FILE_DATE") ||
-                     !strcmp (label, "PRODUCT_CREATION_TIME"))
+            else if (!strcmp (label, "DATE_PRODUCT_GENERATED"))
             {
                 count = snprintf (gmeta->level1_production_date,
                     sizeof (gmeta->level1_production_date), "%s", tokenptr);
@@ -240,70 +240,47 @@ int read_lpgs_mtl
                 sscanf (tokenptr, "%f", &gmeta->earth_sun_dist);
             else if (!strcmp (label, "WRS_PATH"))
                 sscanf (tokenptr, "%d", &gmeta->wrs_path);
-            else if (!strcmp (label, "WRS_ROW") ||
-                     !strcmp (label, "STARTING_ROW"))
+            else if (!strcmp (label, "WRS_ROW"))
                 sscanf (tokenptr, "%d", &gmeta->wrs_row);
 
-            else if (!strcmp (label, "CORNER_UL_LAT_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_UL_CORNER_LAT"))
+            else if (!strcmp (label, "CORNER_UL_LAT_PRODUCT"))
                 sscanf (tokenptr, "%lf", &gmeta->ul_corner[0]);
-            else if (!strcmp (label, "CORNER_UL_LON_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_UL_CORNER_LON"))
+            else if (!strcmp (label, "CORNER_UL_LON_PRODUCT"))
                 sscanf (tokenptr, "%lf", &gmeta->ul_corner[1]);
-            else if (!strcmp (label, "CORNER_LR_LAT_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_LR_CORNER_LAT"))
+            else if (!strcmp (label, "CORNER_LR_LAT_PRODUCT"))
                 sscanf (tokenptr, "%lf", &gmeta->lr_corner[0]);
-            else if (!strcmp (label, "CORNER_LR_LON_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_LR_CORNER_LON"))
+            else if (!strcmp (label, "CORNER_LR_LON_PRODUCT"))
                 sscanf (tokenptr, "%lf", &gmeta->lr_corner[1]);
 
-            else if (!strcmp (label, "CORNER_UR_LAT_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_UR_CORNER_LAT"))
+            else if (!strcmp (label, "CORNER_UR_LAT_PRODUCT"))
                 sscanf (tokenptr, "%lf", &ur_corner[0]);
-            else if (!strcmp (label, "CORNER_UR_LON_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_UR_CORNER_LON"))
+            else if (!strcmp (label, "CORNER_UR_LON_PRODUCT"))
                 sscanf (tokenptr, "%lf", &ur_corner[1]);
-            else if (!strcmp (label, "CORNER_LL_LAT_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_LL_CORNER_LAT"))
+            else if (!strcmp (label, "CORNER_LL_LAT_PRODUCT"))
                 sscanf (tokenptr, "%lf", &ll_corner[0]);
-            else if (!strcmp (label, "CORNER_LL_LON_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_LL_CORNER_LON"))
+            else if (!strcmp (label, "CORNER_LL_LON_PRODUCT"))
                 sscanf (tokenptr, "%lf", &ll_corner[1]);
 
-            else if (!strcmp (label, "CORNER_UL_PROJECTION_X_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_UL_CORNER_MAPX") ||
-                     !strcmp (label, "SCENE_UL_CORNER_MAPX"))
+            else if (!strcmp (label, "CORNER_UL_PROJECTION_X_PRODUCT"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.ul_corner[0]);
-            else if (!strcmp (label, "CORNER_UL_PROJECTION_Y_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_UL_CORNER_MAPY") ||
-                     !strcmp (label, "SCENE_UL_CORNER_MAPY"))
+            else if (!strcmp (label, "CORNER_UL_PROJECTION_Y_PRODUCT"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.ul_corner[1]);
-            else if (!strcmp (label, "CORNER_LR_PROJECTION_X_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_LR_CORNER_MAPX") ||
-                     !strcmp (label, "SCENE_LR_CORNER_MAPX"))
+            else if (!strcmp (label, "CORNER_LR_PROJECTION_X_PRODUCT"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.lr_corner[0]);
-            else if (!strcmp (label, "CORNER_LR_PROJECTION_Y_PRODUCT") ||
-                     !strcmp (label, "PRODUCT_LR_CORNER_MAPY") ||
-                     !strcmp (label, "SCENE_LR_CORNER_MAPY"))
+            else if (!strcmp (label, "CORNER_LR_PROJECTION_Y_PRODUCT"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.lr_corner[1]);
 
-            else if (!strcmp (label, "REFLECTIVE_SAMPLES") ||
-                     !strcmp (label, "PRODUCT_SAMPLES_REF"))
+            else if (!strcmp (label, "REFLECTIVE_SAMPLES"))
                 sscanf (tokenptr, "%d", &tmp_bmeta.nsamps);
-            else if (!strcmp (label, "REFLECTIVE_LINES") ||
-                     !strcmp (label, "PRODUCT_LINES_REF"))
+            else if (!strcmp (label, "REFLECTIVE_LINES"))
                 sscanf (tokenptr, "%d", &tmp_bmeta.nlines);
-            else if (!strcmp (label, "THERMAL_SAMPLES") ||
-                     !strcmp (label, "PRODUCT_SAMPLES_THM"))
+            else if (!strcmp (label, "THERMAL_SAMPLES"))
                 sscanf (tokenptr, "%d", &tmp_bmeta_th.nsamps);
-            else if (!strcmp (label, "THERMAL_LINES") ||
-                     !strcmp (label, "PRODUCT_LINES_THM"))
+            else if (!strcmp (label, "THERMAL_LINES"))
                 sscanf (tokenptr, "%d", &tmp_bmeta_th.nlines);
-            else if (!strcmp (label, "PANCHROMATIC_SAMPLES") ||
-                     !strcmp (label, "PRODUCT_SAMPLES_PAN"))
+            else if (!strcmp (label, "PANCHROMATIC_SAMPLES"))
                 sscanf (tokenptr, "%d", &tmp_bmeta_pan.nsamps);
-            else if (!strcmp (label, "PANCHROMATIC_LINES") ||
-                     !strcmp (label, "PRODUCT_LINES_PAN"))
+            else if (!strcmp (label, "PANCHROMATIC_LINES"))
                 sscanf (tokenptr, "%d", &tmp_bmeta_pan.nlines);
 
             else if (!strcmp (label, "MAP_PROJECTION"))
@@ -323,8 +300,7 @@ int read_lpgs_mtl
                     return (ERROR);
                 }
             }
-            else if (!strcmp (label, "DATUM") ||
-                     !strcmp (label, "REFERENCE_DATUM"))
+            else if (!strcmp (label, "DATUM"))
             {
                 if (!strcmp (tokenptr, "WGS84"))
                     gmeta->proj_info.datum_type = ESPA_WGS84;
@@ -335,36 +311,28 @@ int read_lpgs_mtl
                     return (ERROR);
                 }
             }
-            else if (!strcmp (label, "GRID_CELL_SIZE_REFLECTIVE") ||
-                     !strcmp (label, "GRID_CELL_SIZE_REF"))
+            else if (!strcmp (label, "GRID_CELL_SIZE_REFLECTIVE"))
             {
                 sscanf (tokenptr, "%lf", &tmp_bmeta.pixel_size[0]);
                 tmp_bmeta.pixel_size[1] = tmp_bmeta.pixel_size[0];
             }
-            else if (!strcmp (label, "GRID_CELL_SIZE_THERMAL") ||
-                     !strcmp (label, "GRID_CELL_SIZE_THM"))
+            else if (!strcmp (label, "GRID_CELL_SIZE_THERMAL"))
             {
                 sscanf (tokenptr, "%lf", &tmp_bmeta_th.pixel_size[0]);
                 tmp_bmeta_th.pixel_size[1] = tmp_bmeta_th.pixel_size[0];
             }
-            else if (!strcmp (label, "GRID_CELL_SIZE_PANCHROMATIC") ||
-                     !strcmp (label, "GRID_CELL_SIZE_PAN"))
+            else if (!strcmp (label, "GRID_CELL_SIZE_PANCHROMATIC"))
             {
                 sscanf (tokenptr, "%lf", &tmp_bmeta_pan.pixel_size[0]);
                 tmp_bmeta_pan.pixel_size[1] = tmp_bmeta_pan.pixel_size[0];
             }
-            else if (!strcmp (label, "UTM_ZONE") ||
-                     !strcmp (label, "ZONE_NUMBER"))
-            {
+            else if (!strcmp (label, "UTM_ZONE"))
                 sscanf (tokenptr, "%d", &gmeta->proj_info.utm_zone);
-            }
 
             /* PS projection parameters */
-            else if (!strcmp (label, "VERTICAL_LON_FROM_POLE") ||
-                     !strcmp (label, "VERTICAL_LONGITUDE_FROM_POLE"))
+            else if (!strcmp (label, "VERTICAL_LON_FROM_POLE"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.longitude_pole);
-            else if (!strcmp (label, "TRUE_SCALE_LAT") ||
-                     !strcmp (label, "LATITUDE_OF_TRUE_SCALE"))
+            else if (!strcmp (label, "TRUE_SCALE_LAT"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.latitude_true_scale);
             else if (!strcmp (label, "FALSE_EASTING"))
                 sscanf (tokenptr, "%lf", &gmeta->proj_info.false_easting);
@@ -399,16 +367,12 @@ int read_lpgs_mtl
                 }
             }
 
-            else if (!strcmp (label, "END"))
-            {
-                done_with_mtl = true;
-                break;
-            }
-
             /* Read the band names and identify band-specific metadata
-               information */
-            else if (!strcmp (label, "FILE_NAME_BAND_1") ||
-                     !strcmp (label, "BAND1_FILE_NAME"))
+               information. If band 1 and the level-1 pixel qa bands have
+               been read, then assume all bands have been read and don't
+               repeat the filename reads. The Collection 02 MTL has two
+               locations for the same band filenames. */
+            else if (!strcmp (label, "FILE_NAME_BAND_1") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -424,8 +388,7 @@ int read_lpgs_mtl
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_2") ||
-                     !strcmp (label, "BAND2_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_2") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -441,8 +404,7 @@ int read_lpgs_mtl
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_3") ||
-                     !strcmp (label, "BAND3_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_3") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -458,8 +420,7 @@ int read_lpgs_mtl
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_4") ||
-                     !strcmp (label, "BAND4_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_4") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -475,8 +436,7 @@ int read_lpgs_mtl
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_5") ||
-                     !strcmp (label, "BAND5_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_5") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -492,8 +452,7 @@ int read_lpgs_mtl
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_6") ||
-                     !strcmp (label, "BAND6_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_6") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -512,8 +471,7 @@ int read_lpgs_mtl
                     thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_7") ||
-                     !strcmp (label, "BAND7_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_7") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -524,13 +482,12 @@ int read_lpgs_mtl
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
-                strcpy (category[band_count], "image");
-                strcpy (band_num[band_count], "7");
+                strcpy (&category[band_count][0], "image");
+                strcpy (&band_num[band_count][0], "7");
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_8") ||
-                     !strcmp (label, "BAND8_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_8") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -546,8 +503,8 @@ int read_lpgs_mtl
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_6_VCID_1") ||
-                     !strcmp (label, "BAND61_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_6_VCID_1") &&
+                !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -563,8 +520,8 @@ int read_lpgs_mtl
                 thermal[band_count] = true;  /* ETM+ thermal */
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_6_VCID_2") ||
-                     !strcmp (label, "BAND62_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_6_VCID_2") &&
+                !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -580,8 +537,7 @@ int read_lpgs_mtl
                 thermal[band_count] = true;  /* ETM+ thermal */
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_9") ||
-                     !strcmp (label, "BAND9_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_9") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -597,8 +553,7 @@ int read_lpgs_mtl
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_10") ||
-                     !strcmp (label, "BAND10_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_10") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -614,8 +569,7 @@ int read_lpgs_mtl
                 thermal[band_count] = true;  /* TIRS */
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_11") ||
-                     !strcmp (label, "BAND11_FILE_NAME"))
+            else if (!strcmp (label, "FILE_NAME_BAND_11") && !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -631,7 +585,8 @@ int read_lpgs_mtl
                 thermal[band_count] = true;  /* TIRS */
                 band_count++;  /* increment the band count */
             }
-            else if (!strcmp (label, "FILE_NAME_BAND_QUALITY"))
+            else if (!strcmp (label, "FILE_NAME_ANGLE_SENSOR_AZIMUTH_BAND_4") &&
+                !all_bands_read)
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -643,32 +598,111 @@ int read_lpgs_mtl
                     return (ERROR);
                 }
                 strcpy (category[band_count], "qa");
-                strcpy (band_num[band_count], "bqa");
+                strcpy (band_num[band_count], "vaa");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
+            }
+            else if (!strcmp (label, "FILE_NAME_ANGLE_SENSOR_ZENITH_BAND_4") &&
+                !all_bands_read)
+            {
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
+                {
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+                strcpy (category[band_count], "qa");
+                strcpy (band_num[band_count], "vza");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
+            }
+            else if (!strcmp (label, "FILE_NAME_ANGLE_SOLAR_AZIMUTH_BAND_4") &&
+                !all_bands_read)
+            {
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
+                {
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+                strcpy (category[band_count], "qa");
+                strcpy (band_num[band_count], "saa");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
+            }
+            else if (!strcmp (label, "FILE_NAME_ANGLE_SOLAR_ZENITH_BAND_4") &&
+                !all_bands_read)
+            {
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
+                {
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+                strcpy (category[band_count], "qa");
+                strcpy (band_num[band_count], "sza");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
+            }
+            else if (!strcmp (label, "FILE_NAME_QUALITY_L1_PIXEL") &&
+                !all_bands_read)
+            {
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
+                {
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+                strcpy (category[band_count], "qa");
+                strcpy (band_num[band_count], "qa_pixel");
+                thermal[band_count] = false;
+                band_count++;  /* increment the band count */
+            }
+            else if (!strcmp (label,
+                "FILE_NAME_QUALITY_L1_RADIOMETRIC_SATURATION") &&
+                !all_bands_read)
+            {
+                count = snprintf (band_fname[band_count],
+                    sizeof (band_fname[band_count]), "%s", tokenptr);
+                if (count < 0 || count >= sizeof (band_fname[band_count]))
+                {
+                    sprintf (errmsg, "Overflow of band_fname[%d] string",
+                        band_count);
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+                strcpy (category[band_count], "qa");
+                strcpy (band_num[band_count], "qa_radsat");
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
 
             /* Read the min pixel values */
-            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_1") ||
-                     !strcmp (label, "QCALMIN_BAND1"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_1"))
                 sscanf (tokenptr, "%d", &band_min[0]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_2") ||
-                     !strcmp (label, "QCALMIN_BAND2"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_2"))
                 sscanf (tokenptr, "%d", &band_min[1]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_3") ||
-                     !strcmp (label, "QCALMIN_BAND3"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_3"))
                 sscanf (tokenptr, "%d", &band_min[2]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_4") ||
-                     !strcmp (label, "QCALMIN_BAND4"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_4"))
                 sscanf (tokenptr, "%d", &band_min[3]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_5") ||
-                     !strcmp (label, "QCALMIN_BAND5"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_5"))
                 sscanf (tokenptr, "%d", &band_min[4]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_6") ||
-                     !strcmp (label, "QCALMIN_BAND6"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_6"))
                 sscanf (tokenptr, "%d", &band_min[5]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_7") ||
-                     !strcmp (label, "QCALMIN_BAND7"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_7"))
             {
                 if (!strcmp (gmeta->instrument, "TM") ||
                     !strcmp (gmeta->instrument, "OLI_TIRS") ||
@@ -677,8 +711,7 @@ int read_lpgs_mtl
                 else if (!strncmp (gmeta->instrument, "ETM", 3))
                     sscanf (tokenptr, "%d", &band_min[7]);
             }
-            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_8") ||
-                     !strcmp (label, "QCALMIN_BAND8"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_8"))
             {
                 if (!strcmp (gmeta->instrument, "OLI_TIRS") ||
                     !strcmp (gmeta->instrument, "OLI"))
@@ -686,11 +719,9 @@ int read_lpgs_mtl
                 else if (!strncmp (gmeta->instrument, "ETM", 3))
                     sscanf (tokenptr, "%d", &band_min[8]);
             }
-            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_6_VCID_1") ||
-                     !strcmp (label, "QCALMIN_BAND61"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_6_VCID_1"))
                 sscanf (tokenptr, "%d", &band_min[5]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_6_VCID_2") ||
-                     !strcmp (label, "QCALMIN_BAND62"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_6_VCID_2"))
                 sscanf (tokenptr, "%d", &band_min[6]);
             else if (!strcmp (label, "QUANTIZE_CAL_MIN_BAND_9"))
                 sscanf (tokenptr, "%d", &band_min[8]);
@@ -700,26 +731,19 @@ int read_lpgs_mtl
                 sscanf (tokenptr, "%d", &band_min[10]);
 
             /* Read the max pixel values */
-            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_1") ||
-                     !strcmp (label, "QCALMAX_BAND1"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_1"))
                 sscanf (tokenptr, "%d", &band_max[0]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_2") ||
-                     !strcmp (label, "QCALMAX_BAND2"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_2"))
                 sscanf (tokenptr, "%d", &band_max[1]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_3") ||
-                     !strcmp (label, "QCALMAX_BAND3"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_3"))
                 sscanf (tokenptr, "%d", &band_max[2]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_4") ||
-                     !strcmp (label, "QCALMAX_BAND4"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_4"))
                 sscanf (tokenptr, "%d", &band_max[3]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_5") ||
-                     !strcmp (label, "QCALMAX_BAND5"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_5"))
                 sscanf (tokenptr, "%d", &band_max[4]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_6") ||
-                     !strcmp (label, "QCALMAX_BAND6"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_6"))
                 sscanf (tokenptr, "%d", &band_max[5]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_7") ||
-                     !strcmp (label, "QCALMAX_BAND7"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_7"))
             {
                 if (!strcmp (gmeta->instrument, "TM") ||
                     !strcmp (gmeta->instrument, "OLI_TIRS") ||
@@ -728,8 +752,7 @@ int read_lpgs_mtl
                 else if (!strncmp (gmeta->instrument, "ETM", 3))
                     sscanf (tokenptr, "%d", &band_max[7]);
             }
-            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_8") ||
-                     !strcmp (label, "QCALMAX_BAND8"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_8"))
             {
                 if (!strcmp (gmeta->instrument, "OLI_TIRS") ||
                     !strcmp (gmeta->instrument, "OLI"))
@@ -737,11 +760,9 @@ int read_lpgs_mtl
                 else if (!strncmp (gmeta->instrument, "ETM", 3))
                     sscanf (tokenptr, "%d", &band_max[8]);
             }
-            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_6_VCID_1") ||
-                     !strcmp (label, "QCALMAX_BAND61"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_6_VCID_1"))
                 sscanf (tokenptr, "%d", &band_max[5]);
-            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_6_VCID_2") ||
-                     !strcmp (label, "QCALMAX_BAND62"))
+            else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_6_VCID_2"))
                 sscanf (tokenptr, "%d", &band_max[6]);
             else if (!strcmp (label, "QUANTIZE_CAL_MAX_BAND_9"))
                 sscanf (tokenptr, "%d", &band_max[8]);
@@ -875,10 +896,6 @@ int read_lpgs_mtl
                 else if (!strncmp (gmeta->instrument, "ETM", 3))
                     sscanf (tokenptr, "%f", &refl_gain[8]);
             }
-            else if (!strcmp (label, "REFLECTANCE_MULT_BAND_6_VCID_1"))
-                sscanf (tokenptr, "%f", &refl_gain[5]);
-            else if (!strcmp (label, "REFLECTANCE_MULT_BAND_6_VCID_2"))
-                sscanf (tokenptr, "%f", &refl_gain[6]);
             else if (!strcmp (label, "REFLECTANCE_MULT_BAND_9"))
                 sscanf (tokenptr, "%f", &refl_gain[8]);
 
@@ -912,10 +929,6 @@ int read_lpgs_mtl
                 else if (!strncmp (gmeta->instrument, "ETM", 3))
                     sscanf (tokenptr, "%f", &refl_bias[8]);
             }
-            else if (!strcmp (label, "REFLECTANCE_ADD_BAND_6_VCID_1"))
-                sscanf (tokenptr, "%f", &refl_bias[5]);
-            else if (!strcmp (label, "REFLECTANCE_ADD_BAND_6_VCID_2"))
-                sscanf (tokenptr, "%f", &refl_bias[6]);
             else if (!strcmp (label, "REFLECTANCE_ADD_BAND_9"))
                 sscanf (tokenptr, "%f", &refl_bias[8]);
 
@@ -945,6 +958,22 @@ int read_lpgs_mtl
                 sscanf (tokenptr, "%f", &k1[5]);
             else if (!strcmp (label, "K2_CONSTANT_BAND_6"))
                 sscanf (tokenptr, "%f", &k2[5]);
+
+            /* Catch the end of the file */
+            else if (!strcmp (label, "END"))
+            {
+                done_with_mtl = true;
+                break;
+            }
+
+            /* If we are past the PRODUCT_CONTENTS group, then don't re-read
+               the filenames in the next section of the Collection 02 metadata
+               which contains the same filenames. */
+            else if (!strcmp (label, "END_GROUP") &&
+                !strcmp (tokenptr, "PRODUCT_CONTENTS"))
+            {
+                all_bands_read = true;
+            }
         } /* end if tokenptr */
 
         /* If we are done */
@@ -999,26 +1028,6 @@ int read_lpgs_mtl
         return (ERROR);
     }
     bmeta = metadata->band;
-
-    /* Strip the product ID from the LPGS band name */
-    count = snprintf (product_id, sizeof (product_id), "%s", band_fname[0]);
-    if (count < 0 || count >= sizeof (product_id))
-    {
-        sprintf (errmsg, "Overflow of product_id string");
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-
-    cptr = strrchr (product_id, '_');
-    if (cptr == NULL)
-    {
-        sprintf (errmsg, "Unsuspected format for the filename.  Expected "
-            "{product_id}_Bx.* however no '_' was found in the filename: %s.",
-            product_id);
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-    *cptr = '\0';
 
     /* Fill in the band-related metadata for each of the bands */
     *nlpgs_bands = metadata->nbands;
@@ -1126,7 +1135,6 @@ int read_lpgs_mtl
             return (ERROR);
         }
 
-        bmeta[i].resample_method = tmp_bmeta.resample_method;
         if (!strcmp (gmeta->instrument, "TM"))
         {
             bmeta[i].data_type = ESPA_UINT8;
@@ -1154,23 +1162,117 @@ int read_lpgs_mtl
             bmeta[i].fill_value = 0;
             strcpy (bmeta[i].short_name, "LO08DN");
         }
+        else if (!strcmp (gmeta->instrument, "TIRS"))
+        {
+            bmeta[i].data_type = ESPA_UINT16;
+            bmeta[i].fill_value = 0;
+            strcpy (bmeta[i].short_name, "LT08DN");
+        }
+        else
+        {
+            sprintf (errmsg, "Invalid Landsat-based instrument %s",
+                gmeta->instrument);
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
 
-        /* Set up the band names - use lower case 'b' versus upper case 'B'
-           to distinguish ESPA products from original Level-1 products. */
-        if (strcmp (band_num[i], "bqa"))
-        {  /* bands other than band quality band */
+        /* Set up the band names */
+        if (!strcmp (band_num[i], "qa_pixel"))
+        {
+            strcpy (bmeta[i].name, "qa_pixel");
+            strcpy (bmeta[i].long_name, "level-1 pixel quality");
+            bmeta[i].data_type = ESPA_UINT16;
+            bmeta[i].valid_range[0] = 0.0;
+            bmeta[i].valid_range[1] = 65535.0;
+            bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
+            bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
+            strcpy (&bmeta[i].short_name[4], "PQA");
+            strcpy (bmeta[i].data_units, "quality/feature classification");
+        }
+        else if (!strcmp (band_num[i], "qa_radsat"))
+        {
+            strcpy (bmeta[i].name, "qa_radsat");
+            strcpy (bmeta[i].long_name,
+                "level-1 radiometric saturation and terrain occlusion");
+            bmeta[i].data_type = ESPA_UINT16;
+            bmeta[i].valid_range[0] = 0.0;
+            bmeta[i].valid_range[1] = 65535.0;
+            bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
+            bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
+            strcpy (&bmeta[i].short_name[4], "RADSAT");
+            strcpy (bmeta[i].data_units, "quality/feature classification");
+        }
+        else if (!strcmp (band_num[i], "vaa"))
+        {
+            strcpy (bmeta[i].name, band_num[i]);
+            strcpy (bmeta[i].long_name, "band 4 view/sensor azimuth angles");
+            bmeta[i].data_type = ESPA_INT16;
+            bmeta[i].data_type = ESPA_INT16;
+            bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
+            bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
+            bmeta[i].scale_factor = 0.01;  /* from DFCB, not in MTL file */
+            strcpy (&bmeta[i].short_name[4], "SENAZ");
+            strcpy (bmeta[i].data_units, "degrees");
+            strcpy (bmeta[i].product, "angle_bands");
+            bmeta[i].fill_value = ESPA_INT_META_FILL;  /* no fill value */
+            bmeta[i].valid_range[0] = ESPA_FLOAT_META_FILL;
+            bmeta[i].valid_range[1] = ESPA_FLOAT_META_FILL;
+        }
+        else if (!strcmp (band_num[i], "vza"))
+        {
+            strcpy (bmeta[i].name, band_num[i]);
+            strcpy (bmeta[i].long_name, "band 4 view/sensor zenith angles");
+            bmeta[i].data_type = ESPA_INT16;
+            bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
+            bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
+            bmeta[i].scale_factor = 0.01;  /* from DFCB, not in MTL file */
+            strcpy (&bmeta[i].short_name[4], "SENZEN");
+            strcpy (bmeta[i].data_units, "degrees");
+            strcpy (bmeta[i].product, "angle_bands");
+            bmeta[i].fill_value = ESPA_INT_META_FILL;  /* no fill value */
+            bmeta[i].valid_range[0] = ESPA_FLOAT_META_FILL;
+            bmeta[i].valid_range[1] = ESPA_FLOAT_META_FILL;
+        }
+        else if (!strcmp (band_num[i], "saa"))
+        {
+            strcpy (bmeta[i].name, band_num[i]);
+            strcpy (bmeta[i].long_name, "band 4 solar azimuth angles");
+            bmeta[i].data_type = ESPA_INT16;
+            bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
+            bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
+            bmeta[i].scale_factor = 0.01;  /* from DFCB, not in MTL file */
+            strcpy (&bmeta[i].short_name[4], "SOLAZ");
+            strcpy (bmeta[i].data_units, "degrees");
+            strcpy (bmeta[i].product, "angle_bands");
+            bmeta[i].fill_value = ESPA_INT_META_FILL;  /* no fill value */
+            bmeta[i].valid_range[0] = ESPA_FLOAT_META_FILL;
+            bmeta[i].valid_range[1] = ESPA_FLOAT_META_FILL;
+        }
+        else if (!strcmp (band_num[i], "sza"))
+        {
+            strcpy (bmeta[i].name, band_num[i]);
+            strcpy (bmeta[i].long_name, "band 4 solar zenith angles");
+            bmeta[i].data_type = ESPA_INT16;
+            bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
+            bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
+            bmeta[i].scale_factor = 0.01;  /* from DFCB, not in MTL file */
+            strcpy (&bmeta[i].short_name[4], "SOLZEN");
+            strcpy (bmeta[i].data_units, "degrees");
+            strcpy (bmeta[i].product, "angle_bands");
+            bmeta[i].fill_value = ESPA_INT_META_FILL;  /* no fill value */
+            bmeta[i].valid_range[0] = ESPA_FLOAT_META_FILL;
+            bmeta[i].valid_range[1] = ESPA_FLOAT_META_FILL;
+        }
+        else
+        {  /* bands other than band quality and per-pixel bands */
             sprintf (bmeta[i].name, "b%s", band_num[i]);
             sprintf (bmeta[i].long_name, "band %s digital numbers",
               band_num[i]);
-        }
-        else
-        {  /* band quality band */
-            strcpy (bmeta[i].name, "bqa");
-            strcpy (bmeta[i].long_name, "band quality");
+            bmeta[i].resample_method = tmp_bmeta.resample_method;
         }
 
         count = snprintf (bmeta[i].file_name, sizeof (bmeta[i].file_name),
-            "%s_%s.img", product_id, bmeta[i].name);
+            "%s_%s.img", gmeta->product_id, bmeta[i].name);
         if (count < 0 || count >= sizeof (bmeta[i].file_name))
         {
             sprintf (errmsg, "Overflow of bmeta[i].file_name");
@@ -1193,40 +1295,17 @@ int read_lpgs_mtl
             bmeta[i].pixel_size[0] = tmp_bmeta_pan.pixel_size[0];
             bmeta[i].pixel_size[1] = tmp_bmeta_pan.pixel_size[1];
         }
-        else if (!strcmp (band_num[i], "bqa"))
-        {  /* quality band */
-            bmeta[i].nlines = tmp_bmeta.nlines;
-            bmeta[i].nsamps = tmp_bmeta.nsamps;
-            bmeta[i].pixel_size[0] = tmp_bmeta.pixel_size[0];
-            bmeta[i].pixel_size[1] = tmp_bmeta.pixel_size[1];
-        }
         else
-        {  /* reflective bands */
+        {  /* QA, per-pixel angles, and reflective bands */
             bmeta[i].nlines = tmp_bmeta.nlines;
             bmeta[i].nsamps = tmp_bmeta.nsamps;
             bmeta[i].pixel_size[0] = tmp_bmeta.pixel_size[0];
             bmeta[i].pixel_size[1] = tmp_bmeta.pixel_size[1];
         }
 
-        /* If this is the OLI_TIRS QA band, then overwrite some things for the
-           QA band itself */
-        if (!strcmp (band_num[i], "bqa"))
+        /* If this is one of the QA bands then write the bitmap definition */
+        if (!strcmp (band_num[i], "qa_pixel"))
         {
-            count = snprintf (bmeta[i].data_units, sizeof (bmeta[i].data_units),
-                "%s", "quality/feature classification");
-            if (count < 0 || count >= sizeof (bmeta[i].data_units))
-            {
-                sprintf (errmsg, "Overflow of bmeta[i].data_units string");
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-
-            bmeta[i].data_type = ESPA_UINT16;
-            bmeta[i].valid_range[0] = 0.0;
-            bmeta[i].valid_range[1] = 65535.0;
-            bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
-            bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
-
             if (allocate_bitmap_metadata (&bmeta[i], 16) != SUCCESS)
             {
                 sprintf (errmsg, "Allocating 16 bits for the bitmap");
@@ -1235,37 +1314,111 @@ int read_lpgs_mtl
             }
 
             strcpy (bmeta[i].bitmap_description[0],
-                "Data Fill Flag (0 = valid data, 1 = invalid data)");
+                "Data Fill Flag (0 = image data, 1 = fill data)");
+            strcpy (bmeta[i].bitmap_description[1],
+                "Dilated Cloud (0 = cloud not dilated or no cloud, "
+                "1 = cloud dilation)");
+
             if (!strncmp (gmeta->instrument, "OLI", 3))
-            {  /* OLI */
-                strcpy (bmeta[i].bitmap_description[1],
-                    "Terrain Occlusion (0 = not terrain occluded, "
-                    "1 = terrain occluded)");
+            {
+                strcpy (bmeta[i].bitmap_description[2],
+                    "Cirrus (0 = no confidence level set or low confidence, "
+                    "1 = high confidence cirrus)");
             }
             else
-            {  /* TM/ETM+ */
-                strcpy (bmeta[i].bitmap_description[1], "Dropped Pixel "
-                    "(0 = not a dropped pixel , 1 = dropped pixel)");
-            }
-            strcpy (bmeta[i].bitmap_description[2], "Radiometric Saturation");
-            strcpy (bmeta[i].bitmap_description[3], "Radiometric Saturation");
-            strcpy (bmeta[i].bitmap_description[4], "Cloud");
-            strcpy (bmeta[i].bitmap_description[5], "Cloud Confidence");
-            strcpy (bmeta[i].bitmap_description[6], "Cloud Confidence");
-            strcpy (bmeta[i].bitmap_description[7], "Cloud Shadow Confidence");
-            strcpy (bmeta[i].bitmap_description[8], "Cloud Shadow Confidence");
-            strcpy (bmeta[i].bitmap_description[9], "Snow/Ice Confidence");
-            strcpy (bmeta[i].bitmap_description[10], "Snow/Ice Confidence");
+                strcpy (bmeta[i].bitmap_description[2], "Not used");
+
+            strcpy (bmeta[i].bitmap_description[3],
+                "Cloud (0 = cloud confidence is not high, "
+                "1 = high confidence cloud)");
+            strcpy (bmeta[i].bitmap_description[4],
+                "Cloud Shadow (0 = cloud shadow confidence is not high, "
+                "1 = high confidence cloud shadow)");
+            strcpy (bmeta[i].bitmap_description[5],
+                "Snow (0 = snow/ice confidence is not high, "
+                "1 = high confidence snow cover)");
+            strcpy (bmeta[i].bitmap_description[6],
+                "Clear (0 = cloud or dilated cloud bits are set, "
+                "1 = cloud and dilated cloud bits are not set");
+            strcpy (bmeta[i].bitmap_description[7],
+                "Water (0 = land or cloud, 1 = for water");
+            strcpy (bmeta[i].bitmap_description[8], "Cloud Confidence");
+            strcpy (bmeta[i].bitmap_description[9], "Cloud Confidence");
+            strcpy (bmeta[i].bitmap_description[10], "Cloud Shadow Confidence");
+            strcpy (bmeta[i].bitmap_description[11], "Cloud Shadow Confidence");
+            strcpy (bmeta[i].bitmap_description[12], "Snow/Ice Confidence");
+            strcpy (bmeta[i].bitmap_description[13], "Snow/Ice Confidence");
+
             if (!strncmp (gmeta->instrument, "OLI", 3))
-            {  /* OLI */
-                strcpy (bmeta[i].bitmap_description[11], "Cirrus Confidence");
-                strcpy (bmeta[i].bitmap_description[12], "Cirrus Confidence");
+            {
+                strcpy (bmeta[i].bitmap_description[14], "Cirrus Confidence");
+                strcpy (bmeta[i].bitmap_description[15], "Cirrus Confidence");
             }
             else
-            {  /* TM/ETM+ */
+            {
+                strcpy (bmeta[i].bitmap_description[14], "Not used");
+                strcpy (bmeta[i].bitmap_description[15], "Not used");
+            }
+        }
+        else if (!strcmp (band_num[i], "qa_radsat"))
+        {
+            if (allocate_bitmap_metadata (&bmeta[i], 16) != SUCCESS)
+            {
+                sprintf (errmsg, "Allocating 16 bits for the bitmap");
+                error_handler (true, FUNC_NAME, errmsg);
+                return (ERROR);
+            }
+
+            strcpy (bmeta[i].bitmap_description[0],
+                "Band 1 saturation (0 = no saturation, 1 = saturated data)");
+            strcpy (bmeta[i].bitmap_description[1],
+                "Band 2 saturation (0 = no saturation, 1 = saturated data)");
+            strcpy (bmeta[i].bitmap_description[2],
+                "Band 3 saturation (0 = no saturation, 1 = saturated data)");
+            strcpy (bmeta[i].bitmap_description[3],
+                "Band 4 saturation (0 = no saturation, 1 = saturated data)");
+            strcpy (bmeta[i].bitmap_description[4],
+                "Band 5 saturation (0 = no saturation, 1 = saturated data)");
+
+            if (!strncmp (gmeta->instrument, "OLI", 3))
+            {
+                strcpy (bmeta[i].bitmap_description[5],
+                    "Band 6 saturation (0 = no saturation, "
+                    "1 = saturated data)");
+                strcpy (bmeta[i].bitmap_description[8],
+                    "Band 9 saturation (0 = no saturation, "
+                    "1 = saturated data)");
+                strcpy (bmeta[i].bitmap_description[9], "Not used");
+                strcpy (bmeta[i].bitmap_description[11],
+                    "Terrain occlusion (0 = no terrain occlusion, " 
+                    "1 = terrain occlusion");
+            }
+            else if (!strncmp (gmeta->instrument, "ETM", 3))
+            {
+                strcpy (bmeta[i].bitmap_description[5],
+                    "Band 6L saturation (0 = no saturation, "
+                    "1 = saturated data)");
+                strcpy (bmeta[i].bitmap_description[8],
+                    "Band 6H saturation (0 = no saturation, "
+                    "1 = saturated data)");
+                strcpy (bmeta[i].bitmap_description[9], "Dropped Pixel");
                 strcpy (bmeta[i].bitmap_description[11], "Not used");
-                strcpy (bmeta[i].bitmap_description[12], "Not used");
             }
+            else if (!strcmp (gmeta->instrument, "TM"))
+            {
+                strcpy (bmeta[i].bitmap_description[5],
+                    "Band 6 saturation (0 = no saturation, "
+                    "1 = saturated data)");
+                strcpy (bmeta[i].bitmap_description[8], "Not used");
+                strcpy (bmeta[i].bitmap_description[9], "Dropped Pixel");
+                strcpy (bmeta[i].bitmap_description[11], "Not used");
+            }
+
+            strcpy (bmeta[i].bitmap_description[6],
+                "Band 7 saturation (0 = no saturation, 1 = saturated data)");
+            strcpy (bmeta[i].bitmap_description[7], "Not used");
+            strcpy (bmeta[i].bitmap_description[10], "Not used");
+            strcpy (bmeta[i].bitmap_description[12], "Not used");
             strcpy (bmeta[i].bitmap_description[13], "Not used");
             strcpy (bmeta[i].bitmap_description[14], "Not used");
             strcpy (bmeta[i].bitmap_description[15], "Not used");
@@ -1324,8 +1477,8 @@ int read_lpgs_mtl
 /******************************************************************************
 MODULE:  convert_gtif_to_img
 
-PURPOSE: Convert the LPGS GeoTIFF band to ESPA raw binary (.img) file and
-writes the associated ENVI header for each band.
+PURPOSE: Convert the LPGS Cloud Optimized GeoTIFF band to ESPA raw binary
+(.img) file and writes the associated ENVI header for each band.
 
 RETURN VALUE:
 Type = int
@@ -1335,195 +1488,64 @@ ERROR           Error converting the GeoTIFF file
 SUCCESS         Successfully converterd GeoTIFF to raw binary
 
 NOTES:
-1. TIFF read scanline only supports reading a single line at a time.  We will
-   read a single line, stuff it into a large buffer, then write the entire
-   image at one time.  This is about 40% faster than reading a single line
-   then writing a single line.
+  1. The GDAL tools will be used for converting the Cloud Optimized GeoTIFF
+     to raw binary (ENVI format).
+  2. An associated .tfw (ESRI world file) will be generated for each GeoTIFF
+     file.
 ******************************************************************************/
 int convert_gtif_to_img
 (
-    char *gtif_file,           /* I: name of the input GeoTIFF file */
+    char *gtif_file,           /* I: name of input GeoTIFF file for this band */
     Espa_band_meta_t *bmeta,   /* I: pointer to band metadata for this band */
     Espa_global_meta_t *gmeta  /* I: pointer to global metadata */
 )
 {
     char FUNC_NAME[] = "convert_gtif_to_img";  /* function name */
     char errmsg[STR_SIZE];    /* error message */
-    char *cptr = NULL;        /* pointer to the file extension */
-    char *img_file = NULL;    /* name of the output raw binary file */
-    char envi_file[STR_SIZE]; /* name of the output ENVI header file */
-    int i;                    /* looping variable for lines in image */
-    int nbytes;               /* number of bytes in the data type */
+    char gdal_cmd[STR_SIZE];  /* command string for GDAL call */
+    char tmpfile[STR_SIZE];   /* filename of file.img.aux.xml */
     int count;                /* number of chars copied in snprintf */
-    void *file_buf = NULL;    /* pointer to correct input file buffer */
-    uint8 *file_buf_u8 = NULL;  /* buffer for uint8 TIFF data to be read */
-    int16 *file_buf_i16 = NULL; /* buffer for int16 TIFF data to be read */
-    int16 *file_buf_u16 = NULL; /* buffer for uint16 TIFF data to be read */
-    TIFF *fp_tiff = NULL;     /* file pointer for the TIFF file */
-    FILE *fp_rb = NULL;       /* file pointer for the raw binary file */
-    Envi_header_t envi_hdr;   /* output ENVI header information */
 
-    /* Open the TIFF file for reading */
-    fp_tiff = XTIFFOpen (gtif_file, "r");
-    if (fp_tiff == NULL)
+    /* Check if the fill value is defined */
+    if ((int) bmeta->fill_value == (int) ESPA_INT_META_FILL)
     {
-        sprintf (errmsg, "Opening the LPGS GeoTIFF file: %s", gtif_file);
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-
-    /* Open the raw binary file for writing */
-    img_file = bmeta->file_name;
-    fp_rb = open_raw_binary (img_file, "wb");
-    if (fp_rb == NULL)
-    {
-        sprintf (errmsg, "Opening the output raw binary file: %s", img_file);
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-
-    /* Allocate memory for the entire image, based on the input data type */
-    if (bmeta->data_type == ESPA_UINT8)
-    {
-        nbytes = sizeof (uint8);
-        file_buf_u8 = calloc (bmeta->nlines * bmeta->nsamps, nbytes);
-        if (file_buf_u8 == NULL)
-        {
-            sprintf (errmsg, "Allocating memory for the image of uint8 data "
-                "containing %d lines x %d samples.", bmeta->nlines,
-                bmeta->nsamps);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-        file_buf = file_buf_u8;
-    }
-    else if (bmeta->data_type == ESPA_INT16)
-    {
-        nbytes = sizeof (int16);
-        file_buf_i16 = calloc (bmeta->nlines * bmeta->nsamps, nbytes);
-        if (file_buf_i16 == NULL)
-        {
-            sprintf (errmsg, "Allocating memory for the image of int16 data "
-                "containing %d lines x %d samples.", bmeta->nlines,
-                bmeta->nsamps);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-        file_buf = file_buf_i16;
-    }
-    else if (bmeta->data_type == ESPA_UINT16)
-    {
-        nbytes = sizeof (uint16);
-        file_buf_u16 = calloc (bmeta->nlines * bmeta->nsamps, nbytes);
-        if (file_buf_u16 == NULL)
-        {
-            sprintf (errmsg, "Allocating memory for the image of uint16 data "
-                "containing %d lines x %d samples.", bmeta->nlines,
-                bmeta->nsamps);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-        file_buf = file_buf_u16;
+        /* Fill value is not defined so don't write the nodata tag */
+        count = snprintf (gdal_cmd, sizeof (gdal_cmd),
+            "gdal_translate -of Envi -q %s %s", gtif_file, bmeta->file_name);
     }
     else
     {
-        sprintf (errmsg, "Unsupported data type.  Currently only uint8, "
-            "int16, and uint16 are supported.");
+        /* Fill value is defined so use the nodata tag */
+        count = snprintf (gdal_cmd, sizeof (gdal_cmd),
+         "gdal_translate -of Envi -a_nodata %ld -q %s %s",
+            bmeta->fill_value, gtif_file, bmeta->file_name);
+    }
+    if (count < 0 || count >= sizeof (gdal_cmd))
+    {
+        sprintf (errmsg, "Overflow of gdal_cmd string");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-
-    /* Loop through the lines in the TIFF file, reading and stuffing in the
-       image buffer */
-    if (bmeta->data_type == ESPA_UINT8)
+ 
+    if (system (gdal_cmd) == -1)
     {
-        for (i = 0; i < bmeta->nlines; i++)
-        {
-            /* Read current line from the TIFF file */
-            if (!TIFFReadScanline (fp_tiff, &file_buf_u8[i*bmeta->nsamps],
-                i, 0))
-            {
-                sprintf (errmsg, "Reading line %d from the TIFF file: %s", i,
-                    gtif_file);
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-        }
-    }
-    else if (bmeta->data_type == ESPA_INT16)
-    {
-        for (i = 0; i < bmeta->nlines; i++)
-        {
-            /* Read current line from the TIFF file */
-            if (!TIFFReadScanline (fp_tiff, &file_buf_i16[i*bmeta->nsamps],
-                i, 0))
-            {
-                sprintf (errmsg, "Reading line %d from the TIFF file: %s", i,
-                    gtif_file);
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-        }
-    }
-    else if (bmeta->data_type == ESPA_UINT16)
-    {
-        for (i = 0; i < bmeta->nlines; i++)
-        {
-            /* Read current line from the TIFF file */
-            if (!TIFFReadScanline (fp_tiff, &file_buf_u16[i*bmeta->nsamps],
-                i, 0))
-            {
-                sprintf (errmsg, "Reading line %d from the TIFF file: %s", i,
-                    gtif_file);
-                error_handler (true, FUNC_NAME, errmsg);
-                return (ERROR);
-            }
-        }
-    }
-
-    /* Write entire image to the raw binary file */
-    if (write_raw_binary (fp_rb, bmeta->nlines, bmeta->nsamps, nbytes,
-        file_buf) != SUCCESS)
-    {
-        sprintf (errmsg, "Writing image to the raw binary file: %s", img_file);
+        sprintf (errmsg, "Running gdal_translate: %s", gdal_cmd);
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-
-    /* Close the TIFF and raw binary files */
-    XTIFFClose (fp_tiff);
-    close_raw_binary (fp_rb);
-
-    /* Free the memory */
-    free (file_buf_u8);
-    free (file_buf_i16);
-    free (file_buf_u16);
-
-    /* Create the ENVI header file this band */
-    if (create_envi_struct (bmeta, gmeta, &envi_hdr) != SUCCESS)
+ 
+    /* Remove the {gtif_name}.tif.aux.xml file since it's not needed and
+       clutters the results.  Don't worry about testing the unlink
+       results.  If it doesn't unlink it's not fatal. */
+    count = snprintf (tmpfile, sizeof (tmpfile), "%s.aux.xml",
+        bmeta->file_name);
+    if (count < 0 || count >= sizeof (tmpfile))
     {
-        sprintf (errmsg, "Creating the ENVI header structure for this file.");
+        sprintf (errmsg, "Overflow of tmpfile string");
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-
-    /* Write the ENVI header */
-    count = snprintf (envi_file, sizeof (envi_file), "%s", img_file);
-    if (count < 0 || count >= sizeof (envi_file))
-    {
-        sprintf (errmsg, "Overflow of envi_file string");
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-    cptr = strchr (envi_file, '.');
-    strcpy (cptr, ".hdr");
-
-    if (write_envi_hdr (envi_file, &envi_hdr) != SUCCESS)
-    {
-        sprintf (errmsg, "Writing the ENVI header file: %s.", envi_file);
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
+    unlink (tmpfile);
 
     /* Successful conversion */
     return (SUCCESS);
@@ -1558,12 +1580,10 @@ int convert_lpgs_to_espa
 {
     char FUNC_NAME[] = "convert_lpgs_to_espa";  /* function name */
     char errmsg[STR_SIZE];   /* error message */
-    char *cptr = NULL;       /* pointer to _MTL.txt in the MTL filename */
     Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
                                 populated by reading the MTL metadata file */
     int i;                   /* looping variable */
     int nlpgs_bands;         /* number of bands in the LPGS product */
-    int count;               /* number of chars copied in snprintf */
     char lpgs_bands[MAX_LPGS_BANDS][STR_SIZE];  /* array containing the file
                                 names of the LPGS bands */
 
@@ -1579,21 +1599,6 @@ int convert_lpgs_to_espa
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-
-    /* Add the product ID which is pulled from the MTL filename
-       ({product_id}_MTL.txt) */
-    count = snprintf (xml_metadata.global.product_id,
-        sizeof (xml_metadata.global.product_id), "%s", lpgs_mtl_file);
-    if (count < 0 || count >= sizeof (xml_metadata.global.product_id))
-    {
-        sprintf (errmsg, "Overflow of xml_metadata.global.product_id string");
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-
-    /* Strip off _MTL.txt filename extension to get the actual product name */
-    cptr = strrchr (xml_metadata.global.product_id, '_');
-    *cptr = '\0';
 
     /* Write the metadata from our internal metadata structure to the output
        XML filename */

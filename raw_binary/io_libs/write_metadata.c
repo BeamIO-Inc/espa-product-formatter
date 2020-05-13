@@ -340,7 +340,7 @@ int write_metadata
             fabs (bmeta[i].rad_bias - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
         {
             fprintf (fptr,
-                "            <radiance gain=\"%.5g\" bias=\"%.5g\"/>\n",
+                "            <radiance gain=\"%.9g\" bias=\"%.9g\"/>\n",
                 bmeta[i].rad_gain, bmeta[i].rad_bias);
         }
 
@@ -348,7 +348,7 @@ int write_metadata
             fabs (bmeta[i].refl_bias - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
         {
             fprintf (fptr,
-                "            <reflectance gain=\"%.5g\" bias=\"%.5g\"/>\n",
+                "            <reflectance gain=\"%.9g\" bias=\"%.9g\"/>\n",
                 bmeta[i].refl_gain, bmeta[i].refl_bias);
         }
 
@@ -609,7 +609,7 @@ int append_metadata
             fabs (bmeta[i].rad_bias - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
         {
             fprintf (fptr,
-                "            <radiance gain=\"%.5g\" bias=\"%.5g\"/>\n",
+                "            <radiance gain=\"%.9g\" bias=\"%.9g\"/>\n",
                 bmeta[i].rad_gain, bmeta[i].rad_bias);
         }
 
@@ -617,7 +617,7 @@ int append_metadata
             fabs (bmeta[i].refl_bias - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
         {
             fprintf (fptr,
-                "            <reflectance gain=\"%.5g\" bias=\"%.5g\"/>\n",
+                "            <reflectance gain=\"%.9g\" bias=\"%.9g\"/>\n",
                 bmeta[i].refl_gain, bmeta[i].refl_bias);
         }
 
@@ -879,13 +879,13 @@ void print_metadata_struct
         if (metadata->band[i].rad_gain != 0 ||
             metadata->band[i].rad_bias != 0)
         {
-            printf ("    radiance gain, bias : %.5g %.5g\n",
+            printf ("    radiance gain, bias : %.9g %.9g\n",
                 metadata->band[i].rad_gain, metadata->band[i].rad_bias);
         }
         if (metadata->band[i].refl_gain != 0 ||
             metadata->band[i].refl_bias != 0)
         {
-            printf ("    reflectance gain, bias : %.5g %.5g\n",
+            printf ("    reflectance gain, bias : %.9g %.9g\n",
                 metadata->band[i].refl_gain, metadata->band[i].refl_bias);
         }
         if (metadata->band[i].k1_const != 0 ||
