@@ -113,6 +113,49 @@ int read_lpgs_mtl
         return (ERROR);
     }
 
+    /* The sensor ID is needed for parsing the rest of the MTL.  It needs to
+       be read since it falls after many of the other tokens in the MTL. */
+    while (fgets (buffer, STR_SIZE, mtl_fptr) != NULL)
+    {
+        /* If the last character is the end of line, then strip it off */
+        if (buffer[strlen(buffer)-1] == '\n')
+            buffer[strlen(buffer)-1] = '\0';
+
+        /* Get string token */
+        tokenptr = strtok (buffer, seperator);
+        label = tokenptr;
+
+        if (tokenptr != NULL)
+        {
+            tokenptr = strtok (NULL, seperator);
+
+            if (!strcmp (label, "SENSOR_ID"))
+            {
+                count = snprintf (gmeta->instrument, sizeof (gmeta->instrument),
+                    "%s", tokenptr);
+                if (count < 0 || count >= sizeof (gmeta->instrument))
+                {
+                    sprintf (errmsg, "Overflow of gmeta->instrument string");
+                    error_handler (true, FUNC_NAME, errmsg);
+                    return (ERROR);
+                }
+
+                break;  /* we have found what we needed */
+            }
+        } /* end if tokenptr */
+    }  /* end while fgets */
+
+    /* Rewind the buffer to the start */
+    rewind (mtl_fptr);
+
+    /* Make sure the sensor ID was found */
+    if (!gmeta->instrument)
+    {
+        sprintf (errmsg, "SENSOR ID was not found in the MTL file.");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
     /* Process the MTL file line by line */
     gain_bias_available = false;
     refl_gain_bias_available = false;
@@ -182,17 +225,7 @@ int read_lpgs_mtl
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
-            }
-            else if (!strcmp (label, "SENSOR_ID"))
-            {
-                count = snprintf (gmeta->instrument, sizeof (gmeta->instrument),
-                    "%s", tokenptr);
-                if (count < 0 || count >= sizeof (gmeta->instrument))
-                {
-                    sprintf (errmsg, "Overflow of gmeta->instrument string");
-                    error_handler (true, FUNC_NAME, errmsg);
-                    return (ERROR);
-                }
+printf ("DEBUG: spacecraft ID: %s\n", gmeta->satellite);
             }
             else if (!strcmp (label, "DATE_ACQUIRED"))
             {
