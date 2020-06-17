@@ -159,7 +159,7 @@ typedef struct
 
 typedef struct
 {
-    char product[STR_SIZE];      /* product type */
+    char product[STR_SIZE];      /* product type (Landsat processing level) */
     char source[STR_SIZE];       /* source type (level1, toa_refl, sr_refl) */
     char name[STR_SIZE];         /* band name */
     char category[STR_SIZE];     /* category type (image, qa, browse, index) */

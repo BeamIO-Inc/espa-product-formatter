@@ -1,4 +1,4 @@
-## ESPA-PRODUCT_FORMATTER Version 2.0.0 Release Notes
+## ESPA-PRODUCT_FORMATTER Version X.X.X Release Notes
 Release Date: TBD 2020
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8, Sentinel-2 L1C, and limited MODIS products.
@@ -14,7 +14,7 @@ espa-product-formatter source code
 
     git clone https://eroslab.cr.usgs.gov/lsrd/espa-product-formatter.git
 
-See git tag [version_2.0.0]
+See git tag [version_dev_C2]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)

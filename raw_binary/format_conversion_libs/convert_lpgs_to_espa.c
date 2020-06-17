@@ -225,7 +225,6 @@ int read_lpgs_mtl
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
-printf ("DEBUG: spacecraft ID: %s\n", gmeta->satellite);
             }
             else if (!strcmp (label, "DATE_ACQUIRED"))
             {
@@ -1239,7 +1238,6 @@ printf ("DEBUG: spacecraft ID: %s\n", gmeta->satellite);
         {
             strcpy (bmeta[i].name, band_num[i]);
             strcpy (bmeta[i].long_name, "band 4 view/sensor azimuth angles");
-            bmeta[i].data_type = ESPA_INT16;
             bmeta[i].data_type = ESPA_INT16;
             bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
             bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;

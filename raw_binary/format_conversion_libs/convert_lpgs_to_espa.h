@@ -30,7 +30,7 @@ NOTES:
 /* Defines */
 /* Maximum number of LPGS bands in a file; OLI/TIRS products have the most
    bands (11 image bands plus the quality band); TM has 7 bands; ETM+ has
-   9 bands */
+   9 bands; also need to support the 4 angle bands and the RADSAT band. */
 #define MAX_LPGS_BANDS 17
 
 /* Prototypes */
