@@ -306,7 +306,7 @@ int write_metadata
             fprintf (fptr, " saturate_value=\"%d\"",
             bmeta[i].saturate_value);
         if (fabs (bmeta[i].scale_factor-ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
-            fprintf (fptr, " scale_factor=\"%f\"", bmeta[i].scale_factor);
+            fprintf (fptr, " scale_factor=\"%10.8f\"", bmeta[i].scale_factor);
         if (fabs (bmeta[i].add_offset-ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
             fprintf (fptr, " add_offset=\"%f\"", bmeta[i].add_offset);
         fprintf (fptr, ">\n");
@@ -575,7 +575,7 @@ int append_metadata
             fprintf (fptr, " saturate_value=\"%d\"",
             bmeta[i].saturate_value);
         if (fabs (bmeta[i].scale_factor - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
-            fprintf (fptr, " scale_factor=\"%f\"", bmeta[i].scale_factor);
+            fprintf (fptr, " scale_factor=\"%10.8f\"", bmeta[i].scale_factor);
         if (fabs (bmeta[i].add_offset - ESPA_FLOAT_META_FILL) > ESPA_EPSILON)
             fprintf (fptr, " add_offset=\"%f\"", bmeta[i].add_offset);
         fprintf (fptr, ">\n");
@@ -861,7 +861,7 @@ void print_metadata_struct
         printf ("    nsamps: %d\n", metadata->band[i].nsamps);
         printf ("    fill_value: %ld\n", metadata->band[i].fill_value);
         printf ("    saturate_value: %d\n", metadata->band[i].saturate_value);
-        printf ("    scale_factor: %f\n", metadata->band[i].scale_factor);
+        printf ("    scale_factor: %10.8f\n", metadata->band[i].scale_factor);
         printf ("    add_offset: %f\n", metadata->band[i].add_offset);
         printf ("    short_name: %s\n", metadata->band[i].short_name);
         printf ("    long_name: %s\n", metadata->band[i].long_name);
