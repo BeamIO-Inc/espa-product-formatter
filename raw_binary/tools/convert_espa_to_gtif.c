@@ -34,7 +34,8 @@ void usage ()
             "binary and associated XML metadata file) to GeoTIFF.  Each "
             "band represented in the input XML file will be written to a "
             "single GeoTIFF file using the base filename provided followed "
-            "by the band name with a .tif file extension.\n\n");
+            "by the band name with a .tif file extension.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: convert_espa_to_gtif "
             "--xml=input_metadata_filename "
             "--gtif=output_geotiff_base_filename "
@@ -183,6 +184,8 @@ int main (int argc, char** argv)
     char *xml_infile = NULL;     /* input XML filename */
     char *gtif_outfile = NULL;   /* output base GeoTIFF filename */
     bool del_src = false;        /* should source files be removed? */
+
+    printf ("convert_espa_to_gtif version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile, &gtif_outfile, &del_src) != SUCCESS)

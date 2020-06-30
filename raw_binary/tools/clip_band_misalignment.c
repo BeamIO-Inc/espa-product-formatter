@@ -34,7 +34,8 @@ void usage ()
             "to handle the band mis-alignment. SWIR and the thermal bands are "
             "clipped so that they all have the same image boundaries. The band "
             "quality band is updated to appropriately flag the fill pixels "
-            "after this band clipping.\n\n");
+            "after this band clipping.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: clip_band_misalignment --xml=xml_filename\n");
 
     printf ("\nwhere the following parameters are required:\n");
@@ -157,6 +158,8 @@ int main (int argc, char** argv)
                                           metadata file */
     Espa_global_meta_t *gmeta = NULL;  /* pointer to the global metadata
                                           structure */
+
+    printf ("clip_band_misalignment version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile) != SUCCESS)

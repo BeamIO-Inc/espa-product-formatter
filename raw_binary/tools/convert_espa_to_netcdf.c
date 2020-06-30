@@ -31,7 +31,8 @@ NOTES:
 void usage ()
 {
     printf ("convert_espa_to_netcdf converts the ESPA internal format (raw "
-            "binary and associated XML metadata file) to NetCDF.\n\n");
+            "binary and associated XML metadata file) to NetCDF.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: convert_espa_to_netcdf "
             "--xml=input_metadata_filename "
             "--netcdf=output_netcdf_filename "
@@ -191,6 +192,8 @@ int main (int argc, char** argv)
     char *netcdf_outfile = NULL; /* output NetCDF filename */
     bool del_src = false;        /* should source files be removed? */
     bool no_compression = false; /* should compression be used? */
+
+    printf ("convert_espa_to_netcdf version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile, &netcdf_outfile, &del_src, 

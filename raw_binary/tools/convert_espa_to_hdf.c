@@ -34,7 +34,8 @@ void usage ()
             "binary and associated XML metadata file) to HDF-EOS2 (HDF4).  "
             "Each band represented in the input XML file will be written to a "
             "a single HDF file with each SDS being represented as an external "
-            "dataset.\n\n");
+            "dataset.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: convert_espa_to_hdf "
             "--xml=input_metadata_filename "
             "--hdf=output_hdf_filename "
@@ -183,6 +184,8 @@ int main (int argc, char** argv)
     char *xml_infile = NULL;     /* input XML filename */
     char *hdf_outfile = NULL;    /* output HDF filename */
     bool del_src = false;        /* should source files be removed? */
+
+    printf ("clip_band_misalignment version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile, &hdf_outfile, &del_src) != SUCCESS)
