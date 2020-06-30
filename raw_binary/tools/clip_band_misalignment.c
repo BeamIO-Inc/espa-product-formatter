@@ -189,7 +189,7 @@ int main (int argc, char** argv)
     /* Is this OLI or OLI/TIRS? */
     if (!strncmp (gmeta->instrument, "OLI", 3))
     {
-        if (clip_band_misalignment_landsat8 (&xml_metadata) != SUCCESS)
+        if (clip_band_misalignment_landsat89 (&xml_metadata) != SUCCESS)
         {  /* Error messages already written */
             exit (EXIT_FAILURE);
         }

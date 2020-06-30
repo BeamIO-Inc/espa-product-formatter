@@ -116,7 +116,7 @@ int clip_band_misalignment
         }
 
         /* Is this the quality band */
-        sprintf (curr_band, "bqa");
+        sprintf (curr_band, "qa_pixel");
         if (!strcmp (bmeta[i].name, curr_band))
         {
             fp_bqa = open_raw_binary (bmeta[i].file_name, "r+");
@@ -153,7 +153,6 @@ int clip_band_misalignment
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-
 
     /* Make sure the quality band was found */
     if (fp_bqa == NULL)

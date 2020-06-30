@@ -22,7 +22,7 @@ NOTES:
 
 
 /******************************************************************************
-MODULE:  clip_band_misalignment_landsat8
+MODULE:  clip_band_misalignment_landsat89
 
 PURPOSE: Clips OLI and TIRS bands to provide a consistent boundary of image and
 fill data throughout the product.  Any pixel that is fill in one band will be
@@ -43,13 +43,13 @@ NOTES:
      other sensors will simply be returned as-is.
   3. This is meant to be run on the Level-1 raw binary dataset.
 ******************************************************************************/
-int clip_band_misalignment_landsat8
+int clip_band_misalignment_landsat89
 (
     Espa_internal_meta_t *xml_metadata  /* I: XML metadata structure populated
                                               from an ESPA XML file */
 )
 {
-    char FUNC_NAME[] = "clip_band_misalignment_landsat8";  /* function name */
+    char FUNC_NAME[] = "clip_band_misalignment_landsat89";  /* function name */
     char errmsg[STR_SIZE];    /* error message */
     char curr_band[STR_SIZE]; /* current band to process */
     int i;                    /* looping variable */
@@ -58,18 +58,18 @@ int clip_band_misalignment_landsat8
     int bnd;                  /* current band to process */
     int nlines = -99;         /* number of lines in the bands */
     int nsamps = -99;         /* number of samples in the bands */
-    int band_options[NBAND_OPTIONS_L8] = {1, 2, 3, 4, 5, 6, 7, 9, 10, 11};
+    int band_options[NBAND_OPTIONS_L89] = {1, 2, 3, 4, 5, 6, 7, 9, 10, 11};
                               /* various bands that will be used for clipping,
                                  skip the pan band */
     bool fill;                /* is the current pixel fill */
     uint16_t *tmp_file_buf = NULL; /* overall buffer for uint16 input band
                                       data */
-    uint16_t *file_buf[NBAND_OPTIONS_L8]; /* buffer for uint16 input band data
-                                             one for each band */
+    uint16_t *file_buf[NBAND_OPTIONS_L89]; /* buffer for uint16 input band data
+                                              one for each band */
     uint16_t *bqa_buf = NULL; /* buffer for band quality data */
     Espa_global_meta_t *gmeta = NULL; /* pointer to global metadata structure */
     Espa_band_meta_t *bmeta = NULL;   /* pointer to array of bands metadata */
-    FILE *fp_rb[NBAND_OPTIONS_L8];    /* file pointer for the bands */
+    FILE *fp_rb[NBAND_OPTIONS_L89];   /* file pointer for the bands */
     FILE *fp_bqa = NULL;              /* file pointer for band quality band */
 
     /* Set up the global and band metadata pointers */
@@ -89,7 +89,7 @@ int clip_band_misalignment_landsat8
     bnd_count = 0;
     for (i = 0; i < xml_metadata->nbands; i++)
     {
-        for (bnd = 0; bnd < NBAND_OPTIONS_L8; bnd++)
+        for (bnd = 0; bnd < NBAND_OPTIONS_L89; bnd++)
         {
             /* Is the current band in the metadata one of our expected bands */
             sprintf (curr_band, "b%d", band_options[bnd]);
@@ -119,7 +119,7 @@ int clip_band_misalignment_landsat8
         }
 
         /* Is this the quality band */
-        sprintf (curr_band, "bqa");
+        sprintf (curr_band, "qa_pixel");
         if (!strcmp (bmeta[i].name, curr_band))
         {
             fp_bqa = open_raw_binary (bmeta[i].file_name, "r+");
