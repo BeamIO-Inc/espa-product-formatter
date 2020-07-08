@@ -36,6 +36,8 @@ NOTES:
      WGS84: GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]
      NAD27: GEOGCS["GCS_North_American_1927",DATUM["D_North_American_1927",SPHEROID["Clarke_1866",6378206.4,294.9786982]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]
      NAD83: GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]
+  5. The strings for various projections and datums are in the ENVI application
+     documents at IDLXX/resource/pedata/predefined/{EnviPEGeogcsStrings.txt|EnviPEProjcsStrings.txt}
 ******************************************************************************/
 int write_envi_hdr
 (
