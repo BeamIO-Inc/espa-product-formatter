@@ -210,7 +210,9 @@ int read_lpgs_mtl
             }
             else if (!strcmp (label, "SPACECRAFT_ID"))
             {
-                if (!strcmp (tokenptr, "LANDSAT_8"))
+                if (!strcmp (tokenptr, "LANDSAT_9"))
+                    strcpy (gmeta->satellite, "LANDSAT_9");
+                else if (!strcmp (tokenptr, "LANDSAT_8"))
                     strcpy (gmeta->satellite, "LANDSAT_8");
                 else if (!strcmp (tokenptr, "LANDSAT_7"))
                     strcpy (gmeta->satellite, "LANDSAT_7");
