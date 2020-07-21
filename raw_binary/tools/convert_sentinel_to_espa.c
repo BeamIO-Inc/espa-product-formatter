@@ -38,7 +38,8 @@ void usage ()
             "these two XML files and all 14 bands of the L1C JP2 files are "
             "needed. The rest of the SAFE directory structure and files are "
             "not needed. The executable must be run from the directory "
-            "containing the XML files and JP2 image data.\n\n");
+            "containing the XML files and JP2 image data.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: convert_sentinel_to_espa [--del_src_files]\n");
 
     printf ("\nwhere the following parameters are optional:\n");
@@ -143,6 +144,8 @@ NOTES:
 int main (int argc, char** argv)
 {
     bool del_src = false;         /* should source files be removed? */
+
+    printf ("convert_sentinel_to_espa version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &del_src) != SUCCESS)

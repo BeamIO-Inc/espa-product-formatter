@@ -36,6 +36,8 @@ NOTES:
      WGS84: GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]
      NAD27: GEOGCS["GCS_North_American_1927",DATUM["D_North_American_1927",SPHEROID["Clarke_1866",6378206.4,294.9786982]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]
      NAD83: GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]
+  5. The strings for various projections and datums are in the ENVI application
+     documents at IDLXX/resource/pedata/predefined/{EnviPEGeogcsStrings.txt|EnviPEProjcsStrings.txt}
 ******************************************************************************/
 int write_envi_hdr
 (
@@ -45,15 +47,18 @@ int write_envi_hdr
 {
     char FUNC_NAME[] = "write_envi_hdr";   /* function name */
     char errmsg[STR_SIZE];        /* error message */
-    char geogcs_str[STR_SIZE];    /* string for the GCS code */
+    char geogcs_str[STR_SIZE];    /* string for the geographic coord system */
     char datum_str[STR_SIZE];     /* string for the datum code */
     char proj_datum_str[STR_SIZE];  /* string for the datum code in projection
                                        info section */
     char spheroid_str[STR_SIZE];  /* string for the spheroid code */
+    char utm_projcs[STR_SIZE];    /* string for UTM projected coord system */
     int i;                        /* looping variable */
     double semi_major_axis=-99.0; /* semi-major axis for the spheroid */
     double semi_minor_axis=-99.0; /* semi-minor axis for the spheroid */
     double inv_flattening=-99.0;  /* inverse flattening for the spheroid */
+    double utm_false_northing=-99.0; /* false northing for UTM */
+    double utm_cent_meridian=-99.0;  /* central meridian for UTM */
     FILE *hdr_fptr = NULL;        /* file pointer to the ENVI header file */
 
     /* Open the header file */
@@ -107,6 +112,10 @@ int write_envi_hdr
             semi_major_axis = GCTP_WGS84_SEMI_MAJOR;
             semi_minor_axis = GCTP_WGS84_SEMI_MINOR;
             inv_flattening = GCTP_WGS84_INV_FLATTENING;
+
+            /* UTM specific strings and variables */
+            if (hdr->proj_type == GCTP_UTM_PROJ)
+                sprintf (utm_projcs, "WGS_1984_UTM_Zone_%d", hdr->utm_zone);
             break;
 
         case ESPA_NAD27:  /* Clarke 1866 sphere */
@@ -117,6 +126,10 @@ int write_envi_hdr
             semi_major_axis = GCTP_CLARKE_1866_SEMI_MAJOR;
             semi_minor_axis = GCTP_CLARKE_1866_SEMI_MINOR;
             inv_flattening = GCTP_CLARKE_1866_INV_FLATTENING;
+
+            /* UTM specific strings and variables */
+            if (hdr->proj_type == GCTP_UTM_PROJ)
+                sprintf (utm_projcs, "NAD_1927_UTM_Zone_%d", hdr->utm_zone);
             break;
 
         case ESPA_NAD83:  /* GRS 1980 sphere */
@@ -127,6 +140,10 @@ int write_envi_hdr
             semi_major_axis = GCTP_GRS80_SEMI_MAJOR;
             semi_minor_axis = GCTP_GRS80_SEMI_MINOR;
             inv_flattening = GCTP_GRS80_INV_FLATTENING;
+
+            /* UTM specific strings and variables */
+            if (hdr->proj_type == GCTP_UTM_PROJ)
+                sprintf (utm_projcs, "NAD_1983_UTM_Zone_%d", hdr->utm_zone);
             break;
     }
 
@@ -168,17 +185,59 @@ int write_envi_hdr
     else if (hdr->proj_type == GCTP_UTM_PROJ)
     {
         if (hdr->utm_zone > 0)
+        {  /* North */
             fprintf (hdr_fptr,
                 "map info = {UTM, %d, %d, %f, %f, %g, %g, %d, North, %s, "
                 "units=Meters}\n", hdr->xy_start[0], hdr->xy_start[1],
                 hdr->ul_corner[0], hdr->ul_corner[1], hdr->pixel_size[0],
                 hdr->pixel_size[1], hdr->utm_zone, proj_datum_str);
+
+            utm_false_northing = 0.0;
+            utm_cent_meridian = -183.0 + hdr->utm_zone * 6;
+            fprintf (hdr_fptr,
+                "coordinate system string = {PROJCS[\"%sN\", "
+                "GEOGCS[\"%s\", DATUM[\"%s\", "
+                "SPHEROID[\"%s\",%.11g,%.12g]], "
+                "PRIMEM[\"Greenwich\",0.0], "
+                "UNIT[\"Degree\",0.0174532925199433]], "
+                "PROJECTION[\"Transverse_Mercator\"], "
+                "PARAMETER[\"False_Easting\",500000.0], "
+                "PARAMETER[\"False_Northing\",%f], "
+                "PARAMETER[\"Central_Meridian\",%f], "
+                "PARAMETER[\"Scale_Factor\",0.9996], "
+                "PARAMETER[\"Latitude_Of_Origin\",0.0], "
+                "UNIT[\"Meter\",1.0]]}\n",
+                utm_projcs, geogcs_str, datum_str, spheroid_str,
+                semi_major_axis, inv_flattening, utm_false_northing,
+                utm_cent_meridian);
+        }
         else
+        {  /* South */
             fprintf (hdr_fptr,
                 "map info = {UTM, %d, %d, %f, %f, %f, %f, %d, South, %s, "
                 "units=Meters}\n", hdr->xy_start[0], hdr->xy_start[1],
                 hdr->ul_corner[0], hdr->ul_corner[1], hdr->pixel_size[0],
                 hdr->pixel_size[1], -(hdr->utm_zone), proj_datum_str);
+
+            utm_false_northing = 10000000.0;
+            utm_cent_meridian = -183.0 + hdr->utm_zone * 6;
+            fprintf (hdr_fptr,
+                "coordinate system string = {PROJCS[\"%sS\", "
+                "GEOGCS[\"%s\", DATUM[\"%s\", "
+                "SPHEROID[\"%s\",%.11g,%.12g]], "
+                "PRIMEM[\"Greenwich\",0.0], "
+                "UNIT[\"Degree\",0.0174532925199433]], "
+                "PROJECTION[\"Transverse_Mercator\"], "
+                "PARAMETER[\"False_Easting\",500000.0], "
+                "PARAMETER[\"False_Northing\",%f], "
+                "PARAMETER[\"Central_Meridian\",%f], "
+                "PARAMETER[\"Scale_Factor\",0.9996], "
+                "PARAMETER[\"Latitude_Of_Origin\",0.0], "
+                "UNIT[\"Meter\",1.0]]}\n",
+                utm_projcs, geogcs_str, datum_str, spheroid_str,
+                semi_major_axis, inv_flattening, utm_false_northing,
+                utm_cent_meridian);
+        }
     }
     else if (hdr->proj_type == GCTP_ALBERS_PROJ)
     {

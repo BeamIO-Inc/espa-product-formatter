@@ -14,7 +14,7 @@ NOTES:
 #ifndef ESPA_COMMON_H_
 #define ESPA_COMMON_H_
 
-#define ESPA_COMMON_VERSION "1.20.0"
+#define ESPA_COMMON_VERSION "dev_python3 (Collection 1)"
 
 /* Set up default success/error defines */
 #define SUCCESS 0

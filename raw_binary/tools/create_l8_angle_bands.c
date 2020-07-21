@@ -56,7 +56,8 @@ void usage ()
             " values for the Landsat 8 solar and view (satellite) angles. "
             "These per-pixel angle values are only generated for band 4, which "
             "is the representative band for OLI.  Values are written in "
-            "degrees and scaled by 100.\n\n");
+            "degrees and scaled by 100.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: create_l8_angle_bands --xml=input_metadata_filename\n");
 
     printf ("\nwhere the following parameters are required:\n");
@@ -229,6 +230,8 @@ int main (int argc, char** argv)
     Espa_global_meta_t *gmeta=NULL;  /* pointer to the global metadata struct */
     Espa_band_meta_t *out_bmeta = NULL; /* band metadata for angle bands */
     Espa_internal_meta_t out_meta;      /* output metadata for angle bands */
+
+    printf ("create_l8_angle_bands version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile) != SUCCESS)

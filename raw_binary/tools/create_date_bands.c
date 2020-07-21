@@ -42,7 +42,8 @@ void usage ()
             "The output date/year filenames are the same as band 1 in the "
             "input XML file with the _B1.img replaced with _date.img, "
             "_doy.img, and _year.img for the combined date/year, day of year, "
-            "and year bands respectively.\n\n");
+            "and year bands respectively.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: create_date_bands --xml=input_metadata_filename\n");
 
     printf ("\nwhere the following parameters are required:\n");
@@ -188,6 +189,8 @@ int main (int argc, char** argv)
     Espa_internal_meta_t out_meta;     /* output metadata for bands */
     Espa_internal_meta_t xml_metadata; /* XML metadata structure to be populated
                                           by reading the XML metadata file */
+
+    printf ("create_date_bands version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &espa_xml_file) != SUCCESS)

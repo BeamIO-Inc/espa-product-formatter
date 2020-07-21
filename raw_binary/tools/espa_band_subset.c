@@ -32,7 +32,8 @@ void usage ()
 {
     printf ("espa_band_subset subsets the specified bands from the input XML "
             "metadata file and creates a new XML metadata file containing "
-            "only the specified bands.\n\n");
+            "only the specified bands.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: espa_band_subset "
             "--xml=input_metadata_filename "
             "--subset_xml=output_subset_metadata_filename "
@@ -217,6 +218,8 @@ int main (int argc, char** argv)
     char *xml_subset_outfile = NULL;  /* output subset XML filename */
     char bands[MAX_TOTAL_BANDS][STR_SIZE];  /* array of nbands band names */
     int nbands;                       /* number of bands specified */
+
+    printf ("espa_band_subset version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile, &xml_subset_outfile, &nbands,

@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.20.0 Release Notes
-Release Date: May 2020
+## ESPA-PRODUCT_FORMATTER Version X.X.X Release Notes
+Release Date: TBD 2020
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8, Sentinel-2 L1C, and limited MODIS products.
 
@@ -14,7 +14,7 @@ espa-product-formatter source code
 
     git clone https://eroslab.cr.usgs.gov/lsrd/espa-product-formatter.git
 
-See git tag [version_1.20.0]
+See git tag [version_X.X.X]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -34,6 +34,7 @@ See git tag [version_1.20.0]
   * LZMA libraries -- http://www.7-zip.org/sdk.html
   * SZIP libraries -- http://www.compressconsult.com/szip/
   * Openjpeg libraries and tools -- http://www.openjpeg.org/
+  * GDAL tools (3.1.0) -- http://www.gdal.org/
   * Land/water static polygon -- http://edclpdsftp.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz
 
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
@@ -134,3 +135,5 @@ be needed for your application or other espa product formatter libraries may nee
   * Removed the tools/generateDS code since that is what generates the
     metadata_api handling.
   * Converted the scripts to utilize Python 3, since Python 2.x is obsolete.
+  * Updated the ENVI header to include the coordinate system string in an
+    effort to be compatible with newer GDAL/PROJ libraries.

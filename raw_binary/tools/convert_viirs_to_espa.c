@@ -32,7 +32,8 @@ void usage ()
 {
     printf ("convert_viirs_to_espa converts the VIIRS products to the ESPA "
             "internal format (XML metadata file and associated raw binary "
-            "files).\n\n");
+            "files).\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: convert_viirs_to_espa "
             "--hdf=input_hdf5_filename "
             "[--del_src_files]\n");
@@ -176,6 +177,8 @@ int main (int argc, char** argv)
     char *hdf_infile = NULL;      /* input VIIRS HDF5 filename */
     char *xml_outfile = NULL;     /* output XML filename */
     bool del_src = false;         /* should source files be removed? */
+
+    printf ("convert_viirs_to_espa version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &hdf_infile, &xml_outfile, &del_src) != SUCCESS)

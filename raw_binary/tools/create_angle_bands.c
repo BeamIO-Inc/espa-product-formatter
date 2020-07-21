@@ -60,7 +60,8 @@ void usage ()
             "(satellite) per-pixel angles for each band or for an average of "
             "the reflective bands.  Both the zenith and azimuth angles are "
             "created for each angle.  Values are written in degrees and scaled "
-            "by 100.\n\n");
+            "by 100.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: create_angle_bands "
             "--xml=input_metadata_filename\n"
             "{--average}");
@@ -261,6 +262,8 @@ int main (int argc, char** argv)
     Espa_global_meta_t *gmeta=NULL;  /* pointer to the global metadata struct */
     Espa_band_meta_t *out_bmeta = NULL; /* band metadata for angle bands */
     Espa_internal_meta_t out_meta;      /* output metadata for angle bands */
+
+    printf ("create_angle_bands version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile, &band_avg) != SUCCESS)

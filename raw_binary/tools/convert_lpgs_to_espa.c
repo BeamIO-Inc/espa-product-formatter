@@ -32,7 +32,8 @@ void usage ()
 {
     printf ("convert_lpgs_to_espa converts the LPGS products (MTL file and "
             "associated GeoTIFF files) to the ESPA internal format (XML "
-            "metadata file and associated raw binary files).\n\n");
+            "metadata file and associated raw binary files).\n");
+    printf ("convert_lpgs_to_espa v%s\n", ESPA_COMMON_VERSION);
     printf ("usage: convert_lpgs_to_espa "
             "--mtl=input_mtl_filename "
             "[--del_src_files]\n");
@@ -177,6 +178,8 @@ int main (int argc, char** argv)
     char *mtl_infile = NULL;      /* input LPGS MTL filename */
     char *xml_outfile = NULL;     /* output XML filename */
     bool del_src = false;         /* should source files be removed? */
+
+    printf ("convert_lpgs_to_espa version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &mtl_infile, &xml_outfile, &del_src) != SUCCESS)
