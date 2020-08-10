@@ -30,7 +30,6 @@ NOTES:
 ******************************************************************************/
 void usage ()
 {
-    printf ("convert_lpgs_to_espa v%s\n", ESPA_COMMON_VERSION);
     printf ("convert_lpgs_to_espa converts the LPGS products (MTL file and "
             "associated GeoTIFF files) to the ESPA internal format (XML "
             "metadata file and associated raw binary files).\n");
