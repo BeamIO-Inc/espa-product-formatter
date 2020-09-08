@@ -31,7 +31,8 @@ NOTES:
 void usage ()
 {
     printf ("test_read_gtif parses the XML, reads the Tiff files, and writes "
-            "back out the GeoTiff test files to duplicate each band.\n\n");
+            "back out the GeoTiff test files to duplicate each band.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: test_read_gtif --xml=xml_filename\n");
 
     printf ("\nwhere the following parameters are required:\n");
@@ -162,6 +163,8 @@ int main (int argc, char** argv)
                                           structure */
     Espa_band_meta_t *bmeta = NULL;    /* pointer to current band metadata */
     TIFF *tif_fptr = NULL;             /* file pointer for Tiff file */
+
+    printf ("test_read_gtif version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile) != SUCCESS)

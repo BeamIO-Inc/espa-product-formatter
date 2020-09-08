@@ -37,7 +37,8 @@ NOTES:
 void usage ()
 {
     printf ("create_land_water_mask creates the land/water mask for the "
-            "input scene, based on a static land-mass polygon.\n\n");
+            "input scene, based on a static land-mass polygon.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: create_land_water_mask "
             "--xml=input_metadata_filename\n");
 
@@ -185,6 +186,8 @@ int main (int argc, char** argv)
     Espa_internal_meta_t out_meta;    /* output metadata for land-water mask */
     Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
                                 populated by reading the MTL metadata file */
+
+    printf ("create_land_water_mask version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &espa_xml_file) != SUCCESS)

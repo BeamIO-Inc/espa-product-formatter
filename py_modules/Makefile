@@ -9,7 +9,7 @@
 TOP = ..
 include $(TOP)/make.config
 
-PYTHON_MODULES = espa_constants.py espa_logging.py metadata_api.py
+PYTHON_MODULES = espa_constants.py espa_logging.py
 
 all:
 

@@ -1,5 +1,5 @@
-## ESPA-PRODUCT_FORMATTER Version 1.19.0 Release Notes
-Release Date: November 2019
+## ESPA-PRODUCT_FORMATTER Version 2.0.0 Release Notes
+Release Date: September 2020
 
 The product formatter project contains libraries and tools for working with the ESPA internal file format (raw binary with an XML metadata file). It currently supports Landsat 4-8, Sentinel-2 L1C, and limited MODIS products.
 
@@ -12,9 +12,9 @@ This software is preliminary or provisional and is subject to revision. It is be
 ### Downloads
 espa-product-formatter source code
 
-    git clone https://github.com/USGS-EROS/espa-product-formatter.git
+    git clone https://eroslab.cr.usgs.gov/lsrd/espa-product-formatter.git
 
-See git tag [version_1.19.0]
+See git tag [version_2.0.0]
 
 ### Dependencies
   * GCTP libraries (obtained from the GCTP directory in the HDF-EOS2 source code)
@@ -34,6 +34,7 @@ See git tag [version_1.19.0]
   * LZMA libraries -- http://www.7-zip.org/sdk.html
   * SZIP libraries -- http://www.compressconsult.com/szip/
   * Openjpeg libraries and tools -- http://www.openjpeg.org/
+  * GDAL tools (3.1.0) -- http://www.gdal.org/
   * Land/water static polygon -- http://edclpdsftp.cr.usgs.gov/downloads/auxiliaries/land_water_poly/land_no_buf.ply.gz
 
 NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZLIB libraries in addition to the HDF-EOS2 library.
@@ -94,6 +95,11 @@ NOTE: The HDF-EOS2 link currently provides the source for the HDF4, JPEG, and ZL
 
   Note: on some platforms, the JBIG library may be needed for the XML library support, if it isn't already installed.  If so, then the JBIGLIB environment variable needs to point to the location of the JBIG library.
 
+* Set your ESPA_SCHEMA environment variable to point to the location of the latest schema in the schema directory.
+  ```
+    export ESPA_SCHEMA="path_to_schema"
+   ```
+
 ### Linking these libraries for other applications
 The following is an example of how to link these libraries into your
 source code. Depending on your needs, some of these libraries may not
@@ -124,15 +130,10 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Cleaned up some warning codes flagged after migrating to a newer system.
-  * Fixed a bug in parse_sentinel_metadata.c.  Prodtype is a character
-    pointer and not an array, therefore using the size of the pointer is not
-    valid when used as an argument in sizeof.
-  * Added a script for unpackaging the Sentinel-2 product bundles so they are
-    in the proper format for ingesting via convert_sentinel_to_espa.
-  * Updated the python metadata library to use the version 2.2 schema. 
-  * Modified the unpackage script to support both old and new Sentinel-2
-    package formats.
-  * Developed a filename convention for ESPA's version of the Sentinel-2
-    products and the conversion of Sentinel to ESPA writes the output bands
-    using this filename convention.
+  * Removed the py_modules/metadata_api in lieu of the metadata library being
+    used in espa-python-library.
+  * Removed the tools/generateDS code since that is what generates the
+    metadata_api handling.
+  * Converted the scripts to utilize Python 3, since Python 2.x is obsolete.
+  * Updated the ENVI header to include the coordinate system string in an
+    effort to be compatible with newer GDAL/PROJ libraries.

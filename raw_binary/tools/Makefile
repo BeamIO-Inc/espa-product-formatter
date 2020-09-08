@@ -349,6 +349,9 @@ $(OBJ13): $(INC)
 $(OBJ14): $(INC)
 $(OBJ16): $(INC)
 
+$(OBJ12): $(INC)
+	$(CC) $(NETCDF_NCFLAGS) -c convert_espa_to_netcdf.c
+
 $(OBJ15): $(INC)
 	$(CC) $(HDF5_NCFLAGS) -c convert_viirs_to_espa.c
 

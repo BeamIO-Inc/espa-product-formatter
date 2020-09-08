@@ -33,7 +33,8 @@ void usage ()
 {
     printf ("espa_product_subset subsets the bands with the specified "
             "product types from the input XML metadata file and creates a "
-            "new XML metadata file containing only the specified bands.\n\n");
+            "new XML metadata file containing only the specified bands.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: espa_product_subset "
             "--xml=input_metadata_filename "
             "--subset_xml=output_subset_metadata_filename "
@@ -216,6 +217,8 @@ int main (int argc, char** argv)
     char products[MAX_TOTAL_PRODUCT_TYPES][STR_SIZE];  /* array of nproducts
                                        product types */
     int nproducts;                   /* number of product types specified */
+
+    printf ("espa_product_subset version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile, &xml_subset_outfile, &nproducts,

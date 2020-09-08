@@ -36,7 +36,8 @@ void usage ()
             "the input XML file will be written to a single raw binary file "
             "with the all the bands for a single pixel being written, "
             "followed by all the bands for the next pixel, etc. An associated "
-            "ENVI header file will be written for this raw binary file.\n\n");
+            "ENVI header file will be written for this raw binary file.\n");
+    printf ("version: %s\n\n", ESPA_COMMON_VERSION);
     printf ("usage: convert_espa_to_bip "
             "--xml=input_metadata_filename "
             "--bip=output_bip_filename "
@@ -208,6 +209,8 @@ int main (int argc, char** argv)
     bool convert_qa = false;     /* should the QA bands (UINT8) be converted to
                                     the native data type? */
     bool del_src = false;        /* should source files be removed? */
+
+    printf ("convert_espa_to_bip version: %s\n", ESPA_COMMON_VERSION);
 
     /* Read the command-line arguments */
     if (get_args (argc, argv, &xml_infile, &bip_outfile, &convert_qa,
