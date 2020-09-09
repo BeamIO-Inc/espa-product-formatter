@@ -71,4 +71,9 @@ clean:
 	@for dir in $(LIBDIRS) $(EXEDIRS); do \
         echo "make clean in $$dir..."; \
         (cd $$dir; $(MAKE) clean); done
-	rm -r include lib
+ifneq "$(wildcard include)" ""
+	rm -r include
+endif
+ifneq "$(wildcard lib)" ""
+	rm -r lib
+endif
