@@ -108,14 +108,15 @@ int write_raw_binary
 {
     char FUNC_NAME[] = "write_raw_binary"; /* function name */
     char errmsg[STR_SIZE];   /* error message */
-    int nvals;               /* number of values written to the file */
+    long nvals;              /* number of values written to the file */
 
     /* Write the data to the raw binary file */
     nvals = fwrite (img_array, size, nlines * nsamps, rb_fptr);
     if (nvals != nlines * nsamps)
     {
         sprintf (errmsg, "Writing %d elements of %d bytes in size to the "
-            "raw binary file.", nlines * nsamps, size);
+            "raw binary file. Actually wrote %d elements.", nlines * nsamps,
+            size, nvals);
         error_handler (true, FUNC_NAME, errmsg);
         return ERROR;
     }
@@ -151,14 +152,15 @@ int read_raw_binary
 {
     char FUNC_NAME[] = "read_raw_binary"; /* function name */
     char errmsg[STR_SIZE];   /* error message */
-    int nvals;               /* number of values read from the file */
+    long nvals;              /* number of values read from the file */
 
     /* Read the data from the raw binary file */
     nvals = fread (img_array, size, nlines * nsamps, rb_fptr);
     if (nvals != nlines * nsamps)
     {
         sprintf (errmsg, "Reading %d elements of %d bytes in size from the "
-            "raw binary file.", nlines * nsamps, size);
+            "raw binary file. Actually read %d elements.", nlines * nsamps,
+            size, nvals);
         error_handler (true, FUNC_NAME, errmsg);
         return ERROR;
     }
