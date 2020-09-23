@@ -115,7 +115,7 @@ int write_raw_binary
     if (nvals != nlines * nsamps)
     {
         sprintf (errmsg, "Writing %d elements of %d bytes in size to the "
-            "raw binary file. Actually wrote %d elements.", nlines * nsamps,
+            "raw binary file. Actually wrote %ld elements.", nlines * nsamps,
             size, nvals);
         error_handler (true, FUNC_NAME, errmsg);
         return ERROR;
@@ -159,7 +159,7 @@ int read_raw_binary
     if (nvals != nlines * nsamps)
     {
         sprintf (errmsg, "Reading %d elements of %d bytes in size from the "
-            "raw binary file. Actually read %d elements.", nlines * nsamps,
+            "raw binary file. Actually read %ld elements.", nlines * nsamps,
             size, nvals);
         error_handler (true, FUNC_NAME, errmsg);
         return ERROR;
