@@ -1287,6 +1287,24 @@ int read_modis_hdf
                 continue;
             }
 
+            /* Skip the orbit_pnt_c band from the MODIS products since the
+               fill value is negative and this is causing issues with GDAL
+               for the 8-bit product. Temporary fix for now. NOTE: Add to
+               the loop below as well. */
+            if (!strncmp (fieldname, "orbit_pnt_", 10) ||
+                !strncmp (fieldname, "num_observations_", 17) ||
+                !strncmp (fieldname, "obscov_500m", 11) ||
+                !strncmp (fieldname, "night_view_", 11) ||
+                !strncmp (fieldname, "day_view_", 9))
+            {
+                sprintf (errmsg, "Skipping SDS %s in grid %s as temporary "
+                    "handling of this band which isn't needed for ESPA "
+                    "processing and has a -1 scale factor for byte data.",
+                    fieldname, gridname);
+                error_handler (false, FUNC_NAME, errmsg);
+                continue;
+            }
+
             /* Store the band/SDS information */
             data_type[nmodis_bands] = dtype;
             count = snprintf (modis_bands[nmodis_bands],
@@ -1449,6 +1467,16 @@ int read_modis_hdf
 
             /* Only support 2D SDSs at this time */
             if (rank > 2)
+                continue;
+
+            /* Skip the orbit_pnt_c band from the MODIS products since the
+               fill value is negative and this is causing issues with GDAL
+               for the 8-bit product. Temporary fix for now. */
+            if (!strncmp (fieldname, "orbit_pnt_", 10) ||
+                !strncmp (fieldname, "num_observations_", 17) ||
+                !strncmp (fieldname, "obscov_500m", 11) ||
+                !strncmp (fieldname, "night_view_", 11) ||
+                !strncmp (fieldname, "day_view_", 9))
                 continue;
 
             /* Fill in the SDS/band level information already obtained. Use
