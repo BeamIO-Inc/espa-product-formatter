@@ -137,3 +137,6 @@ be needed for your application or other espa product formatter libraries may nee
   * Converted the scripts to utilize Python 3, since Python 2.x is obsolete.
   * Updated the ENVI header to include the coordinate system string in an
     effort to be compatible with newer GDAL/PROJ libraries.
+  * Fixed a bug in the handling of negative UTM zones.
+  * Fixed a bug in the determination of the UL/LR corners and bounding coords
+    in the XML file.

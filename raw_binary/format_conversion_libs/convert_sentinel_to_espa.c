@@ -375,6 +375,12 @@ int convert_sentinel_to_espa
     float scale_factor;               /* scale factor for all bands */
     int i;                            /* looping variable */
     int count;                        /* number of chars copied in snprintf */
+
+    Img_coord_float_t img;            /* image coordinates for current pixel */
+    Geo_coord_t geo;                  /* geodetic coordinates (note radians) */
+    Space_def_t geoloc_def;           /* geolocation space information */
+    Geoloc_t *geoloc_map = NULL;      /* geolocation mapping information */
+
     Espa_internal_meta_t xml_metadata;  /* ESPA XML metadata structure to be
                                            populated by reading the Sentinel
                                            XML file */
@@ -484,6 +490,57 @@ int convert_sentinel_to_espa
         sprintf (bmeta->long_name, "band %s top-of-atmosphere reflectance",
             sentinel_band_nums[i]);
     }
+
+    /* Use band 2 as the representative 10m band */
+    bmeta = &xml_metadata.band[1];
+
+    /* Get geolocation information from the XML file (using the first band) to
+       prepare for computing the bounding coordinates */
+    if (!get_geoloc_info (&xml_metadata, &geoloc_def))
+    {
+        sprintf (errmsg, "Copying the geolocation information from the XML "
+            "metadata structure.");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
+    /* Setup the mapping structure */
+    geoloc_map = setup_mapping (&geoloc_def);
+    if (geoloc_map == NULL)
+    {
+        sprintf (errmsg, "Setting up the geolocation mapping structure.");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
+    /* Get the geographic coords for the UL corner */
+    img.l = 0.0;
+    img.s = 0.0;
+    img.is_fill = false;
+    if (!from_space (geoloc_map, &img, &geo))
+    {
+        sprintf (errmsg, "Mapping UL corner to lat/long");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+    gmeta->ul_corner[0] = geo.lat * DEG;
+    gmeta->ul_corner[1] = geo.lon * DEG;
+
+    /* Get the geographic coords for the LR corner */
+    img.l = bmeta->nlines-1;
+    img.s = bmeta->nsamps-1;
+    img.is_fill = false;
+    if (!from_space (geoloc_map, &img, &geo))
+    {
+        sprintf (errmsg, "Mapping UL corner to lat/long");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+    gmeta->lr_corner[0] = geo.lat * DEG;
+    gmeta->lr_corner[1] = geo.lon * DEG;
+
+    /* Free the geolocation structure */
+    free (geoloc_map);
 
     /* If the source data is going to get removed, then save the band 1
        filename before it is renamed */
