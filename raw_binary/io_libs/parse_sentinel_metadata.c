@@ -1012,10 +1012,10 @@ int parse_sentinel_product_xml_into_struct
     xmlNode *cur_node = NULL;    /* pointer to the current node */
     xmlNode *child_node = NULL;  /* pointer to the child node */
     int count;                   /* number of chars copied in snprintf */
-    float lat1, lon1;            /* initial global extents values */
-    float lat, lon;              /* global extents values */
-    float north, south;          /* northern and southern global extents */
-    float east, west;            /* eastern and western global extents */
+    double lat1, lon1;           /* initial global extents values */
+    double lat, lon;             /* global extents values */
+    double north, south;         /* northern and southern global extents */
+    double east, west;           /* eastern and western global extents */
     bool skip_child;             /* boolean to specify the children of this
                                     node should not be processed */
     static bool found_img_file = false;  /* has the initial IMAGE_FILE element
@@ -1271,13 +1271,17 @@ int parse_sentinel_product_xml_into_struct
                    counter-clockwise oriented. The last point is a duplication
                    of the first point in the closed system. */
                 /* Read the first lat/long pair */
-                sscanf ((const char *) child_node->content, "%f %f",
+                sscanf ((const char *) child_node->content, "%lf %lf",
                     &lat1, &lon1);
                 east = west = lon1;
                 north = south = lat1;
 
-                /* Read the next lat/long pairs until they match the first */
+                /* Consume the leading spaces in the string before parsing */
                 mybounds = (char *) child_node->content;
+                while (mybounds[0] == ' ')
+                    mybounds++;
+
+                /* Read the next lat/long pairs until they match the first */
                 while (true)
                 {
                     /* Find the next blank space and consume it */
@@ -1293,7 +1297,7 @@ int parse_sentinel_product_xml_into_struct
                     mybounds = space + 1;
 
                     /* Read the next lat/long pair */
-                    sscanf ((const char *) mybounds, "%f %f", &lat, &lon);
+                    sscanf ((const char *) mybounds, "%lf %lf", &lat, &lon);
 
                     /* Is this the same as the first set? */
                     if (lat1 == lat && lon1 == lon)
@@ -1304,7 +1308,6 @@ int parse_sentinel_product_xml_into_struct
                     if (lon > east) east = lon;
                     if (lat > north) north = lat;
                     if (lat < south) south = lat;
-
                 }
 
                 /* Store the bounding coordinates */
