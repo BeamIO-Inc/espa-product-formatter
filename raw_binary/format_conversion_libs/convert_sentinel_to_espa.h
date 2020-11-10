@@ -21,6 +21,7 @@ NOTES:
 #include <string.h>
 #include "error_handler.h"
 #include "espa_metadata.h"
+#include "espa_geoloc.h"
 #include "write_metadata.h"
 #include "envi_header.h"
 #include "parse_sentinel_metadata.h"

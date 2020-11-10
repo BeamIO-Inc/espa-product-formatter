@@ -115,7 +115,8 @@ int write_envi_hdr
 
             /* UTM specific strings and variables */
             if (hdr->proj_type == GCTP_UTM_PROJ)
-                sprintf (utm_projcs, "WGS_1984_UTM_Zone_%d", hdr->utm_zone);
+                sprintf (utm_projcs, "WGS_1984_UTM_Zone_%d",
+                    abs(hdr->utm_zone));
             break;
 
         case ESPA_NAD27:  /* Clarke 1866 sphere */
@@ -129,7 +130,8 @@ int write_envi_hdr
 
             /* UTM specific strings and variables */
             if (hdr->proj_type == GCTP_UTM_PROJ)
-                sprintf (utm_projcs, "NAD_1927_UTM_Zone_%d", hdr->utm_zone);
+                sprintf (utm_projcs, "NAD_1927_UTM_Zone_%d",
+                    abs(hdr->utm_zone));
             break;
 
         case ESPA_NAD83:  /* GRS 1980 sphere */
@@ -143,7 +145,8 @@ int write_envi_hdr
 
             /* UTM specific strings and variables */
             if (hdr->proj_type == GCTP_UTM_PROJ)
-                sprintf (utm_projcs, "NAD_1983_UTM_Zone_%d", hdr->utm_zone);
+                sprintf (utm_projcs, "NAD_1983_UTM_Zone_%d",
+                    abs(hdr->utm_zone));
             break;
     }
 
@@ -217,10 +220,10 @@ int write_envi_hdr
                 "map info = {UTM, %d, %d, %f, %f, %f, %f, %d, South, %s, "
                 "units=Meters}\n", hdr->xy_start[0], hdr->xy_start[1],
                 hdr->ul_corner[0], hdr->ul_corner[1], hdr->pixel_size[0],
-                hdr->pixel_size[1], -(hdr->utm_zone), proj_datum_str);
+                hdr->pixel_size[1], abs(hdr->utm_zone), proj_datum_str);
 
             utm_false_northing = 10000000.0;
-            utm_cent_meridian = -183.0 + hdr->utm_zone * 6;
+            utm_cent_meridian = -183.0 + abs(hdr->utm_zone) * 6;
             fprintf (hdr_fptr,
                 "coordinate system string = {PROJCS[\"%sS\", "
                 "GEOGCS[\"%s\", DATUM[\"%s\", "

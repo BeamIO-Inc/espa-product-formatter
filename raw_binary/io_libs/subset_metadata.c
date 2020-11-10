@@ -373,8 +373,6 @@ int subset_metadata_by_product
 
         outmeta->band[iband].valid_range[0] = inmeta->band[i].valid_range[0];
         outmeta->band[iband].valid_range[1] = inmeta->band[i].valid_range[1];
-        outmeta->band[iband].valid_range[0] = inmeta->band[i].valid_range[0];
-        outmeta->band[iband].valid_range[1] = inmeta->band[i].valid_range[1];
         outmeta->band[iband].rad_gain = inmeta->band[i].rad_gain;
         outmeta->band[iband].rad_bias = inmeta->band[i].rad_bias;
         outmeta->band[iband].refl_gain = inmeta->band[i].refl_gain;

@@ -1006,11 +1006,16 @@ int parse_sentinel_product_xml_into_struct
     char FUNC_NAME[] = "parse_sentinel_product_xml_into_struct"; /* func name */
     char errmsg[STR_SIZE];       /* error message */
     char *curr_stack_element = NULL;  /* element popped from the stack */
+    char *mybounds = NULL;       /* pointer to the string containing the
+                                    global position values */
+    char *space = NULL;          /* pointer to blank space */
     xmlNode *cur_node = NULL;    /* pointer to the current node */
     xmlNode *child_node = NULL;  /* pointer to the child node */
     int count;                   /* number of chars copied in snprintf */
-    float ul[2], ur[2];          /* UL and UR lat/long corner points */
-    float ll[2], lr[2];          /* LL and LR lat/long corner points */
+    double lat1, lon1;           /* initial global extents values */
+    double lat, lon;             /* global extents values */
+    double north, south;         /* northern and southern global extents */
+    double east, west;           /* eastern and western global extents */
     bool skip_child;             /* boolean to specify the children of this
                                     node should not be processed */
     static bool found_img_file = false;  /* has the initial IMAGE_FILE element
@@ -1244,9 +1249,8 @@ int parse_sentinel_product_xml_into_struct
                 *scale_factor = atof ((const char *) child_node->content);
             }
 
-// GAIL THIS IS GOOD (CHECK THIS - there are lots of points!)
-            /* Process the global footprint and store it as the corner UL/LR
-               as well as the bounding coordinates */
+            /* Process the global footprint and store it as the bounding
+               coordinates */
             else if (xmlStrEqual (cur_node->name,
                 (const xmlChar *) "EXT_POS_LIST"))
             {
@@ -1264,41 +1268,53 @@ int parse_sentinel_product_xml_into_struct
                 /* Copy the content of the child node into the value for this
                    field. According to the documentation, the footprint is a
                    closed polygon provided as a series of vertices (lat, lon)
-                   counter-clockwise oriented. The last/fifth point can be
-                   skipped in this case since it is a duplication of the UL
-                   in the closed system. NOTE: After drawing out the corner
-                   points in this XML metadata, they instead appear to be in
-                   a clockwise direction, contradictory to the documentation. */
-                sscanf ((const char *) child_node->content,
-                    "%f %f %f %f %f %f %f %f", &ul[0], &ul[1], &ur[0], &ur[1],
-                    &lr[0], &lr[1], &ll[0], &ll[1]);
+                   counter-clockwise oriented. The last point is a duplication
+                   of the first point in the closed system. */
+                /* Read the first lat/long pair */
+                sscanf ((const char *) child_node->content, "%lf %lf",
+                    &lat1, &lon1);
+                east = west = lon1;
+                north = south = lat1;
 
-                /* Assign the UL and LR lat/long values */
-                gmeta->ul_corner[0] = ul[0];
-                gmeta->ul_corner[1] = ul[1];
-                gmeta->lr_corner[0] = lr[0];
-                gmeta->lr_corner[1] = lr[1];
+                /* Consume the leading spaces in the string before parsing */
+                mybounds = (char *) child_node->content;
+                while (mybounds[0] == ' ')
+                    mybounds++;
 
-                /* Use the corners to determine the bounding coordinates */
-                if (ul[1] < ll[1])
-                    gmeta->bounding_coords[ESPA_WEST] = ul[1];
-                else
-                    gmeta->bounding_coords[ESPA_WEST] = ll[1];
+                /* Read the next lat/long pairs until they match the first */
+                while (true)
+                {
+                    /* Find the next blank space and consume it */
+                    space = strchr (mybounds, ' ');
+                    if (space == NULL)
+                        break;
+                    mybounds = space + 1;
 
-                if (ur[1] > lr[1])
-                    gmeta->bounding_coords[ESPA_EAST] = ur[1];
-                else
-                    gmeta->bounding_coords[ESPA_EAST] = lr[1];
+                    /* Find the second blank space and consume it */
+                    space = strchr (mybounds, ' ');
+                    if (space == NULL)
+                        break;
+                    mybounds = space + 1;
 
-                if (ul[0] > ur[0])
-                    gmeta->bounding_coords[ESPA_NORTH] = ul[0];
-                else
-                    gmeta->bounding_coords[ESPA_NORTH] = ur[0];
+                    /* Read the next lat/long pair */
+                    sscanf ((const char *) mybounds, "%lf %lf", &lat, &lon);
 
-                if (ll[0] < lr[0])
-                    gmeta->bounding_coords[ESPA_SOUTH] = ll[0];
-                else
-                    gmeta->bounding_coords[ESPA_SOUTH] = lr[0];
+                    /* Is this the same as the first set? */
+                    if (lat1 == lat && lon1 == lon)
+                        break;
+
+                    /* Check for bounds */
+                    if (lon < west) west = lon;
+                    if (lon > east) east = lon;
+                    if (lat > north) north = lat;
+                    if (lat < south) south = lat;
+                }
+
+                /* Store the bounding coordinates */
+                gmeta->bounding_coords[ESPA_WEST] = west;
+                gmeta->bounding_coords[ESPA_EAST] = east;
+                gmeta->bounding_coords[ESPA_NORTH] = north;
+                gmeta->bounding_coords[ESPA_SOUTH] = south;
             }
 
 #ifdef DEBUG

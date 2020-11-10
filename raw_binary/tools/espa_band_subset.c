@@ -50,12 +50,12 @@ void usage ()
             "to the subset XML file. If not specified, then only the global "
             "and projection metadata will be copied to the subset XML file.\n");
     printf ("\nExample: espa_band_subset "
-            "--xml=LE07_L1TP_022033_20140228_20161028_01_T1.xml "
-            "--subset_xml=LE07_L1TP_022033_20140228_20161028_01_T1_subset.xml "
+            "--xml=LE07_L1TP_022033_20140228_20161028_02_T1.xml "
+            "--subset_xml=LE07_L1TP_022033_20140228_20161028_02_T1_subset.xml "
             "--band b1 --band b4 --band b7\n");
     printf ("\nExample: espa_band_subset "
-            "--xml=LE07_L1TP_022033_20140228_20161028_01_T1.xml "
-            "--subset_xml=LE07_L1TP_022033_20140228_20161028_01_T1_subset.xml\n");
+            "--xml=LE07_L1TP_022033_20140228_20161028_02_T1.xml "
+            "--subset_xml=LE07_L1TP_022033_20140228_20161028_02_T1_subset.xml\n");
 }
 
 

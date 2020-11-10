@@ -71,12 +71,12 @@ int convert_espa_to_raw_binary_bip
     uint8 *tmp_buf_u8 = NULL;   /* buffer for uint8 QA data to be read */
     uint8 *file_buf_u8 = NULL;  /* buffer for uint8 data to be read */
     int16 *file_buf_i16 = NULL; /* buffer for int16 data to be read */
-    int16 *file_buf_u16 = NULL; /* buffer for uint16 data to be read */
+    uint16 *file_buf_u16 = NULL;/* buffer for uint16 data to be read */
     void *ofile_buf = NULL;     /* pointer to correct output file buffer */
     uint8 *ofile_buf_u8 = NULL; /* buffer for output uint8 data to be written */
     int16 *ofile_buf_i16 = NULL;/* buffer for output int16 data to be written */
-    int16 *ofile_buf_u16 = NULL;/* buffer for output uint16 data to be
-                                   written */
+    uint16 *ofile_buf_u16 = NULL;/* buffer for output uint16 data to be
+                                    written */
     FILE **fp_rb = NULL;        /* array of file pointers for the input raw
                                    binary files */
     FILE *fp_bip = NULL;        /* file pointer for the BIP raw binary file */
