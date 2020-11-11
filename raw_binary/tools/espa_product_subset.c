@@ -49,8 +49,8 @@ void usage ()
     printf ("    -product: name of the product type in the input XML file to "
             "be written to the subset XML file\n");
     printf ("\nExample: espa_product_subset "
-            "--xml=LE07_L1TP_022033_20140228_20161028_01_T1.xml "
-            "--subset_xml=LE07_L1TP_022033_20140228_20161028_01_T1_subset.xml "
+            "--xml=LE07_L1TP_022033_20140228_20161028_02_T1.xml "
+            "--subset_xml=LE07_L1TP_022033_20140228_20161028_02_T1_subset.xml "
             "--product L1GT --product L1TP --product surface_reflectance\n");
 }
 

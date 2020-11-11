@@ -49,8 +49,8 @@ void usage ()
     printf ("    -no_compression: if specified compression will not be used "
             "(the default is compression is used)\n");
     printf ("\nExample: convert_espa_to_netcdf "
-            "--xml=LE07_L1TP_022033_20140228_20161028_01_T1.xml "
-            "--netcdf=LE07_L1TP_022033_20140228_20161028_01_T1.nc\n");
+            "--xml=LE07_L1TP_022033_20140228_20161028_02_T1.xml "
+            "--netcdf=LE07_L1TP_022033_20140228_20161028_02_T1.nc\n");
 }
 
 

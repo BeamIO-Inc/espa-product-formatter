@@ -48,8 +48,8 @@ void usage ()
     printf ("    -del_src_files: if specified the source image and header "
             "files will be removed\n");
     printf ("\nExample: convert_espa_to_gtif "
-            "--xml=LE07_L1TP_022033_20140228_20161028_01_T1.xml "
-            "--gtif=LE07_L1TP_022033_20140228_20161028_01_T1\n");
+            "--xml=LE07_L1TP_022033_20140228_20161028_02_T1.xml "
+            "--gtif=LE07_L1TP_022033_20140228_20161028_02_T1\n");
 }
 
 

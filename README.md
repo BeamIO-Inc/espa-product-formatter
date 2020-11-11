@@ -129,7 +129,7 @@ be needed for your application or other espa product formatter libraries may nee
 
 
 ## Release Notes
-  * Fixed a bug in the handlig of negative UTM zones for Sentinel-2.
+  * Fixed a bug in the handling of negative UTM zones for Sentinel-2.
   * Fixed a bug in the determination of the UL/LR corners and bounding coords
     in the XML file for Sentinel-2.
   * Change examples in the tools to use Collection 2 filenames.
