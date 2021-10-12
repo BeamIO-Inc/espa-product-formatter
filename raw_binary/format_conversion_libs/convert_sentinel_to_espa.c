@@ -252,11 +252,12 @@ int convert_jp2_to_img
     /* Setup the opj_decompress command for converting all the bands in the
        current directory from JP2 to img.  This does not create an ENVI header
        file for the bands. */
-    strcpy (jp2_cmd, "opj_decompress -ImgDir . -OutFor RAW -quiet");
+    // strcpy (jp2_cmd, "opj_decompress -ImgDir . -OutFor RAW -quiet");
+    strcpy (jp2_cmd, "for i in *.jp2; do gdal_translate -of ENVI $i ${i%.jp2}; done");
     if (system (jp2_cmd) == -1)
     {
         sprintf (errmsg, "Decompressing JP2 files: %s. Make sure the current "
-            "directory is writable and the openjpeg opj_decompress tool is in "
+            "directory is writable and the GDAL gdal_translate tool is in "
             "your system PATH", jp2_cmd);
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
@@ -281,7 +282,7 @@ int convert_jp2_to_img
         }
         strcpy (cptr, ".img");
 
-        /* Rename the .raw files from the opg_decompress to .img files */
+        /* Rename the ENVI data files from the gdal_translate to .img files */
         count = snprintf (raw_file, sizeof (raw_file), "%s", bmeta->file_name);
         if (count < 0 || count >= sizeof (raw_file))
         {
@@ -290,7 +291,7 @@ int convert_jp2_to_img
             return (ERROR);
         }
         cptr = strrchr (raw_file, '.');
-        strcpy (cptr, ".raw");
+        strcpy (cptr, "\0");
 
         if (rename (raw_file, bmeta->file_name))
         {
@@ -301,33 +302,33 @@ int convert_jp2_to_img
             return (ERROR);
         }
 
-        /* Create the ENVI header file for this band */
-        if (create_envi_struct (bmeta, gmeta, &envi_hdr) != SUCCESS)
-        {
-            sprintf (errmsg, "Creating the ENVI header structure for this "
-                "file: %s", bmeta->file_name);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
+        // /* Create the ENVI header file for this band */
+        // if (create_envi_struct (bmeta, gmeta, &envi_hdr) != SUCCESS)
+        // {
+        //     sprintf (errmsg, "Creating the ENVI header structure for this "
+        //         "file: %s", bmeta->file_name);
+        //     error_handler (true, FUNC_NAME, errmsg);
+        //     return (ERROR);
+        // }
 
-        /* Write the ENVI header */
-        count = snprintf (envi_file, sizeof (envi_file), "%s",
-            bmeta->file_name);
-        if (count < 0 || count >= sizeof (envi_file))
-        {
-            sprintf (errmsg, "Overflow of envi_file string");
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
-        cptr = strrchr (envi_file, '.');
-        strcpy (cptr, ".hdr");
+        // /* Write the ENVI header */
+        // count = snprintf (envi_file, sizeof (envi_file), "%s",
+        //     bmeta->file_name);
+        // if (count < 0 || count >= sizeof (envi_file))
+        // {
+        //     sprintf (errmsg, "Overflow of envi_file string");
+        //     error_handler (true, FUNC_NAME, errmsg);
+        //     return (ERROR);
+        // }
+        // cptr = strrchr (envi_file, '.');
+        // strcpy (cptr, ".hdr");
 
-        if (write_envi_hdr (envi_file, &envi_hdr) != SUCCESS)
-        {
-            sprintf (errmsg, "Writing the ENVI header file: %s.", envi_file);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
-        }
+        // if (write_envi_hdr (envi_file, &envi_hdr) != SUCCESS)
+        // {
+        //     sprintf (errmsg, "Writing the ENVI header file: %s.", envi_file);
+        //     error_handler (true, FUNC_NAME, errmsg);
+        //     return (ERROR);
+        // }
     }  /* end for */
 
     /* Successful conversion */
