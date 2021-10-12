@@ -249,10 +249,7 @@ int convert_jp2_to_img
     Espa_band_meta_t *bmeta = NULL;  /* pointer to band metadata */
     Espa_global_meta_t *gmeta = &xml_metadata->global;  /* global metadata */
 
-    /* Setup the opj_decompress command for converting all the bands in the
-       current directory from JP2 to img.  This does not create an ENVI header
-       file for the bands. */
-    // strcpy (jp2_cmd, "opj_decompress -ImgDir . -OutFor RAW -quiet");
+    // TODO: execute this in the loop below for better error handling
     strcpy (jp2_cmd, "for i in *.jp2; do gdal_translate -of ENVI $i ${i%.jp2}; done");
     if (system (jp2_cmd) == -1)
     {
@@ -301,34 +298,6 @@ int convert_jp2_to_img
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }
-
-        // /* Create the ENVI header file for this band */
-        // if (create_envi_struct (bmeta, gmeta, &envi_hdr) != SUCCESS)
-        // {
-        //     sprintf (errmsg, "Creating the ENVI header structure for this "
-        //         "file: %s", bmeta->file_name);
-        //     error_handler (true, FUNC_NAME, errmsg);
-        //     return (ERROR);
-        // }
-
-        // /* Write the ENVI header */
-        // count = snprintf (envi_file, sizeof (envi_file), "%s",
-        //     bmeta->file_name);
-        // if (count < 0 || count >= sizeof (envi_file))
-        // {
-        //     sprintf (errmsg, "Overflow of envi_file string");
-        //     error_handler (true, FUNC_NAME, errmsg);
-        //     return (ERROR);
-        // }
-        // cptr = strrchr (envi_file, '.');
-        // strcpy (cptr, ".hdr");
-
-        // if (write_envi_hdr (envi_file, &envi_hdr) != SUCCESS)
-        // {
-        //     sprintf (errmsg, "Writing the ENVI header file: %s.", envi_file);
-        //     error_handler (true, FUNC_NAME, errmsg);
-        //     return (ERROR);
-        // }
     }  /* end for */
 
     /* Successful conversion */
